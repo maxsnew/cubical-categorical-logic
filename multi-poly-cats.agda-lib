@@ -1,0 +1,4 @@
+name: multi-poly-cats
+include: .
+depend: cubical
+flags: --cubical
