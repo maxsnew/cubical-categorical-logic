@@ -1,15 +1,13 @@
-{-# OPTIONS --allow-unsolved-metas --rewriting #-}
 module Context where
 
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Prelude
+open import Cubical.Functions.FunExtEquiv
 open import Cubical.Data.Nat
 open import Cubical.Data.Nat.Order
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sum
 open import Cubical.Data.Fin hiding (_/_)
-
-{-# BUILTIN REWRITE _≡_ #-}
 
 private
   variable
@@ -52,8 +50,6 @@ lem2 l m n m≤n l<n-m =
          n ∎
       where open <-Reasoning
 
-
-
 _[_/_] : ∀ {A : Type ℓ} → (Θ : Ctx A) → Ctx A → Var Θ → Ctx A
 _[_/_] {A = A} Θ Υ x = record
       { len = toℕ x + Ctx.len Υ + (Ctx.len Θ ∸ (1 + toℕ x))
@@ -67,29 +63,40 @@ _[_/_] {A = A} Θ Υ x = record
     elts' (inr y>x) = Ctx.elts Θ ((toℕ y>x + (1 + toℕ x)) , lem2 (toℕ y>x) (1 + toℕ x) (Ctx.len Θ) (snd x) (snd y>x))
 
 sole-/R : ∀ {A : Type ℓ} → (Θ : Ctx A) → (x : Var Θ) → Θ [ sole (Θ [ x ]) / x ] ≡ Θ
-sole-/R {A = A} Θ x = λ i → record { len = lem3 i ; elts = elts' i }
+sole-/R {A = A} Θ x @ (xN , x<lenΘ) = λ i → record { len = lem3 i ; elts = funExtDep elts' i }
   where
     lem3 : Ctx.len (Θ [ sole (Θ [ x ]) / x ]) ≡ Ctx.len Θ
     lem3 =
-      toℕ x + 1 + (Ctx.len Θ ∸ (1 + toℕ x)) ≡⟨ +-comm (toℕ x + 1) _ ⟩
-      (Ctx.len Θ ∸ (1 + toℕ x)) + (toℕ x + 1) ≡⟨ (λ i → (Ctx.len Θ ∸ (1 + toℕ x)) + +-comm (toℕ x) 1 i) ⟩
-      (Ctx.len Θ ∸ (1 + toℕ x)) + (1 + toℕ x) ≡⟨ ≤-∸-+-cancel (snd x) ⟩
+      xN + 1 + (Ctx.len Θ ∸ (1 + xN)) ≡⟨ +-comm (xN + 1) _ ⟩
+      (Ctx.len Θ ∸ (1 + xN)) + (xN + 1) ≡⟨ (λ i → (Ctx.len Θ ∸ (1 + xN)) + +-comm (xN) 1 i) ⟩
+      (Ctx.len Θ ∸ (1 + xN)) + (1 + xN) ≡⟨ ≤-∸-+-cancel (snd x) ⟩
       Ctx.len Θ ∎
 
-    lem4 : Var (Θ [ sole (Θ [ x ]) / x ]) ≡ Var Θ
-    lem4 = λ i → Fin (lem3 i)
-
-    elts' : PathP (λ i → Fin (lem3 i) → A) (Ctx.elts (Θ [ sole (Θ [ x ]) / x ])) (Ctx.elts Θ)
-    elts' i (yN , yN<) with yN ≤? (toℕ x + 1)
-    ... | inl z = {!!}
-    ... | inr z = Ctx.elts Θ (Σ≡Prop (λ n → isProp≤) lem5 i) -- Ctx.elts Θ {!!}
+    elts' : {y₀ : Fin (toℕ (xN , x<lenΘ) + 1 + (Ctx.len Θ ∸ suc xN))}
+            → {y₁ : Fin (Ctx.len Θ)}
+            → PathP (λ i → Fin (lem3 i)) y₀ y₁
+            → Ctx.elts (Θ [ sole (Θ [ x ]) / x ]) y₀ ≡ Ctx.elts Θ y₁
+    elts' p with toℕ (p i0) ≤? (xN + 1)
+    ... | inl (z @ (zN , z+1+y≤x+1)) with toℕ (p i0) ≤? xN
+    ... | inl x = cong (Ctx.elts Θ) (Σ≡Prop (λ n → isProp≤) λ i → toℕ (p i))
+    ... | inr w = cong (Ctx.elts Θ) (Σ≡Prop ((λ n → isProp≤)) lemma)
       where
-        lem5 : yN ∸ (fst x + 1) + (1 + fst x) ≡ yN
+        lemma' : toℕ (p i0) ≤ xN
+        lemma' = pred-≤-pred (1 + toℕ (p i0) ≤≡⟨ z ⟩ +-comm xN 1)
+          where open <-Reasoning
+        lemma : xN ≡ toℕ (p i1)
+        lemma = xN ≡⟨ ≤-antisym w lemma' ⟩ toℕ (p i0) ≡⟨ (λ i → toℕ (p i)) ⟩ toℕ (p i1) ∎
+
+    elts' p | inr z = cong (Ctx.elts Θ) (Σ≡Prop (λ n → isProp≤ ) lem5)
+      where
+        yN = toℕ (p i0) 
+        y₁N = toℕ (p i1) 
+        lem5 : yN ∸ (fst x + 1) + (1 + fst x) ≡ y₁N
         lem5 =
           yN ∸ (fst x + 1) + (1 + fst x) ≡⟨ (λ j → yN ∸ (fst x + 1) + +-comm 1 (fst x) j) ⟩
           yN ∸ (fst x + 1) + (fst x + 1) ≡⟨ ≤-∸-+-cancel z ⟩
-          yN ∎
-            
+          yN ≡⟨ (λ i → toℕ (p i)) ⟩
+          y₁N ∎
 
 -- sole-/L : ∀ {A : Type ℓ} → (a : A) → (Θ : Ctx A) → sole a [ Θ / the-var a ] ≡ Θ
 -- sole-/L = {!!}
@@ -109,6 +116,6 @@ sole-/R {A = A} Θ x = λ i → record { len = lem3 i ; elts = elts' i }
 --          Θ₁ [ (Θ₂ [ Θ₃ / j ]) / i ] ≡ ((Θ₁ [ Θ₂ / i ]) [ Θ₃ / nest-var Θ₁ Θ₂ i j ])
 -- comp-/-/ = {!!}
 
--- -- {-# REWRITE sole-/R #-}
--- -- {-# REWRITE sole-/L #-}
--- -- comp-/-/ too when I get it fixed
+-- -- -- {-# REWRITE sole-/R #-}
+-- -- -- {-# REWRITE sole-/L #-}
+-- -- -- comp-/-/ too when I get it fixed
