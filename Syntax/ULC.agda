@@ -2,7 +2,6 @@ module Syntax.ULC where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
-open import Cubical.Data.Bool
 open import Cubical.Data.Nat
 open import Cubical.Data.Fin
 open import Cubical.Data.Empty

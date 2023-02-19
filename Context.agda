@@ -152,4 +152,22 @@ nest-var Θ₁ Θ₂ x y = (toℕ x + toℕ y) , reason
 --                 → Ctx.elts (Θ₁ [ (Θ₂ [ Θ₃ / y ]) / x ]) z₀ ≡ Ctx.elts (Θ₁ [ Θ₂ / x ] [ Θ₃ / nest-var Θ₁ Θ₂ x y ]) z₁
 --         eq-elts p with toℕ (p i0) ≤? ((toℕ x) + Ctx.len (Θ₂ [ Θ₃ / y ]))
 --         ... | foo = {!!}
-        
+
+-- This might have infinitely many variables though!!
+ICtx : (A : Type ℓ) → Type ℓ
+ICtx A = A → ℕ
+
+IVar : {A : Type ℓ} (Γ : ICtx A) (a : A) → Type
+IVar Γ a = Fin (Γ a)
+
+AnyIVar : {A : Type ℓ} (Γ : ICtx A) → Type ℓ
+AnyIVar {ℓ}{A} Γ = Σ A (IVar Γ)
+
+isubstitution : {A : Type ℓ}(B : A → Type ℓ') → ICtx A → Type (ℓ-max ℓ ℓ')
+isubstitution {A = A} B Γ = ∀ (x : AnyIVar Γ) → B (x .fst)
+
+iempty-ctx : ∀ (A : Type ℓ) → ICtx A
+iempty-ctx A = λ x → 0
+
+isole : ∀ {A : Type ℓ} (a : A) → ICtx A
+isole a = λ x → {!!}
