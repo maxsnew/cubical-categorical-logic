@@ -30,21 +30,73 @@ Var Θ = Fin (Ctx.len Θ)
 _[_] : ∀ {A : Type ℓ} → (Θ : Ctx A) → Var Θ → A
 Θ [ x ] = Ctx.elts Θ x
 
-VarOf : {A : Type ℓ} (Γ : Ctx A) (a : A) → Type ℓ
-VarOf Γ a = Σ[ x ∈ Var Γ ] (Γ [ x ] ≡ a)
-
-isSetVarOf : ∀ {A : Type ℓ} → isGroupoid A → ∀  Γ (a : A) → isSet (VarOf Γ a)
-isSetVarOf A-is-groupoid Γ a = isSetΣ isSetFin (λ x → A-is-groupoid (Γ [ x ]) a)
-
 substitution : {A : Type ℓ}(B : A → Type ℓ') → Ctx A → Type ℓ'
 substitution B Γ = ∀ (x : Var Γ) → B (Γ [ x ])
-
-finCases : ∀ l m n → Fin (l + m + n) → (Fin l ⊎ Fin m) ⊎ Fin n
-finCases l m n x = map (Iso.fun (Fin+≅Fin⊎Fin l m)) (λ x → x) (Iso.fun (Fin+≅Fin⊎Fin (l + m) n) x)
 
 empty-ctx : ∀ (A : Type ℓ) → Ctx A
 empty-ctx _ .len = 0
 empty-ctx _ .elts x = ⊥.rec (¬Fin0 x)
+
+append-ctx : ∀ {A : Type ℓ} → Ctx A → Ctx A → Ctx A
+append-ctx Γ₁ Γ₂ .len =  Γ₁ .len + Γ₂ .len
+append-ctx Γ₁ Γ₂ .elts x with (Iso.fun (Fin+≅Fin⊎Fin (Γ₁ .len) (Γ₂ .len)) x)
+... | inl x₁ = Γ₁ .elts x₁
+... | inr x₂ = Γ₂ .elts x₂
+
+append-i₁ : ∀ {A : Type ℓ} → (Γ₁ Γ₂ : Ctx A) → (Var Γ₁) → (Var (append-ctx Γ₁ Γ₂))
+append-i₁ Γ₁ Γ₂ x₁ = Iso.inv (Fin+≅Fin⊎Fin (Γ₁ .len) (Γ₂ .len)) (inl x₁)
+
+append-i₁-elts : ∀ {A : Type ℓ}
+               → (Γ₁ Γ₂ : Ctx A) → (x₁ : Var Γ₁)
+               → (append-ctx Γ₁ Γ₂) [ append-i₁ Γ₁ Γ₂ x₁ ] ≡ Γ₁ [ x₁ ]
+append-i₁-elts Γ₁ Γ₂ x₁ with (append-i₁ Γ₁ Γ₂ x₁) .fst ≤? (Γ₁ .len)
+... | inl x₁<Γ₁len = cong (Γ₁ .elts) (Σ≡Prop (λ n → isProp≤) refl)
+... | inr x₁≥Γ₁len = ⊥.rec (¬m<m x₁<x₁) where
+  open <-Reasoning
+  x₁<x₁ : x₁ .fst < x₁ .fst
+  x₁<x₁ = x₁ .fst <≤⟨ x₁ .snd ⟩
+         Γ₁ .len ≤≡⟨ x₁≥Γ₁len ⟩
+         x₁ .fst ∎
+
+append-i₂ : ∀ {A : Type ℓ} → (Γ₁ Γ₂ : Ctx A) → (Var Γ₂) → (Var (append-ctx Γ₁ Γ₂))
+append-i₂ Γ₁ Γ₂ x₂ = Iso.inv (Fin+≅Fin⊎Fin (Γ₁ .len) (Γ₂ .len)) (inr x₂)
+
+append-i₂-elts : ∀ {A : Type ℓ} → (Γ₁ Γ₂ : Ctx A) → (x₂ : Var Γ₂) → (append-ctx Γ₁ Γ₂) [ append-i₂ Γ₁ Γ₂ x₂ ] ≡ Γ₂ [ x₂ ]
+append-i₂-elts Γ₁ Γ₂ x₂ with (append-i₂ Γ₁ Γ₂ x₂) .fst ≤? (Γ₁ .len)
+... | inl i₂x₂<Γ₁ = ⊥.rec (¬m+n<m i₂x₂<Γ₁)
+... | inr i₂x₂≥Γ₁ = cong (Γ₂ .elts) (Σ≡Prop (λ n → isProp≤) reason) where
+  open <-Reasoning
+  reason : Γ₁ .len + x₂ .fst ∸ Γ₁ .len ≡ x₂ .fst
+  reason = (Γ₁ .len + x₂ .fst) ∸ Γ₁ .len ≡⟨ (λ i → +-comm (Γ₁ .len) (x₂ .fst) i ∸ Γ₁ .len ) ⟩
+           (x₂ .fst + Γ₁ .len) ∸ Γ₁ .len ≡⟨ sym (≤-∸-k {m = Γ₁ .len} ≤-refl) ⟩
+           x₂ .fst + (Γ₁ .len ∸ Γ₁ .len) ≡⟨ (λ i → x₂ .fst + (n∸n (Γ₁ .len) i)) ⟩
+           x₂ .fst + 0 ≡⟨ +-zero (x₂ .fst) ⟩
+           x₂ .fst ∎
+
+append-subst : ∀ {A : Type ℓ}{B : A → Type ℓ'} → {Γ₁ Γ₂ : Ctx A} → (substitution B) Γ₁ → substitution B Γ₂ → substitution B (append-ctx Γ₁ Γ₂)
+append-subst {B = B}{Γ₁ = Γ₁}{Γ₂} γ₁ γ₂ x with x .fst ≤? Γ₁ .len
+... | inl x<Γ₁len = γ₁ ((x .fst) , x<Γ₁len)
+... | inr x≥Γ₁len = transport (cong (λ a → B (Γ₂ .elts ((x .fst ∸ Γ₁ .len) , a))) (isProp≤ _ _)) (γ₂ ((x .fst ∸ Γ₁ .len) , reason)) where
+  open <-Reasoning
+  reason : (x .fst ∸ Γ₁ .len) < Γ₂ .len
+  reason =
+    1 + (x .fst ∸ Γ₁ .len) ≡≤⟨ ≤-∸-k x≥Γ₁len ⟩
+    (1 + x .fst) ∸ Γ₁ .len ≤≡⟨ ≤-∸-≤ (1 + x .fst) ((Γ₁ .len + Γ₂ .len)) (Γ₁ .len) (x .snd) ⟩
+    (Γ₁ .len + Γ₂ .len) ∸ Γ₁ .len ≡⟨ (λ i → +-comm (Γ₁ .len) (Γ₂ .len) i ∸ Γ₁ .len) ⟩
+    (Γ₂ .len + Γ₁ .len) ∸ Γ₁ .len ≡⟨ sym (≤-∸-k {m = Γ₁ .len} ≤-refl) ⟩
+    Γ₂ .len + (Γ₁ .len ∸ Γ₁ .len) ≡⟨ (λ i → Γ₂ .len + n∸n (Γ₁ .len) i) ⟩
+    Γ₂ .len + 0 ≡⟨ +-zero (Γ₂ .len) ⟩
+    Γ₂ .len ∎
+
+postulate append-subst-i₁ : ∀ {A : Type ℓ}{B : A → Type ℓ'} → {Γ₁ Γ₂ : Ctx A} → (γ₁ : substitution B Γ₁) → (γ₂ : substitution B Γ₂)
+                → (x₁ : Var Γ₁)
+                → PathP (λ i → B (append-i₁-elts Γ₁ Γ₂ x₁ i)) (append-subst {A = A}{B = B} γ₁ γ₂ (append-i₁ Γ₁ Γ₂ x₁)) (γ₁ x₁)
+-- append-subst-i₁ = {!!}                
+
+postulate append-subst-i₂ : ∀ {A : Type ℓ}{B : A → Type ℓ'} → {Γ₁ Γ₂ : Ctx A} → (γ₁ : substitution B Γ₁) → (γ₂ : substitution B Γ₂)
+                → (x₂ : Var Γ₂)
+                → PathP (λ i → B (append-i₂-elts Γ₁ Γ₂ x₂ i)) (append-subst {A = A}{B = B} γ₁ γ₂ (append-i₂ Γ₁ Γ₂ x₂)) (γ₂ x₂)
+-- append-subst-i₂ = {!!}                
 
 sole : ∀ {A : Type ℓ} → A → Ctx A
 sole a = record { len = 1 ; elts = λ _ → a }
@@ -64,6 +116,9 @@ lem2 l m n m≤n l<n-m =
          (n ∸ m) + m ≡⟨ ≤-∸-+-cancel m≤n ⟩
          n ∎
       where open <-Reasoning
+
+finCases : ∀ l m n → Fin (l + m + n) → (Fin l ⊎ Fin m) ⊎ Fin n
+finCases l m n x = map (Iso.fun (Fin+≅Fin⊎Fin l m)) (λ x → x) (Iso.fun (Fin+≅Fin⊎Fin (l + m) n) x)
 
 _[_/_] : ∀ {A : Type ℓ} → (Θ : Ctx A) → Ctx A → Var Θ → Ctx A
 _[_/_] {A = A} Θ Υ x = record

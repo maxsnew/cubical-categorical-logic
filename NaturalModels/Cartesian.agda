@@ -70,3 +70,11 @@ FinProductTypes : ∀ {ℓo ℓt} → SimplyTypedCategory ℓo ℓt → Type (�
 FinProductTypes {ℓo}{ℓt} C =
   ∀ (J : Type ℓt) (D : J → C .Ob)
   → TypeRepresentation C (presheaf-Prod (C .B) J (λ j → C .Tm (D j)))
+
+record STC-Functor {ℓo ℓt} (C D : SimplyTypedCategory ℓo ℓt) : Type (ℓ-max ℓo ℓt) where
+  field
+    B-functor : Functor (C .B) (D .B)
+    -- TODO: preserves products
+    Ob-fun : C .Ob → D .Ob
+    Tm-fun : ∀ A → (PresheafCategory (C .B) ℓt) [ C .Tm A , (D .Tm (Ob-fun A) ∘F (B-functor ^opF)) ]
+    -- TODO: preserves Tm-representability

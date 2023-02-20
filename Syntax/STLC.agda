@@ -31,15 +31,16 @@ module _ {ℓ} where
 
   record Sig₁ (Σ₀ : Sig₀ ℓ) : Type (ℓ-suc ℓ) where
     field
-      fun-symbol : ∀ (A : Ty Σ₀) → Type ℓ
-      src : ∀ {A} → fun-symbol A → Ctx (Ty Σ₀)
-      isSetFunSymbol : ∀ {A} → isSet (fun-symbol A)
+      fun-symbol : Type ℓ
+      src : fun-symbol → Ctx (Ty Σ₀)
+      tgt : fun-symbol → Ty Σ₀
+      isSetFunSymbol : isSet (fun-symbol)
   open Sig₁
-  data Tm {Σ₀} (Σ₁ : Sig₁ Σ₀) (Γ : Ctx (Ty Σ₀)) (A : Ty Σ₀) : Type ℓ where
-    var : VarOf Γ A → Tm Σ₁ Γ A
-    fun-app : (f : Σ₁ .fun-symbol A)
+  data Tm {Σ₀} (Σ₁ : Sig₁ Σ₀) (Γ : Ctx (Ty Σ₀)) : (A : Ty Σ₀) → Type ℓ where
+    var : (x : Var Γ) → Tm Σ₁ Γ (Γ [ x ])
+    fun-app : (f : Σ₁ .fun-symbol)
             → substitution (Tm Σ₁ Γ) (Σ₁ .src f)
-            → Tm Σ₁ Γ A
+            → Tm Σ₁ Γ (Σ₁ .tgt f)
   STT-subst : ∀ {Σ₀} → Sig₁ Σ₀ → Ctx (Ty Σ₀) → Ctx (Ty Σ₀) → Type ℓ
   STT-subst Σ₁ Δ Γ = substitution (Tm Σ₁ Δ) Γ
 
@@ -51,28 +52,28 @@ module _ {ℓ} where
 
     Tm-X = Ty Σ₀
     Tm-S : Tm-X → Type ℓ
-    Tm-S A = VarOf Γ A ⊎ Σ₁ .fun-symbol A
+    Tm-S A = (fiber (Γ [_]) A) ⊎ (fiber (Σ₁ .tgt) A)
     Tm-P : ∀ A → Tm-S A → Type
     Tm-P A (inl x) = ⊥
-    Tm-P A (inr f) = Var (Σ₁ .src f)
+    Tm-P A (inr f) = Var (Σ₁ .src (f .fst))
 
     Tm-inX : ∀ A (s : Tm-S A) → Tm-P A s → Ty Σ₀
-    Tm-inX A (inr f) p = Σ₁ .src f [ p ]
+    Tm-inX A (inr f) p = Σ₁ .src (f .fst) [ p ]
 
     Tm→W : ∀ {A} → Tm Σ₁ Γ A → IW Tm-S Tm-P Tm-inX A
-    Tm→W (var x) = node (inl x) λ ()
-    Tm→W (fun-app f γ) = node (inr f) (λ p → Tm→W (γ p))
+    Tm→W (var x) = node (inl (x , refl)) λ ()
+    Tm→W (fun-app f γ) = node (inr (f , refl)) (λ x → Tm→W (γ x))
 
     W→Tm : ∀ {A} → IW Tm-S Tm-P Tm-inX A → Tm Σ₁ Γ A
-    W→Tm (node (inl x) subtree) = var x
-    W→Tm (node (inr f) subtree) = fun-app f λ x → W→Tm (subtree x)
+    W→Tm (node (inl (x , ty≡A)) subtree) = transport (cong (Tm Σ₁ Γ) ty≡A) (var x)
+    W→Tm (node (inr (f , ty≡A)) subtree) = transport (cong (Tm Σ₁ Γ) ty≡A) (fun-app f (λ x → W→Tm (subtree x)))
 
     TmRetractofW : ∀ {A} (M : Tm Σ₁ Γ A) → W→Tm (Tm→W M) ≡ M
-    TmRetractofW (var x) = refl
-    TmRetractofW (fun-app f γ) = cong (fun-app f) λ i x → TmRetractofW (γ x) i
+    TmRetractofW (var x)       = transportRefl (var x)
+    TmRetractofW (fun-app f γ) = transportRefl (fun-app f (λ x → W→Tm (Tm→W (γ x)))) ∙ cong (fun-app f) (funExt (λ x → TmRetractofW (γ x)))
 
     isSetTm-S : ∀ A → isSet (Tm-S A)
-    isSetTm-S A = isSet⊎ (isSetVarOf (Σ₀ .snd) Γ A) (Σ₁ .isSetFunSymbol)
+    isSetTm-S A = isSet⊎ (isSetΣ isSetFin λ x → Σ₀ .snd (Γ [ x ]) A) (isSetΣ (Σ₁ .isSetFunSymbol) (λ x → Σ₀ .snd (Σ₁ .tgt x) A))
 
     isSetTm : ∀ A → isSet (Tm Σ₁ Γ A)
     isSetTm A = isSetRetract Tm→W W→Tm TmRetractofW (isOfHLevelSuc-IW 1 isSetTm-S A)
@@ -83,11 +84,11 @@ module _ {ℓ} where
   _⟨_⟩ : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀}{Δ Γ : Ctx (Ty Σ₀)}{A : Ty Σ₀}
        → Tm Σ₁ Γ A → STT-subst Σ₁ Δ Γ
        → Tm Σ₁ Δ A
-  var (x , ty≡A) ⟨ γ ⟩ = transport (cong (Tm _ _) ty≡A) (γ x)
+  var x ⟨ γ ⟩ = γ x
   fun-app f δ ⟨ ξ ⟩ = fun-app f (λ x → δ x ⟨ ξ ⟩)
 
   id-subst : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀} → (Γ : Ctx (Ty Σ₀)) → STT-subst Σ₁ Γ Γ
-  id-subst Γ x = var (x , refl)
+  id-subst Γ x = var x
 
   comp-subst : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀} → {Ξ Δ Γ : Ctx (Ty Σ₀)}
              → STT-subst Σ₁ Δ Γ → STT-subst Σ₁ Ξ Δ
@@ -97,45 +98,30 @@ module _ {ℓ} where
   subst-idInp : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀}{Γ}{A}
               → (M : Tm Σ₁ Γ A)
               → M ⟨ id-subst Γ ⟩ ≡ M
-              -- transport (λ i → Tm Σ₁ Γ (snd x i)) (var (x .fst , refl)) ≡ var x
-              -- transport (λ i → Tm Σ₁ Γ (snd x i)) (var (x .fst , refl)) ≡ var x
-              -- (var (x .fst, x .snd))
-
-              -- (λ i → Var Γ)
-              -- (Γ [ transp (λ j → Var Γ) i (x .fst) ]) ≡ A
-              -- ((Γ [ fst x ]) ≡ A) ≡ ((Γ [ transp (λ j → Var Γ) i (x .fst) ]) ≡ A)
-
-  subst-idInp {Γ = Γ}{A = A} (var x) =
-    λ i → var ((transp (λ j → Var Γ) i (x .fst)) ,
-              {!!})
+  subst-idInp {Γ = Γ}{A = A} (var x) = refl
   subst-idInp (fun-app f γ) = λ i → fun-app f (λ x → subst-idInp (γ x) i)
 
-  -- subst-Assoc : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀}{Ξ}{Δ}{Γ}{A}
-  --             → (M : Tm Σ₁ Γ A)
-  --             → (γ : STT-subst Σ₁ Δ Γ)
-  --             → (δ : STT-subst Σ₁ Ξ Δ)
-  --             → M ⟨ comp-subst γ δ ⟩ ≡ M ⟨ γ ⟩ ⟨ δ ⟩
-  -- subst-Assoc (var x) γ δ = refl
-  -- subst-Assoc (fun-app f γ) δ ξ = λ i → fun-app f (funExt (λ x i → subst-Assoc (γ x) δ ξ i) i)
+  subst-Assoc : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀}{Ξ}{Δ}{Γ}{A}
+              → (M : Tm Σ₁ Γ A)
+              → (γ : STT-subst Σ₁ Δ Γ)
+              → (δ : STT-subst Σ₁ Ξ Δ)
+              → M ⟨ comp-subst γ δ ⟩ ≡ M ⟨ γ ⟩ ⟨ δ ⟩
+  subst-Assoc (var x) γ δ = refl
+  subst-Assoc (fun-app f γ) δ ξ = λ i → fun-app f (funExt (λ x i → subst-Assoc (γ x) δ ξ i) i)
 
-  -- comp-subst-IdInp : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀}{Δ Γ}
-  --                  → (γ : STT-subst Σ₁ Δ Γ)
-  --                  → comp-subst γ (id-subst Δ) ≡ γ
-  -- comp-subst-IdInp γ = λ i x → subst-idInp (γ x) i
+  comp-subst-IdInp : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀}{Δ Γ}
+                   → (γ : STT-subst Σ₁ Δ Γ)
+                   → comp-subst γ (id-subst Δ) ≡ γ
+  comp-subst-IdInp γ = λ i x → subst-idInp (γ x) i
 
   comp-subst-IdOutp : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀}{Δ Γ}
                     → (γ : STT-subst Σ₁ Δ Γ)
                     → comp-subst (id-subst Γ) γ ≡ γ
-  comp-subst-IdOutp γ = {!!}
+  comp-subst-IdOutp γ = refl
 
-  -- comp-subst-Assoc : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀}{Ψ Ξ Δ Γ}
-  --                  → (γ : STT-subst Σ₁ Δ Γ)
-  --                  → (δ : STT-subst Σ₁ Ξ Δ)
-  --                  → (ξ : STT-subst Σ₁ Ψ Ξ)
-  --                  → comp-subst γ (comp-subst δ ξ) ≡ comp-subst (comp-subst γ δ) ξ
-  -- comp-subst-Assoc γ δ ξ = funExt (λ x i → subst-Assoc (γ x) δ ξ i)
-
-  -- representability says
-  -- var : (sole A) |- A
-  -- and /x : G |- A -> G -> sole A
-  -- and var ⟨ M / x ⟩ = M
+  comp-subst-Assoc : ∀ {Σ₀}{Σ₁ : Sig₁ Σ₀}{Ψ Ξ Δ Γ}
+                   → (γ : STT-subst Σ₁ Δ Γ)
+                   → (δ : STT-subst Σ₁ Ξ Δ)
+                   → (ξ : STT-subst Σ₁ Ψ Ξ)
+                   → comp-subst γ (comp-subst δ ξ) ≡ comp-subst (comp-subst γ δ) ξ
+  comp-subst-Assoc γ δ ξ = funExt (λ x i → subst-Assoc (γ x) δ ξ i)
