@@ -91,12 +91,10 @@ append-subst {B = B}{Γ₁ = Γ₁}{Γ₂} γ₁ γ₂ x with x .fst ≤? Γ₁ 
 postulate append-subst-i₁ : ∀ {A : Type ℓ}{B : A → Type ℓ'} → {Γ₁ Γ₂ : Ctx A} → (γ₁ : substitution B Γ₁) → (γ₂ : substitution B Γ₂)
                 → (x₁ : Var Γ₁)
                 → PathP (λ i → B (append-i₁-elts Γ₁ Γ₂ x₁ i)) (append-subst {A = A}{B = B} γ₁ γ₂ (append-i₁ Γ₁ Γ₂ x₁)) (γ₁ x₁)
--- append-subst-i₁ = {!!}                
 
 postulate append-subst-i₂ : ∀ {A : Type ℓ}{B : A → Type ℓ'} → {Γ₁ Γ₂ : Ctx A} → (γ₁ : substitution B Γ₁) → (γ₂ : substitution B Γ₂)
                 → (x₂ : Var Γ₂)
                 → PathP (λ i → B (append-i₂-elts Γ₁ Γ₂ x₂ i)) (append-subst {A = A}{B = B} γ₁ γ₂ (append-i₂ Γ₁ Γ₂ x₂)) (γ₂ x₂)
--- append-subst-i₂ = {!!}                
 
 sole : ∀ {A : Type ℓ} → A → Ctx A
 sole a = record { len = 1 ; elts = λ _ → a }

@@ -1,10 +1,12 @@
 module Syntax.STLC.Semantics where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Transport
 open import Cubical.Categories.Category
 open import Cubical.Categories.Limits.BinProduct
 open import Cubical.Categories.Functor
 open import Cubical.Data.Empty as ⊥
+open import Cubical.Data.Sum
 open import Cubical.Data.Fin
 open import Cubical.Categories.Presheaf
 open import Cubical.Categories.Presheaf.Representable
@@ -53,20 +55,43 @@ module _ {ℓ}{Σ₀ : Sig₀ ℓ}{Σ₁ : Sig₁ Σ₀} where
           σ x ∎
 
   open BinProduct
+  open Ctx
+
   completeness : SimplyTypedCategory ℓ ℓ
   completeness .B = STTCtx
   completeness .· = empty-ctx _ , λ Γ → !-subst Γ , !-subst-uniq Γ where
     !-subst : ∀ Γ → STTCtx [ Γ , empty-ctx _ ]
-    !-subst Γ = λ x → rec (¬Fin0 x)
+    !-subst Γ = λ x → ⊥.rec (¬Fin0 x)
 
     !-subst-uniq : ∀ Γ (!' : STTCtx [ Γ , empty-ctx (Ty Σ₀) ]) → !-subst Γ ≡ !'
-    !-subst-uniq Γ !' = funExt (λ x → rec (¬Fin0 x))
+    !-subst-uniq Γ !' = funExt (λ x → ⊥.rec (¬Fin0 x))
   completeness ._,,_ Γ₁ Γ₂ .binProdOb  = append-ctx Γ₁ Γ₂
   completeness ._,,_ Γ₁ Γ₂ .binProdPr₁ = λ x₁ → transport (cong (Term Σ₁ (append-ctx Γ₁ Γ₂)) (append-i₁-elts Γ₁ Γ₂ x₁)) (var (append-i₁ Γ₁ Γ₂ x₁))
   completeness ._,,_ Γ₁ Γ₂ .binProdPr₂ = λ x₂ → transport (cong (Term Σ₁ (append-ctx Γ₁ Γ₂)) (append-i₂-elts Γ₁ Γ₂ x₂)) (var (append-i₂ Γ₁ Γ₂ x₂))
   completeness ._,,_ Γ₁ Γ₂ .univProp {z = Γ} γ₁ γ₂ =
-    ((append-subst {B = Term Σ₁ Γ} γ₁ γ₂) , {!!} , {!!}) , {!!}
+    ((append-subst {B = Term Σ₁ Γ} γ₁ γ₂) , funExt β₁ , {!!}) , {!!} where
+    β₁ : ∀ x₁ →
+       transport (cong (Term Σ₁ (append-ctx Γ₁ Γ₂)) (append-i₁-elts Γ₁ Γ₂ x₁)) (var (append-i₁ Γ₁ Γ₂ x₁)) ⟨ (append-subst {B = Term Σ₁ Γ} γ₁ γ₂) ⟩
+       ≡ γ₁ x₁
+    β₁ x₁ =
+      transport (cong (Term Σ₁ (append-ctx Γ₁ Γ₂)) (append-i₁-elts Γ₁ Γ₂ x₁)) (var (append-i₁ Γ₁ Γ₂ x₁)) ⟨ (append-subst {B = Term Σ₁ Γ} γ₁ γ₂) ⟩ ≡⟨ lem ⟩
+      transport (λ i → Term Σ₁ Γ (append-i₁-elts Γ₁ Γ₂ x₁ i)) (append-subst {B = Term Σ₁ Γ} γ₁ γ₂ (append-i₁ Γ₁ Γ₂ x₁))                          ≡⟨ fromPathP (append-subst-i₁ {B = Term Σ₁ Γ} γ₁ γ₂ x₁) ⟩
+      γ₁ x₁ ∎ where
+      lem' :
+          PathP (λ i → Term Σ₁ (append-ctx Γ₁ Γ₂) ((append-i₁-elts Γ₁ Γ₂ x₁) (~ i)))
+                (transport (cong (Term Σ₁ (append-ctx Γ₁ Γ₂)) (append-i₁-elts Γ₁ Γ₂ x₁)) (var (append-i₁ Γ₁ Γ₂ x₁)))
+                (var (append-i₁ Γ₁ Γ₂ x₁))
+      lem' = toPathP (transport⁻Transport ((cong (Term Σ₁ (append-ctx Γ₁ Γ₂)) (append-i₁-elts Γ₁ Γ₂ x₁))) ((var (append-i₁ Γ₁ Γ₂ x₁))))
+
+      lem'' : PathP (λ i → Term Σ₁ Γ (append-i₁-elts Γ₁ Γ₂ x₁ (~ i)))
+                    (transport (cong (Term Σ₁ (append-ctx Γ₁ Γ₂)) (append-i₁-elts Γ₁ Γ₂ x₁)) (var (append-i₁ Γ₁ Γ₂ x₁)) ⟨ (append-subst {B = Term Σ₁ Γ} γ₁ γ₂) ⟩)
+                    ((var (append-i₁ Γ₁ Γ₂ x₁)) ⟨ (append-subst {B = Term Σ₁ Γ} γ₁ γ₂) ⟩)
+      lem'' = λ i → lem' i ⟨ (append-subst {B = Term Σ₁ Γ} γ₁ γ₂) ⟩
+
+      lem :
+        transport (cong (Term Σ₁ (append-ctx Γ₁ Γ₂)) (append-i₁-elts Γ₁ Γ₂ x₁)) (var (append-i₁ Γ₁ Γ₂ x₁)) ⟨ (append-subst {B = Term Σ₁ Γ} γ₁ γ₂) ⟩
+        ≡ transport (λ i → Term Σ₁ Γ (append-i₁-elts Γ₁ Γ₂ x₁ i)) (append-subst {B = Term Σ₁ Γ} γ₁ γ₂ (append-i₁ Γ₁ Γ₂ x₁))
+      lem = sym (fromPathP {A = λ i → Term Σ₁ Γ (append-i₁-elts Γ₁ Γ₂ x₁ i)} (symP lem''))
   completeness .Ob = Ty Σ₀ -- Ty Σ₀
   completeness .Tm = Tm-presheaf
   completeness .Tm-repr A = {!!} -- UniversalElementToRepresentation STTCtx (Tm-presheaf A) (Tm-univElt A)
-    
