@@ -1,4 +1,4 @@
-module Syntax.STLC.Semantics where
+module Syntax.STLC.Semantics.Lindenbaum where
 
 open import Cubical.Categories.Category
 open import Cubical.Categories.Limits.BinProduct
@@ -19,6 +19,7 @@ open import Cubical.Foundations.HLevels
 open import Syntax.STLC renaming (Tm to Term)
 open import NaturalModels.Cartesian
 open import NamedContext
+open import UMP
 
 open Functor
 
@@ -51,25 +52,30 @@ module _ {ℓ}{Σ₀ : Sig₀ ℓ}{Σ₁ : Sig₁ Σ₀} where
 
   open BinProduct
   open Ctx
+  open CartesianCategory
 
-  completeness : SimplyTypedCategory (ℓ-max ℓ (ℓ-suc ℓ-zero)) ℓ
-  completeness .B = STTCtx
-  completeness .· = empty-ctx , (λ Γ → (λ ()) , λ y → funExt λ ())
-  (completeness ,, Γ₁) Γ₂ .binProdOb = append Γ₁ Γ₂
-  (completeness ,, Γ₁) Γ₂ .binProdPr₁ = λ x → ivar (inl x)
-  (completeness ,, Γ₁) Γ₂ .binProdPr₂ = λ x → ivar (inr x)
-  (completeness ,, Γ₁) Γ₂ .univProp {z = Γ} γ₁ γ₂ .fst .fst (inl x) = γ₁ x
-  (completeness ,, Γ₁) Γ₂ .univProp {z = Γ} γ₁ γ₂ .fst .fst (inr x) = γ₂ x
-  (completeness ,, Γ₁) Γ₂ .univProp {z = Γ} γ₁ γ₂ .fst .snd .fst = refl
-  (completeness ,, Γ₁) Γ₂ .univProp {z = Γ} γ₁ γ₂ .fst .snd .snd = refl
-  (completeness ,, Γ₁) Γ₂ .univProp {z = Γ} γ₁ γ₂ .snd (γ' , γ'₁≡γ₁ , γ'₂≡γ₂) =
-    Σ≡Prop
-      (λ γ → isProp× ((isSetTTProof.isSetSubst _ _ _ Γ₁ _ γ₁))
-                     (((isSetTTProof.isSetSubst _ _ _ Γ₂ _ γ₂))))
-      (funExt pf) where
-      pf : (x : Γ₁ .var ⊎ Γ₂ .var) → (completeness ,, Γ₁) Γ₂ .univProp γ₁ γ₂ .fst .fst x ≡ γ' x
-      pf (inl x) = λ i → γ'₁≡γ₁ (~ i) x
-      pf (inr x) = λ i → γ'₂≡γ₂ (~ i) x
-  completeness .Ob = Lift {j = ℓ-max ℓ (ℓ-suc ℓ-zero)} (Ty Σ₀)
-  completeness .Tm = λ A → Tm-presheaf (A .lower)
-  completeness .Tm-repr A = UniversalElementToRepresentation STTCtx (Tm-presheaf (A .lower)) (Tm-univElt (A .lower))
+  -- the "Lindenbaum algebra" of terms/Syntactic category
+  Lindenbaum : SimplyTypedCategory (ℓ-max ℓ (ℓ-suc ℓ-zero)) ℓ ℓ ℓ
+  Lindenbaum .B .cat = STTCtx
+  Lindenbaum .B .terminal-ob .fst .fst = empty-ctx
+  Lindenbaum .B .terminal-ob .fst .snd = tt
+  Lindenbaum .B .terminal-ob .snd (Γ , _) .fst .fst = λ ()
+  Lindenbaum .B .terminal-ob .snd (Γ , _) .fst .snd = refl
+  Lindenbaum .B .terminal-ob .snd (Γ , _) .snd (!' , _) =
+    Σ≡Prop (λ x → isSetUnit tt tt) (funExt (λ ()))
+  Lindenbaum .B .product-ob Γ₁ Γ₂ .fst .fst = append Γ₁ Γ₂
+  Lindenbaum .B .product-ob Γ₁ Γ₂ .fst .snd = (λ x → ivar (inl x)) , (λ x → ivar (inr x))
+  Lindenbaum .B .product-ob Γ₁ Γ₂ .snd (Γ , γ₁ , γ₂) .fst .fst (inl x) = γ₁ x
+  Lindenbaum .B .product-ob Γ₁ Γ₂ .snd (Γ , γ₁ , γ₂) .fst .fst (inr x) = γ₂ x
+  Lindenbaum .B .product-ob Γ₁ Γ₂ .snd (Γ , γ₁ , γ₂) .fst .snd = refl
+  Lindenbaum .B .product-ob Γ₁ Γ₂ .snd (Γ , γ₁ , γ₂) .snd (γ , γ₁γ₂≡) =
+    Σ≡Prop ((λ γ → isSet× (isSetTTProof.isSetSubst _ _ _ Γ₁)
+                          (isSetTTProof.isSetSubst _ _ _ Γ₂)
+                          _ _))
+           (funExt pf) where
+      pf : (x : Γ₁ .var ⊎ Γ₂ .var) → Lindenbaum .B .product-ob Γ₁ Γ₂ .snd (Γ , γ₁ , γ₂) .fst .fst x ≡ γ x
+      pf (inl x) = λ i → γ₁γ₂≡ i .fst x
+      pf (inr x) = λ i → γ₁γ₂≡ i .snd x
+  Lindenbaum .Ob = (Ty Σ₀)
+  Lindenbaum .Tm = Tm-presheaf
+  Lindenbaum .Tm-repr = Tm-univElt
