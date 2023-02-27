@@ -70,3 +70,17 @@ module _ {A : Type ℓ} where
                      → (x₁ : Var Γ₁)
                      → (append-subst {Γ₁ = Γ₁}{Γ₂ = Γ₂} γ₁ γ₂ (inl x₁)) ≡ (γ₁ x₁)
     append-subst-inl γ₁ Γ₂ x₁ = refl
+
+
+  finProd : (X : FinSet ℓ-zero) → (X .fst → Ctx A) → Ctx A
+  finProd X Γs .var = Σ[ x ∈ X .fst ] Γs x .var
+  finProd X Γs .isFinSetVar = isFinSetΣ X λ x → _ , (Γs x .isFinSetVar)
+  finProd X Γs .el (x , y) = Γs x .el y
+
+  append-inj-el : ∀ (X : FinSet ℓ-zero) (Γs : X .fst → Ctx A) (x : X .fst) (y : Γs x .var)
+                → finProd X Γs .el (x , y) ≡ Γs x .el y
+  append-inj-el X Γs x y = refl
+
+  module _ (B : A → Type ℓ') (X : FinSet ℓ-zero) (Γs : X .fst → Ctx A) where
+    finProdSubsts : (∀ (x : X .fst) → substitution B (Γs x)) → substitution B (finProd X Γs)
+    finProdSubsts γs (x , y) = γs x y
