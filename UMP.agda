@@ -17,6 +17,7 @@ open Category
 open Functor
 open NatTrans
 open UnivElt
+open isUniversal
 
 private
   variable
@@ -69,6 +70,12 @@ push-Πᴾ : {C : Category ℓc ℓc'} {D : Category ℓd ℓd'} (F : Functor C 
 push-Πᴾ F Vars obs .N-ob c fs = lift (λ x → F ⟪ fs .lower x ⟫)
 push-Πᴾ F Vars obs .N-hom f = funExt (λ fs i → lift (λ x → F .F-seq f (fs .lower x) i))
 
+preserves-Πfin : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}(F : Functor C D) → Type _
+preserves-Πfin {C = C}{D} F = ∀ (J : FinSet ℓ-zero) (obs : J .fst → C .ob) →
+  preserves-representability F (Πfinᴾ C J λ j → C [-, obs j ])
+                               (Πfinᴾ D J λ j → D [-, F .F-ob (obs j) ])
+                               (push-Πᴾ F J obs)
+
 Πᴾ : ∀ {ℓo ℓt ℓS} (C : Category ℓo ℓt)
               → (J : Type ℓp)
               → (J → Presheaf C ℓS)
@@ -83,14 +90,24 @@ record CartesianCategory ℓ ℓ' : Type (ℓ-suc (ℓ-max ℓ ℓ')) where
     cat : Category ℓ ℓ'
     finite-products : ∀ (J : FinSet ℓ-zero) → (obs : J .fst → cat .ob) → UnivElt cat (Πᴾ cat (J .fst) λ x → cat [-, obs x ])
 
-  π : (J : FinSet ℓ-zero) → (obs : J .fst → cat .ob)
-    → (j : J .fst) → cat [ finite-products J obs .vertex , obs j ]
-  π J obs j = finite-products J obs .element j
+  module _ (J : FinSet ℓ-zero) (obs : J .fst → cat .ob) where
+    prod-ob : cat .ob
+    prod-ob = finite-products J obs .vertex
+
+    π : (j : J .fst) → cat [ prod-ob , obs j ]
+    π j = finite-products J obs .element j
+
+    prod-I : ∀ {Γ} (fs : ∀ (j : J .fst) → cat [ Γ , obs j ]) → cat [ Γ , prod-ob ]
+    prod-I fs = finite-products J obs .universal .coinduction fs
+
+    π∘prod-I : ∀ {Γ} (fs : ∀ (j : J .fst) → cat [ Γ , obs j ]) (j : J .fst)
+             → π j ∘⟨ cat ⟩ prod-I fs ≡ fs j
+    π∘prod-I fs j i = finite-products J obs .universal .commutes fs i j
 
 open CartesianCategory
 
-record CartesianFunctor (C : CartesianCategory ℓc ℓc') (D : CartesianCategory ℓd ℓd') : Type ((ℓ-max (ℓ-max (ℓ-max ℓc ℓc') ℓd) ℓd')) where
+record CartesianFunctor (C : CartesianCategory ℓc ℓc') (D : CartesianCategory ℓd ℓd') : Type ((ℓ-max (ℓ-max (ℓ-max ℓc ℓc') ℓd) (ℓ-max ℓd' (ℓ-suc ℓ-zero)))) where
   field
     func : Functor (C .cat) (D .cat)
-    preserves-terminal : preserves-⊤ func
-    preserves-products : preserves-× func
+    preserves-fin-products : preserves-Πfin func
+

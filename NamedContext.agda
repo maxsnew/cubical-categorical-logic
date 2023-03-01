@@ -46,8 +46,8 @@ module _ {A : Type ℓ} where
   singleton a .isFinSetVar = isFinSetUnit
   singleton a .el = λ _ → a
 
-  the-var : (a : A) → singleton a .var
-  the-var a = tt
+  -- the-var : (a : A) → singleton a .var
+  -- the-var a = tt
 
   append : Ctx A → Ctx A → Ctx A
   var (append Γ₁ Γ₂) = Γ₁ .var ⊎ Γ₂ .var

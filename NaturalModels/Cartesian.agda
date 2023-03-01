@@ -33,8 +33,27 @@ record SimplyTypedCategory (ℓb ℓb' ℓt ℓt' : Level) : Type (ℓ-suc (ℓ-
   sole : ∀ (A : Ty) → B .cat .ob
   sole A = Tm-repr A .vertex
 
-  _/var : ∀ {Γ A} → (Tm A ⟅ Γ ⟆) .fst → B .cat [ Γ , sole A ]
-  M /var = Tm-repr _ .universal .coinduction M
+  the-var : ∀ {A} → (Tm A ⟅ sole A ⟆) .fst
+  the-var = Tm-repr _ .element
+
+  _/the-var : ∀ {Γ A} → (Tm A ⟅ Γ ⟆) .fst → B .cat [ Γ , sole A ]
+  _/the-var M = Tm-repr _ .universal .coinduction M
+
+  _⟨_⟩S : ∀ {Δ Γ A} → (Tm A ⟅ Γ ⟆) .fst → B .cat [ Δ , Γ ] → (Tm A ⟅ Δ ⟆) .fst
+  M ⟨ γ ⟩S = B .cat [ M ∘ᴾ⟨ Tm _ ⟩ γ ]
+
+  ⟨/the-var⟩ : ∀ {Γ A} (M : (Tm A ⟅ Γ ⟆) .fst)
+             → the-var ⟨ M /the-var ⟩S ≡ M
+  ⟨/the-var⟩ = Tm-repr _ .universal .commutes
+
+  /the-var⟨⟩S : ∀ {Δ Γ A} (M : (Tm A ⟅ Γ ⟆) .fst) (γ : B .cat [ Δ , Γ ])
+              → (M /the-var) ∘⟨ B .cat ⟩ γ ≡ (M ⟨ γ ⟩S) /the-var
+  /the-var⟨⟩S M γ = Tm-repr _ .universal .is-uniq (M ⟨ γ ⟩S) ((M /the-var) ∘⟨ B .cat ⟩ γ)
+    (the-var ⟨ M /the-var ∘⟨ B .cat ⟩ γ ⟩S
+      ≡⟨ ∘ᴾAssoc (B .cat) (Tm _) _ _ _ ⟩
+    the-var ⟨ M /the-var ⟩S ⟨ γ ⟩S
+      ≡[ i ]⟨ ⟨/the-var⟩ M i ⟨ γ ⟩S ⟩
+    M ⟨ γ ⟩S ∎)
 
 open SimplyTypedCategory
 open Functor
@@ -43,7 +62,7 @@ open NatTrans
 record STC-Functor {ℓcb ℓcb' ℓct ℓct' ℓdb ℓdb' ℓdt ℓdt'}
        (C : SimplyTypedCategory ℓcb ℓcb' ℓct ℓct')
        (D : SimplyTypedCategory ℓdb ℓdb' ℓdt ℓdt') :
-       Type (ℓ-max ℓcb (ℓ-max ℓcb' (ℓ-max ℓct (ℓ-max ℓct' (ℓ-max ℓdb (ℓ-max ℓdb' (ℓ-max ℓdt ℓdt'))))))) where
+       Type (ℓ-max ℓcb (ℓ-max ℓcb' (ℓ-max ℓct (ℓ-max ℓct' (ℓ-max ℓdb (ℓ-max ℓdb' (ℓ-max ℓdt (ℓ-max ℓdt' (ℓ-suc ℓ-zero))))))))) where
   open CartesianFunctor
   field
     F-B : CartesianFunctor (C .B) (D .B)
