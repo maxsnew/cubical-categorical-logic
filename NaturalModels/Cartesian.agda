@@ -68,7 +68,7 @@ record STC-Functor {ℓcb ℓcb' ℓct ℓct' ℓdb ℓdb' ℓdt ℓdt'}
     F-B : CartesianFunctor (C .B) (D .B)
     F-Ty : C .Ty → D .Ty
     F-Tm : ∀ A → PshHom (F-B .func) (C .Tm A) (D .Tm (F-Ty A))
-    F-Tm-repr : ∀ A → preserves-representability (F-B .func) (C .Tm A) (D .Tm (F-Ty A)) (F-Tm A)
+    F-Tm-repr : ∀ A → preserves-representation (F-B .func) (C .Tm A) (D .Tm (F-Ty A)) (F-Tm A) (C .Tm-repr A)
 
 -- | Universal Properties
 private

@@ -57,25 +57,6 @@ preserves-× {C = C}{D} F = (a b : C .ob) →
                                (push-×ᴾ F a b)
 
 
-Πfinᴾ : ∀ {ℓo ℓt ℓS} (C : Category ℓo ℓt) (Vars : FinSet ℓ-zero)
-      → (Vars .fst → Presheaf C ℓS) → Presheaf C ℓS
-Πfinᴾ C Vars Ps .F-ob c = (∀ (x : Vars .fst) → (Ps x ⟅ c ⟆) .fst) , isSetΠ λ x → (Ps x ⟅ c ⟆) .snd
-Πfinᴾ C Vars Ps .F-hom f ϕs x = C [ ϕs x ∘ᴾ⟨ Ps x ⟩ f ]
-Πfinᴾ C Vars Ps .F-id = λ i ϕs x → ∘ᴾId C (Ps x) (ϕs x) i
-Πfinᴾ C Vars Ps .F-seq = λ f g i ϕs x → ∘ᴾAssoc C (Ps x) (ϕs x) f g i
-
-push-Πᴾ : {C : Category ℓc ℓc'} {D : Category ℓd ℓd'} (F : Functor C D)
-        → (Vars : FinSet ℓ-zero) (obs : Vars .fst → C .ob)
-        → PshHom F (Πfinᴾ C Vars λ x → C [-, obs x ] ) ((Πfinᴾ D Vars λ x → D [-, F ⟅ obs x ⟆ ] ))
-push-Πᴾ F Vars obs .N-ob c fs = lift (λ x → F ⟪ fs .lower x ⟫)
-push-Πᴾ F Vars obs .N-hom f = funExt (λ fs i → lift (λ x → F .F-seq f (fs .lower x) i))
-
-preserves-Πfin : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}(F : Functor C D) → Type _
-preserves-Πfin {C = C}{D} F = ∀ (J : FinSet ℓ-zero) (obs : J .fst → C .ob) →
-  preserves-representability F (Πfinᴾ C J λ j → C [-, obs j ])
-                               (Πfinᴾ D J λ j → D [-, F .F-ob (obs j) ])
-                               (push-Πᴾ F J obs)
-
 Πᴾ : ∀ {ℓo ℓt ℓS} (C : Category ℓo ℓt)
               → (J : Type ℓp)
               → (J → Presheaf C ℓS)
@@ -84,6 +65,18 @@ preserves-Πfin {C = C}{D} F = ∀ (J : FinSet ℓ-zero) (obs : J .fst → C .ob
 Πᴾ C J Ps .F-hom = λ γ ϕs j → C [ ϕs j ∘ᴾ⟨ Ps j ⟩ γ ]
 Πᴾ C J Ps .F-id = funExt (λ ϕs i j → ∘ᴾId C (Ps j) (ϕs j) i)
 Πᴾ C J Ps .F-seq δ γ = λ i ϕs j → ∘ᴾAssoc C (Ps j) (ϕs j) δ γ i
+
+push-Πᴾ : {C : Category ℓc ℓc'} {D : Category ℓd ℓd'} (F : Functor C D)
+        → (Vars : Type ℓ-zero) (obs : Vars → C .ob)
+        → PshHom F (Πᴾ C Vars λ x → C [-, obs x ] ) ((Πᴾ D Vars λ x → D [-, F ⟅ obs x ⟆ ] ))
+push-Πᴾ F Vars obs .N-ob c fs = lift (λ x → F ⟪ fs .lower x ⟫)
+push-Πᴾ F Vars obs .N-hom f = funExt (λ fs i → lift (λ x → F .F-seq f (fs .lower x) i))
+
+-- preserves-Πfin : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}(F : Functor C D) → Type _
+-- preserves-Πfin {C = C}{D} F = ∀ (J : FinSet ℓ-zero) (obs : J .fst → C .ob) →
+--   preserves-representability F (Πᴾ C (J .fst) λ j → C [-, obs j ])
+--                                (Πᴾ D J λ j → D [-, F .F-ob (obs j) ])
+--                                (push-Πᴾ F J obs)
 
 record CartesianCategory ℓ ℓ' : Type (ℓ-suc (ℓ-max ℓ ℓ')) where
   field
@@ -109,5 +102,9 @@ open CartesianCategory
 record CartesianFunctor (C : CartesianCategory ℓc ℓc') (D : CartesianCategory ℓd ℓd') : Type ((ℓ-max (ℓ-max (ℓ-max ℓc ℓc') ℓd) (ℓ-max ℓd' (ℓ-suc ℓ-zero)))) where
   field
     func : Functor (C .cat) (D .cat)
-    preserves-fin-products : preserves-Πfin func
-
+    preserves-fin-products : ∀ (J : FinSet ℓ-zero) (obs : J .fst → C .cat .ob)
+      → preserves-representation func
+                                 (Πᴾ (C .cat) (J .fst) λ j → C .cat [-, obs j ])
+                                 (Πᴾ (D .cat) (J .fst) λ j → D .cat [-, func ⟅ obs j ⟆ ])
+                                 (push-Πᴾ func (J .fst) obs)
+                                 (C .finite-products J obs)
