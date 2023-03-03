@@ -1,0 +1,11 @@
+* Cubical formalization of Basic Categorical Type Theory
+
+Trying out cubical agda formalizations of different approaches to
+categorical semantics of type theories.
+
+** Cubical Version
+
+The development heavily relies on some extensions to the cubical agda
+stdlib that covers representability of presheaves which are in a [fork
+here](https://github.com/maxsnew/cubical/tree/more-representable).
+
