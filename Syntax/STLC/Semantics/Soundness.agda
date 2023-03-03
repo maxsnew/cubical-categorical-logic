@@ -139,61 +139,30 @@ module _ {Σ₀ : Sig₀ ℓ}{Σ₁ : Sig₁ Σ₀ ℓ'}
   soundness .F-B .func = ctx-functor
   soundness .F-B .preserves-fin-products J ctxts .coinduction γs = F-fin-prod-coinduction J ctxts γs
   soundness .F-B .preserves-fin-products J ctxts .commutes γs =
-    funExt λ j →
-      determined-by-elt (finite-products (varFinSet (ctxts j)) (λ x → sole (i₀ (ctxts j .el x))) .universal)
-        (funExt (λ x →
-          π _ _ x ∘⟨ cat ⟩ (subst-sem (λ x → ivar (j , x)) ∘⟨ cat ⟩ foo)
-            ≡⟨ cat .⋆Assoc _ _ _ ⟩
-          (π _ _ x ∘⟨ cat ⟩ subst-sem (λ x → ivar (j , x))) ∘⟨ cat ⟩ foo
-            ≡[ i ]⟨ (π∘prod-I (varFinSet (ctxts j)) (λ x → sole (i₀ (ctxts j .el x))) (λ x → the-var ⟨ π _ _ (j , x) ⟩S /the-var) x i) ∘⟨ cat ⟩ foo ⟩
-          ((the-var ⟨ π _ _ (j , x) ⟩S) /the-var) ∘⟨ cat ⟩ foo
-            ≡[ i ]⟨ η-expansion (Tm-repr (i₀ (ctxts j .el x)) .universal) (π _ _ (j , x)) (~ i) ∘⟨ cat ⟩ foo ⟩
-          π _ _ (j , x) ∘⟨ cat ⟩ foo
-            ≡⟨ π∘prod-I (varFinSet (finProd J ctxts)) (λ (j , x) → sole (i₀ (ctxts j .el x))) _ (j , x) ⟩
-          π _ _ x ∘⟨ cat ⟩ γs j ∎
-        ))
-   where foo = F-fin-prod-coinduction J ctxts γs
+    funExt (λ j →
+      prod-I _ _ (λ x → the-var ⟨ π _ _ (j , x) ⟩S /the-var) ∘⟨ cat ⟩ (F-fin-prod-coinduction J ctxts γs)
+        ≡[ i ]⟨ prod-I _ _ (λ x → η-expansion (Tm-repr (i₀ (ctxts j .el x)) .universal) (π _ _ (j , x)) (~ i) )
+                ∘⟨ cat ⟩ (F-fin-prod-coinduction J ctxts γs) ⟩
+      prod-I _ _ (λ x → π _ _ (j , x)) ∘⟨ cat ⟩ (F-fin-prod-coinduction J ctxts γs)
+        ≡[ i ]⟨ coinduction-natural (finite-products (varFinSet (ctxts j)) (λ x → sole (i₀ (ctxts j .el x))) .universal) (λ x → π _ _ (j , x)) ((F-fin-prod-coinduction J ctxts γs)) i ⟩
+      prod-I _ _ (λ x → π _ _ (j , x) ∘⟨ cat ⟩ F-fin-prod-coinduction J ctxts γs)
+        ≡[ i ]⟨ prod-I _ _ (λ x → π∘prod-I (varFinSet (finProd J ctxts)) _ ((λ (j , x) → π _ _ x ∘⟨ cat ⟩ γs j)) (j , x) i) ⟩
+      prod-I _ _ (λ x → π _ _ x ∘⟨ cat ⟩ γs j)
+        ≡[ i ]⟨ η-expansion (finite-products _ _ .universal) (γs j) (~ i) ⟩
+      γs j ∎)
   soundness .F-B .preserves-fin-products J ctxts .is-uniq {b = b} γs δ γs-commutes =
     finite-products (varFinSet (finProd J ctxts)) ((λ (j , x) → sole (i₀ (ctxts j .el x)))) .universal .is-uniq _ _ (funExt (λ (j , x) →
-      πjx j x ∘⟨ cat ⟩ δ
-        ≡[ i ]⟨ lem j x i ∘⟨ cat ⟩ δ ⟩
-      (πx j x ∘⟨ cat ⟩ F⟨πj⟩ j) ∘⟨ cat ⟩ δ
-        ≡[ i ]⟨ cat .⋆Assoc δ (F⟨πj⟩ j) (πx j x) (~ i) ⟩
-      πx j x ∘⟨ cat ⟩ (F⟨πj⟩ j ∘⟨ cat ⟩ δ)
-        ≡[ i ]⟨ πx j x ∘⟨ cat ⟩ γs-commutes i j ⟩
-      (πx j x) ∘⟨ cat ⟩ γs j ∎
+      π _ _ (j , x) ∘⟨ cat ⟩ δ
+        ≡[ i ]⟨ π∘prod-I (varFinSet (ctxts j)) _ (λ x → π _ _ (j , x)) x (~ i) ∘⟨ cat ⟩ δ ⟩
+      ((π _ _ x) ∘⟨ cat ⟩ prod-I _ _ (λ x → π _ _ (j , x))) ∘⟨ cat ⟩ δ
+        ≡[ i ]⟨ cat .⋆Assoc δ (prod-I (varFinSet (ctxts j)) _ (λ x → π _ _ (j , x))) (π _ _ x) (~ i) ⟩
+      (π _ _ x) ∘⟨ cat ⟩ (prod-I _ _ (λ x → π _ _ (j , x)) ∘⟨ cat ⟩ δ)
+        ≡[ i ]⟨ π (varFinSet (ctxts j)) _ x ∘⟨ cat ⟩ (prod-I _ _ (λ x → η-expansion (Tm-repr (i₀ (ctxts j .el x)) .universal) (π _ _ (j , x)) i) ∘⟨ cat ⟩ δ) ⟩
+      (π _ _ x) ∘⟨ cat ⟩ ((prod-I _ _ (λ x → the-var ⟨ π _ _ (j , x) ⟩S /the-var)) ∘⟨ cat ⟩ δ)
+        ≡[ i ]⟨ (π _ _ x) ∘⟨ cat ⟩ γs-commutes i j ⟩
+      (π _ _ x) ∘⟨ cat ⟩ γs j
+      ∎
       ))
-        where
-          ΣJ : FinSet ℓ-zero
-          ΣJ = (Σ[ j ∈ J .fst ] ctxts j .var) , isFinSetΣ J (λ j → varFinSet (ctxts j))
-
-          ΣJobs : ΣJ .fst → cat .ob
-          ΣJobs = (λ (j , x) → sole (i₀ (ctxts j .el x)))
-    
-          πjx : (j : J .fst) → (x : ctxts j .var)
-              → cat [ prod-ob ΣJ ΣJobs , sole (i₀ (ctxts j .el x)) ]
-          πjx j x = π _ _ (j , x)
-
-          F⟨πj⟩ : (j : J .fst) → cat [ ctx-sem (finProd J ctxts) , ctx-sem (ctxts j) ]
-          F⟨πj⟩ j = prod-I (varFinSet (ctxts j))
-                        (λ x → sole (i₀ (ctxts j .el x)))
-                        λ x → (the-var ⟨ πjx j x ⟩S) /the-var
-
-          πx :  (j : J .fst) → (x : ctxts j .var)
-             → cat [ prod-ob (varFinSet (ctxts j)) (λ x → sole (i₀ (ctxts j .el x)))
-                   , sole (i₀ (ctxts j .el x)) ]
-          πx j x = π _ _ x
-
-          -- why is this actually true ?
-          lem : (j : J .fst) → (x : ctxts j .var)
-              → πjx j x ≡ πx j x ∘⟨ cat ⟩ F⟨πj⟩ j
-          lem j x =
-            πjx j x
-              ≡⟨ η-expansion (Tm-repr (i₀ (ctxts j .el x)) .universal) (πjx j x) ⟩
-            (the-var ⟨ πjx j x ⟩S) /the-var
-              ≡[ i ]⟨ finite-products ((varFinSet (ctxts j))) ((λ x → sole (i₀ (ctxts j .el x)))) .universal .commutes (λ x → (the-var ⟨ πjx j x ⟩S) /the-var) (~ i) x ⟩
-            πx j x ∘⟨ cat ⟩ F⟨πj⟩ j
-            ∎
   soundness .F-Ty = i₀
   soundness .F-Tm A .NatTrans.N-ob Γ (lift M) = lift (term-sem M)
   soundness .F-Tm A .NatTrans.N-hom γ = funExt λ (lift M) → cong lift (term-sem-comp M γ)
@@ -207,22 +176,11 @@ module _ {Σ₀ : Sig₀ ℓ}{Σ₁ : Sig₁ Σ₀ ℓ'}
       ≡⟨ Tm-repr (i₀ A) .universal .commutes M ⟩
     M ∎
   soundness .F-Tm-repr A .is-uniq M γ~ M-commutes =
-    determined-by-elt (finite-products ((Unit , isFinSetUnit)) (λ tt → sole (i₀ A)) .universal)
-      (funExt (λ tt →
-        π _ _ tt ∘⟨ cat ⟩ γ~
-          ≡⟨ lem ⟩
-        M /the-var
-          ≡[ i ]⟨ π∘prod-I (_ , isFinSetUnit) _ (λ tt → M /the-var) tt (~ i) ⟩
-        π _ _ tt ∘⟨ cat ⟩ F-Tm-repr-coinduction M
-        ∎
-      ))
-    where
-      lem : π _ _ tt ∘⟨ cat ⟩ γ~ ≡ M /the-var
-      lem = Tm-repr (i₀ A) .universal .is-uniq M (π _ _ tt ∘⟨ cat ⟩ γ~)
-        (the-var ⟨ π _ _ tt ∘⟨ cat ⟩ γ~ ⟩S
+    finite-products ((_ , isFinSetUnit)) _ .universal .is-uniq _ _
+      (funExt (λ tt → Tm-repr _ .universal .is-uniq _ _
+        ((the-var ⟨ π _ _ tt ∘⟨ cat ⟩ γ~ ⟩S
           ≡[ i ]⟨ ∘ᴾAssoc cat (Tm (i₀ A)) the-var (π _ _ tt) γ~ i ⟩
          the-var ⟨ π _ _ tt ⟩S ⟨ γ~ ⟩S
           ≡⟨ M-commutes ⟩
          M
-         ∎
-        )
+         ∎))))
