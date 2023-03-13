@@ -5,7 +5,7 @@ categorical semantics of type theories.
 
 ** Cubical Version
 
-The development heavily relies on some extensions to the cubical agda
-stdlib that covers representability of presheaves which are in a [fork
-here](https://github.com/maxsnew/cubical/tree/more-representable).
+This development heavily relies on some extensions to the cubical agda
+stdlib that covers representability of presheaves which are under
+`Cubical/`. I expect these to be merged upstream eventually.
 
