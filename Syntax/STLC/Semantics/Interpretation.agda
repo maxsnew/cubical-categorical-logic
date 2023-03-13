@@ -14,6 +14,7 @@ private
   variable
     ℓ ℓ' ℓb ℓb' ℓt ℓt' : Level
 
+open import Cubical.Categories.Presheaf.Representable
 open CartesianCategory
 open Category
 open SimplyTypedCategory

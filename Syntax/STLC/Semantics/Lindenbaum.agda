@@ -1,20 +1,16 @@
 module Syntax.STLC.Semantics.Lindenbaum where
 
 open import Cubical.Categories.Category
-open import Cubical.Categories.Limits.BinProduct
 open import Cubical.Categories.Functor
 open import Cubical.Categories.Presheaf
-open import Cubical.Categories.Presheaf.Representable
-open import Cubical.Categories.Constructions.Elements
-open import Cubical.Categories.Limits.Terminal
-open import Cubical.Data.Sigma
-open import Cubical.Data.Fin
-open import Cubical.Data.Empty as ⊥
-open import Cubical.Data.Sum
+open import Cubical.Data.FinSet
 open import Cubical.Data.Unit
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Transport
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
+
+open import Cubical.Categories.Presheaf.Representable
 
 open import Syntax.STLC renaming (Tm to Term; Ty to STy)
 open import NaturalModels.Cartesian

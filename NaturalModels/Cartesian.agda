@@ -12,8 +12,12 @@ open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Categories.Presheaf
 open import Cubical.Data.Sigma
 open import Cubical.Data.Unit
+open import Cubical.Data.Bool
+open import Cubical.Data.FinSet
 
 open import UMP
+open import Cubical.Categories.Presheaf.More
+open import Cubical.Categories.Presheaf.Morphism
 
 open Category
 open CartesianCategory
@@ -81,6 +85,8 @@ private
 TypeRepresentation : ∀ (C : SimplyTypedCategory ℓb ℓb' ℓt ℓt') → (P : Presheaf (C .B .cat) ℓp) → Type _
 TypeRepresentation C P = Σ[ A ∈ C .Ty ] PshIso (C .B .cat) (C .Tm A) P
 
+-- TerminalType : ∀ (C : SimplyTypedCategory ℓb ℓb' ℓt ℓt') → TypeRepresentation C (presheaf-Prod (C .B .cat) (⊥, ?) (λ ()))
+
 -- AllProductTypes : ∀ {ℓo ℓt} → SimplyTypedCategory ℓo ℓt → Type (ℓ-max ℓo (ℓ-suc ℓt))
 -- AllProductTypes {ℓo}{ℓt} C =
 --   ∀ (J : Type ℓt) (D : J → C .Ty)
@@ -96,3 +102,70 @@ TypeRepresentation C P = Σ[ A ∈ C .Ty ] PshIso (C .B .cat) (C .Tm A) P
 
 -- | TODO: coproducts are "just" coproducts in the category of terms
 -- | with a free variable.
+
+-- module _ {ℓcb ℓcb' ℓct ℓct'} (C : SimplyTypedCategory ℓcb ℓcb' ℓct ℓct') where
+--   module C = SimplyTypedCategory C
+
+--   _×sole_ : C.B .cat .ob → C .Ty → C.B .cat .ob
+--   Γ ×sole B = bin-prod-ob C.B Γ (sole C B)
+--   Unary : C .B .cat .ob → Category ℓct ℓct'
+--   Unary Γ .ob = C.Ty
+--   Unary Γ .Hom[_,_] B A = (C.Tm A ⟅ Γ ×sole B ⟆) .fst
+--   Unary Γ .id = C.B .cat [ the-var C ∘ᴾ⟨ C.Tm _ ⟩ π₂ C.B _ _ ]
+--   Unary Γ ._⋆_ N M = C.B .cat [ M ∘ᴾ⟨ C.Tm _ ⟩ prod₂-I C.B _ _ (π₁ C.B _ _) (_/the-var C N) ]
+--   Unary Γ .⋆IdL M =
+--     C.B .cat [ M ∘ᴾ⟨ C.Tm _ ⟩ prod₂-I C.B _ _ (π₁ C.B _ _) (_/the-var C (Unary Γ .id)) ]
+--       ≡[ i ]⟨ C.B .cat [ M ∘ᴾ⟨ C.Tm _ ⟩ prod₂-I C.B _ _ (π₁ C.B _ _) (η-expansion (C .Tm-repr _ .universal) (π₂ C.B _ _) (~ i)) ] ⟩
+--     C.B .cat [ M ∘ᴾ⟨ C.Tm _ ⟩ prod₂-I C.B _ _ (π₁ C.B _ _) (π₂ C.B _ _) ]
+--       ≡[ i ]⟨ C.B .cat [ M ∘ᴾ⟨ C.Tm _ ⟩ η-expansion (finite-products C.B _ _ .universal) {!!} {!i!} ] ⟩
+--     C.B .cat [ M ∘ᴾ⟨ C.Tm _ ⟩ C.B .cat .id ]
+--       ≡⟨ {!!} ⟩
+--     M ∎
+--     -- tms : (j : Bool) → cat C.B [ Γ ×sole _ , if j then Γ else C.sole _ ]
+--     -- tms true = 
+--   Unary Γ .⋆IdR = {!!}
+--   Unary Γ .⋆Assoc = {!!}
+--   Unary Γ .isSetHom = {!!}
+--   -- Unary Γ 
+-- -- Unary C Γ .ob = C .Ty
+-- -- Unary C Γ .Hom[_,_] a b = (C .Tm b ⟅ prod-ob (C .B) (Bool , isFinSetBool) ctx ⟆) .fst
+-- --   where
+-- --     ctx : Bool → C .B .cat .ob
+-- --     ctx false = Γ
+-- --     ctx true = sole C a
+-- -- Unary C Γ .id = C .B .cat [ the-var C ∘ᴾ⟨ C .Tm _ ⟩ {!!}  ]
+-- -- Unary C Γ ._⋆_ = {!!}
+-- -- Unary C Γ .⋆IdL = {!!}
+-- -- Unary C Γ .⋆IdR = {!!}
+-- -- Unary C Γ .⋆Assoc = {!!}
+-- -- Unary C Γ .isSetHom = {!!}
+
+
+open STC-Functor
+open CartesianFunctor
+STC-NatTrans : ∀ {ℓcb ℓcb' ℓct ℓct' ℓdb ℓdb' ℓdt ℓdt'}
+       {C : SimplyTypedCategory ℓcb ℓcb' ℓct ℓct'}
+       {D : SimplyTypedCategory ℓdb ℓdb' ℓdt ℓdt'}
+       (F G : STC-Functor C D) → Type (ℓ-max (ℓ-max ℓcb ℓcb') ℓdb')
+STC-NatTrans F G = NatTrans (F .F-B .func) (G .F-B .func)
+
+STC-NatIso : ∀ {ℓcb ℓcb' ℓct ℓct' ℓdb ℓdb' ℓdt ℓdt'}
+       {C : SimplyTypedCategory ℓcb ℓcb' ℓct ℓct'}
+       {D : SimplyTypedCategory ℓdb ℓdb' ℓdt ℓdt'}
+       (F G : STC-Functor C D) → Type (ℓ-max (ℓ-max (ℓ-max ℓcb ℓcb') ℓdb) ℓdb')
+STC-NatIso F G = NatIso (F .F-B .func) (G .F-B .func)
+
+-- This should be determined by 
+-- N-Tm : ∀ (A : C .Ty) → (D .Tm (G .F-Ty A) ⟅ sole D (F .F-Ty A) ⟆) .fst
+
+-- record STC-Transformation' {ℓcb ℓcb' ℓct ℓct' ℓdb ℓdb' ℓdt ℓdt'}
+--        {C : SimplyTypedCategory ℓcb ℓcb' ℓct ℓct'}
+--        {D : SimplyTypedCategory ℓdb ℓdb' ℓdt ℓdt'}
+--        (F G : STC-Functor C D) : Type {!!} where
+--   field
+--     N-Tm : ∀ (A : C .Ty) → (D .Tm (G .F-Ty A) ⟅ sole D (F .F-Ty A) ⟆) .fst
+--     N-Tm-nat : ∀ {Γ : C .B .cat .ob}{A : C .Ty}
+--              → (M : (C .Tm A ⟅ Γ ⟆) .fst)
+--              → D .B .cat [ G .F-Tm A .N-ob _ (lift M) .lower ∘ᴾ⟨ D .Tm (G .F-Ty A) ⟩ {!!} ]
+--                ≡ {!!}
+

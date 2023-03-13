@@ -16,6 +16,8 @@ open import NaturalModels.Cartesian
 open import Syntax.STLC renaming (Tm to STm; Ty to STy)
 open import Syntax.STLC.Semantics.Interpretation
 open import Syntax.STLC.Semantics.Lindenbaum
+open import Cubical.Categories.Presheaf.More
+open import Cubical.Categories.Presheaf.Representable
 
 private
   variable

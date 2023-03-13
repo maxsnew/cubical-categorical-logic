@@ -15,6 +15,10 @@ open import Cubical.Data.FinSet
 open import Cubical.Data.Sigma
 open import Cubical.Data.Unit
 
+open import Cubical.Categories.Presheaf.Representable
+open import Cubical.Categories.Presheaf.More
+open import Cubical.Categories.Presheaf.Morphism
+
 open Category
 open Functor
 open NatTrans
