@@ -9,6 +9,8 @@ open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.Presheaf
 open import Cubical.Categories.Instances.Sets
 open import Cubical.HITs.PropositionalTruncation
+open import Cubical.Data.Bool
+open import Cubical.Data.Empty
 open import Cubical.Data.FinSet
 open import Cubical.Data.Sigma
 open import Cubical.Data.Unit
@@ -96,6 +98,46 @@ record CartesianCategory ℓ ℓ' : Type (ℓ-suc (ℓ-max ℓ ℓ')) where
     π∘prod-I : ∀ {Γ} (fs : ∀ (j : J .fst) → cat [ Γ , obs j ]) (j : J .fst)
              → π j ∘⟨ cat ⟩ prod-I fs ≡ fs j
     π∘prod-I fs j i = finite-products J obs .universal .commutes fs i j
+
+    prod-I⟨π⟩ : prod-I π ≡ cat .id
+    prod-I⟨π⟩ =
+      prod-I π ≡[ i ]⟨ prod-I (λ j → cat .⋆IdL (π j) (~ i)) ⟩
+      prod-I (λ j → π j ∘⟨ cat ⟩ cat .id)     ≡[ i ]⟨ η-expansion (finite-products _ _ .universal) (cat .id) (~ i) ⟩
+      cat .id ∎
+
+  null-prod-ob : cat .ob
+  null-prod-ob = prod-ob (⊥ , isFinSetFin) λ ()
+
+  prod₀-I : ∀ {Γ} → cat [ Γ , null-prod-ob ]
+  prod₀-I = prod-I _ (λ ()) λ ()
+
+  module _ (Γ₁ Γ₂ : cat .ob) where
+    bin-prod-ob : cat .ob
+    bin-prod-ob = prod-ob (Bool , isFinSetBool) (if_then Γ₁ else Γ₂)
+
+    π₁ : cat [ bin-prod-ob , Γ₁ ]
+    π₁ = π _ _ true
+    π₂ : cat [ bin-prod-ob , Γ₂ ]
+    π₂ = π _ _ false
+
+    BoolElim : ∀ {ℓ}{A : Bool → Type ℓ} → (A true) → (A false) → (b : Bool) → A b
+    BoolElim t f false = f
+    BoolElim t f true = t
+
+    prod₂-I : ∀ {Γ} → cat [ Γ , Γ₁ ] → cat [ Γ , Γ₂ ] → cat [ Γ , bin-prod-ob ]
+    prod₂-I γ₁ γ₂ = prod-I _ (λ z → if z then Γ₁ else Γ₂) (BoolElim γ₁ γ₂)
+
+    private
+      prod₂-lem : BoolElim π₁ π₂ ≡ π (_ , isFinSetBool) (λ z → if z then Γ₁ else Γ₂)
+      prod₂-lem i false = π₂
+      prod₂-lem i true = π₁
+
+    prod₂-I⟨π⟩ : prod₂-I π₁ π₂ ≡ cat .id
+    prod₂-I⟨π⟩ =
+      prod₂-I π₁ π₂                          ≡[ i ]⟨ prod-I (_ , isFinSetBool) _ (prod₂-lem i) ⟩
+      prod-I ((_ , isFinSetBool)) (if_then Γ₁ else Γ₂) (π (_ , isFinSetBool) (if_then Γ₁ else Γ₂)) ≡⟨ prod-I⟨π⟩ (_ , isFinSetBool) (if_then Γ₁ else Γ₂) ⟩
+      cat .id ∎
+
 
 open CartesianCategory
 
