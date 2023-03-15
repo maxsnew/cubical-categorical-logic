@@ -19,13 +19,12 @@ open SimplyTypedCategory
 open UnivElt
 open isUniversal
 
-self : (C : CartesianCategory ℓ ℓ') → SimplyTypedCategory {!!} {!!} {!!} {!!}
+self : (C : CartesianCategory ℓ ℓ') → SimplyTypedCategory ℓ ℓ' ℓ ℓ'
 self C .B = C
 self C .Ty = C .cat .ob
 self C .Tm = λ a → C .cat [-, a ]
 self C .Tm-repr A .vertex = A
 self C .Tm-repr A .element = C .cat .id
--- TODO: this should go in the stdlib
 self C .Tm-repr A .universal .coinduction f = f
 self C .Tm-repr A .universal .commutes f = C .cat .⋆IdR _
 self C .Tm-repr A .universal .is-uniq g f fid≡g = f ≡⟨ sym (C .cat .⋆IdR f) ⟩ fid≡g
