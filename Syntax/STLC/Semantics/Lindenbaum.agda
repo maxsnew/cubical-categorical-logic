@@ -51,7 +51,6 @@ module _ {Σ₀ : Sig₀ ℓ}{Σ₁ : Sig₁ Σ₀ ℓ'} where
   Tm-univElt A .universal .commutes M = refl
   Tm-univElt A .universal .is-uniq M M/var var*M/var≡M = funExt (λ x → var*M/var≡M)
 
-  open BinProduct
   open Ctx
   open CartesianCategory
   open UnivElt
