@@ -75,6 +75,14 @@ module _ {ℓo}{ℓh}{ℓp} (C : Category ℓo ℓh) (P : Presheaf C ℓp) where
     η-expansion : ∀ {b} (f : C [ b , vertex ]) → f ≡ coinduction (C [ element ∘ᴾ⟨ P ⟩ f ])
     η-expansion f = is-uniq (C [ element ∘ᴾ⟨ P ⟩ f ]) f refl
 
+    is-uniq-converse : ∀ {b} (ϕ : (P ⟅ b ⟆) .fst) f → f ≡ coinduction ϕ → C [ element ∘ᴾ⟨ P ⟩ f ] ≡ ϕ
+    is-uniq-converse ϕ f p =
+      C [ element ∘ᴾ⟨ P ⟩ f ]
+        ≡[ i ]⟨ C [ element ∘ᴾ⟨ P ⟩ p i ] ⟩
+      C [ element ∘ᴾ⟨ P ⟩ coinduction ϕ ]
+        ≡⟨ commutes ϕ ⟩
+      ϕ ∎
+
     coinduction-natural : ∀ {a b} → (ϕ : (P ⟅ b ⟆) .fst) → (f : C [ a , b ])
                         → coinduction ϕ ∘⟨ C ⟩ f ≡ coinduction (C [ ϕ ∘ᴾ⟨ P ⟩ f ])
     coinduction-natural ϕ f = is-uniq (C [ ϕ ∘ᴾ⟨ P ⟩ f ]) (coinduction ϕ ∘⟨ C ⟩ f)
@@ -224,3 +232,14 @@ module _ {ℓo}{ℓh}{ℓp} (C : Category ℓo ℓh) (P : Presheaf C ℓp) where
 
   UnivEltToRepresentation : UnivElt → Representation
   UnivEltToRepresentation = Iso.inv Representation≅UnivElt
+
+  -- If A and B both represent P then A ≅ B
+  sameUMP→CatIso : (u : UnivElt) → (v : UnivElt) → CatIso C (u .vertex) (v .vertex)
+  sameUMP→CatIso u v =
+    preserveIsosF {F = domain {C = C} P}
+                  (terminalToIso (∫ᴾ_ {C = C} P)
+                                 (UnivElt→UniversalElement u)
+                                 (UnivElt→UniversalElement v))
+
+selfRepresents : (C : Category ℓ ℓ') → (A : C .ob) → Representation C (C [-, A ])
+selfRepresents C A = A , IdPshIso C (C [-, A ])

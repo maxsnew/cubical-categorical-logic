@@ -1,3 +1,4 @@
+-- | Should probably rename this to "products"
 module UMP where
 
 open import Cubical.Foundations.Prelude
@@ -78,16 +79,58 @@ push-Πᴾ : {C : Category ℓc ℓc'} {D : Category ℓd ℓd'} (F : Functor C 
 push-Πᴾ F Vars obs .N-ob c fs = lift (λ x → F ⟪ fs .lower x ⟫)
 push-Πᴾ F Vars obs .N-hom f = funExt (λ fs i → lift (λ x → F .F-seq f (fs .lower x) i))
 
--- preserves-Πfin : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}(F : Functor C D) → Type _
--- preserves-Πfin {C = C}{D} F = ∀ (J : FinSet ℓ-zero) (obs : J .fst → C .ob) →
---   preserves-representability F (Πᴾ C (J .fst) λ j → C [-, obs j ])
---                                (Πᴾ D J λ j → D [-, F .F-ob (obs j) ])
---                                (push-Πᴾ F J obs)
+-- Proof that any object is its own unary product
+unaryProd : ∀ {ℓo ℓt} (C : Category ℓo ℓt)(Γ : C .ob) → isUniversal C (Πᴾ C Unit (λ tt → C [-, Γ ])) (Γ , λ tt → id C)
+unaryProd C Γ .coinduction = λ z → z tt
+unaryProd C Γ .commutes ϕ = funExt (λ x → C .⋆IdR (ϕ tt))
+unaryProd C Γ .is-uniq ϕ f comm = f ≡⟨ sym (C .⋆IdR f) ⟩ f ⋆⟨ C ⟩ C .id  ≡[ i ]⟨ comm i tt ⟩ ϕ tt ∎
+
+product : ∀ {ℓo ℓt ℓJ} (C : Category ℓo ℓt) (J : Type ℓJ) → (D : J → C .ob) → Type _
+product C J D = UnivElt C (Πᴾ C J λ j → C [-, D j ])
+
+product-cone : ∀ {ℓo ℓt ℓJ} (C : Category ℓo ℓt) (J : Type ℓJ) → (D : J → C .ob) → (Π : C .ob) → ((j : J) → C [ Π , D j ]) → Type _
+product-cone C J D Π π = isUniversal C (Πᴾ C J (λ j → C [-, D j ])) (Π , π)
+
+-- Some notation would greatly improve this...
+nestProd : ∀ {ℓo ℓt ℓJ ℓK} (C : Category ℓo ℓt)
+         (J : Type ℓJ) (K : J → Type ℓK)
+         (D : (j : J) → K j → C .ob)
+         → (K-prods : ∀ j → product C (K j) (D j))
+         → (JK-prod : product C (Σ J K) (λ (j , k) → D j k))
+         → product-cone C J (λ j → K-prods j .vertex)
+                        (JK-prod .vertex)
+                        λ j → K-prods j .universal .coinduction λ k → JK-prod .element (j , k)
+nestProd C J K D K-prods JK-prod .coinduction =
+  λ M⟨j⟩ → JK-prod .universal .coinduction (λ (j , k) →
+    K-prods j .element k ∘⟨ C ⟩ M⟨j⟩ j)
+nestProd C J K D K-prods JK-prod .commutes M⟨j⟩ = funExt (λ j →
+  K-prods j .universal .coinduction (λ k → JK-prod .element (j , k))
+    ∘⟨ C ⟩ JK-prod .universal .coinduction (λ (j , k) → K-prods j .element k ∘⟨ C ⟩ M⟨j⟩ j)
+  ≡⟨ coinduction-natural (K-prods j .universal) ((λ k → JK-prod .element (j , k))) _ ⟩
+  K-prods j .universal .coinduction (λ k →
+    JK-prod .element (j , k) ∘⟨ C ⟩ JK-prod .universal .coinduction (λ (j , k) → K-prods j .element k ∘⟨ C ⟩ M⟨j⟩ j))
+    
+  ≡[ i ]⟨ K-prods j .universal .coinduction (λ k → JK-prod .universal .commutes (λ (j , k) → K-prods j .element k ∘⟨ C ⟩ M⟨j⟩ j) i (j , k)) ⟩
+  K-prods j .universal .coinduction (λ k → K-prods j .element k ∘⟨ C ⟩ M⟨j⟩ j)
+  ≡⟨ sym (η-expansion (K-prods j .universal) (M⟨j⟩ j)) ⟩
+  M⟨j⟩ j ∎)
+nestProd C J K D K-prods JK-prod .is-uniq M⟨j⟩ f f-comm =
+  JK-prod .universal .is-uniq ((λ (j , k) → K-prods j .element k ∘⟨ C ⟩ M⟨j⟩ j)) f
+  (funExt (λ (j , k) →
+    -- need to show π (j , k) ∘ f ≡ π k ∘ M⟨j⟩ j
+    JK-prod .element (j , k) ∘⟨ C ⟩ f
+      ≡[ i ]⟨ K-prods j .universal .commutes (λ k' → JK-prod .element (j , k')) (~ i) k ∘⟨ C ⟩ f ⟩
+    (K-prods j .element k ∘⟨ C ⟩ (K-prods j .universal .coinduction λ k' → JK-prod .element (j , k'))) ∘⟨ C ⟩ f
+      ≡⟨ sym (C .⋆Assoc _ _ _) ⟩
+    K-prods j .element k ∘⟨ C ⟩ ((K-prods j .universal .coinduction λ k' → JK-prod .element (j , k')) ∘⟨ C ⟩ f)
+      ≡[ i ]⟨ K-prods j .element k ∘⟨ C ⟩ f-comm i j ⟩
+    K-prods j .element k ∘⟨ C ⟩ M⟨j⟩ j
+    ∎))
 
 record CartesianCategory ℓ ℓ' : Type (ℓ-suc (ℓ-max ℓ ℓ')) where
   field
     cat : Category ℓ ℓ'
-    finite-products : ∀ (J : FinSet ℓ-zero) → (obs : J .fst → cat .ob) → UnivElt cat (Πᴾ cat (J .fst) λ x → cat [-, obs x ])
+    finite-products : ∀ (J : FinSet ℓ-zero) → (obs : J .fst → cat .ob) → product cat (J .fst) obs
 
   module _ (J : FinSet ℓ-zero) (obs : J .fst → cat .ob) where
     prod-ob : cat .ob
@@ -141,7 +184,6 @@ record CartesianCategory ℓ ℓ' : Type (ℓ-suc (ℓ-max ℓ ℓ')) where
       prod₂-I π₁ π₂                          ≡[ i ]⟨ prod-I (_ , isFinSetBool) _ (prod₂-lem i) ⟩
       prod-I ((_ , isFinSetBool)) (if_then Γ₁ else Γ₂) (π (_ , isFinSetBool) (if_then Γ₁ else Γ₂)) ≡⟨ prod-I⟨π⟩ (_ , isFinSetBool) (if_then Γ₁ else Γ₂) ⟩
       cat .id ∎
-
 
 open CartesianCategory
 

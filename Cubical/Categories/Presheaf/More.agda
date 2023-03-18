@@ -43,3 +43,5 @@ PshIso {ℓS = ℓS}{ℓS' = ℓS'} C P Q =
     (LiftF {ℓ = ℓS}{ℓ' = ℓS'} ∘F P)
     (LiftF {ℓ = ℓS'}{ℓ' = ℓS} ∘F Q)
 
+IdPshIso : (C : Category ℓ ℓ') (P : Presheaf C ℓS) → PshIso C P P
+IdPshIso C P = idCatIso
