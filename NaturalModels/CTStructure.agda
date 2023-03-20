@@ -44,7 +44,14 @@ record CT-Functor {ℓc ℓc' ℓct ℓd ℓd' ℓdt : Level}
 private
   variable
     ℓc ℓc' ℓt ℓt' ℓp : Level
-       
+
+open CT-Functor
+
+CT-Trans : {ℓc ℓc' ℓct ℓd ℓd' ℓdt : Level} {C : CTStructure ℓc ℓc' ℓct} {D : CTStructure ℓd ℓd' ℓdt}
+           (F G : CT-Functor C D)
+         → Type _
+CT-Trans F G = NatTrans (F .F-B .func) (G .F-B .func)
+
 -- representability by a type
 TypeRepr : ∀ (C : CTStructure ℓc ℓc' ℓt) → (P : Presheaf (C .B .cat) ℓp) → Type _
 TypeRepr C P = Σ[ A ∈ C .Ty ] PshIso (C .B .cat) (C .B .cat [-, C .sole A ]) P
