@@ -49,14 +49,31 @@ open import Cubical.Categories.Functors.HomFunctor
 private
   variable
     ℓC ℓC' ℓD ℓD' : Level
-PROF⊶ : (C : Category ℓC ℓC') (D : Category ℓD ℓD') → ∀ ℓS → Category _ _
-PROF⊶ C D ℓS = FUNCTOR (C ^op ×C D) (SET ℓS)
+PROFo-* : (C : Category ℓC ℓC') (D : Category ℓD ℓD') → ∀ ℓS → Category _ _
+PROFo-* C D ℓS = FUNCTOR (C ^op ×C D) (SET ℓS)
+
+PROF⊶ = PROFo-*
+
+PROF*-o : (D : Category ℓD ℓD')(C : Category ℓC ℓC') → ∀ ℓS → Category _ _
+PROF*-o D C = PROFo-* C D
+
+PROF⊷ = PROF*-o
 
 _o-[_]-*_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C o-[ ℓS ]-* D = Category.ob (PROF⊶ C D ℓS)
 
-PROF⊷ : (C : Category ℓC ℓC') (D : Category ℓD ℓD') → ∀ ℓS → Category _ _
-PROF⊷ C D ℓS = PROF⊶ D C ℓS
+_*-[_]-o_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
+C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
+
+asProf*-o : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C *-[ ℓD' ]-o D
+asProf*-o C D F = HomFunctor D ∘F (Id {C = D ^op} ×F F)
+
+asProfo-* : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C o-[ ℓD' ]-* D
+asProfo-* C D F = HomFunctor D ∘F ((F ^opF) ×F Id {C = D})
+
+-- module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) where
+--   -- Functor to
+--   asProf*o : 
 
 -- module _ (ℓ ℓ' : Level) where
 --   Cat : Type _
