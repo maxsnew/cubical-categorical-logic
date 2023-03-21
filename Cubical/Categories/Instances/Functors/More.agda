@@ -17,7 +17,7 @@ open import Cubical.Categories.Constructions.BinProduct
 
 private
   variable
-    ℓC ℓC' ℓD ℓD' : Level
+    ℓC ℓC' ℓD ℓD' ℓΓ ℓΓ' : Level
 
 module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
   open Category
@@ -46,3 +46,31 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     F ⟪ f ⟫ ⋆⟨ D ⟩ (α .N-ob _ ⋆⟨ D ⟩ (F' ⟪ f' ⟫ ⋆⟨ D ⟩ α' .N-ob c''))
       ≡[ i ]⟨ D .⋆Assoc (F ⟪ f ⟫) (α .N-ob _) ((F' ⟪ f' ⟫ ⋆⟨ D ⟩ α' .N-ob c'')) (~ i) ⟩
     (F ⟪ f ⟫ ⋆⟨ D ⟩ α .N-ob c') ⋆⟨ D ⟩ (F' ⟪ f' ⟫ ⋆⟨ D ⟩ α' .N-ob c'') ∎
+
+  module _ {Γ : Category ℓΓ ℓΓ'} where
+    λF : Functor (Γ ×C C) D → Functor Γ (FUNCTOR C D)
+    λF F .F-ob a .F-ob b = F ⟅ a , b ⟆
+    λF F .F-ob a .F-hom f = F .F-hom (Γ .id , f)
+    λF F .F-ob a .F-id = F .F-id
+    λF F .F-ob a .F-seq f g =
+      F .F-hom (Γ .id , f ⋆⟨ C ⟩ g)
+        ≡[ i ]⟨ F .F-hom ((Γ .⋆IdL (Γ .id) (~ i)) , f ⋆⟨ C ⟩ g) ⟩
+      F .F-hom (Γ .id ⋆⟨ Γ ⟩ Γ .id , f ⋆⟨ C ⟩ g)
+        ≡⟨ F .F-seq (Γ .id , f) (Γ .id , g) ⟩
+      F .F-hom (Γ .id , f) ⋆⟨ D ⟩ F .F-hom (Γ .id , g ) ∎
+    λF F .F-hom γ .N-ob b = F .F-hom (γ , C .id)
+    λF F .F-hom γ .N-hom f =
+      F .F-hom (Γ .id , f) ⋆⟨ D ⟩ F .F-hom (γ , C .id)
+        ≡⟨ sym (F .F-seq (Γ .id , f) (γ , C .id)) ⟩
+      F .F-hom (Γ .id ⋆⟨ Γ ⟩ γ , f ⋆⟨ C ⟩ C .id)
+        ≡[ i ]⟨ F .F-hom ((idTrans (Id {C = Γ}) .N-hom γ (~ i)) , idTrans (Id {C = C}) .N-hom f i) ⟩
+      F .F-hom (γ ⋆⟨ Γ ⟩ Γ .id , C .id ⋆⟨ C ⟩ f)
+        ≡⟨ F .F-seq (γ , C .id) (Γ .id , f) ⟩
+      F .F-hom (γ , C .id) ⋆⟨ D ⟩ F .F-hom (Γ .id , f)  ∎
+    λF F .F-id = makeNatTransPath (funExt (λ a → F .F-id))
+    λF F .F-seq γ δ = makeNatTransPath (funExt (λ a →
+        F .F-hom (γ ⋆⟨ Γ ⟩ δ , C .id)
+          ≡[ i ]⟨ F .F-hom (γ ⋆⟨ Γ ⟩ δ , C .⋆IdL (C .id) (~ i)) ⟩
+        F .F-hom (γ ⋆⟨ Γ ⟩ δ , C .id ⋆⟨ C ⟩ C .id)
+          ≡⟨ F .F-seq (γ , C .id) (δ , C .id) ⟩
+        F .F-hom (γ , C .id) ⋆⟨ D ⟩ F .F-hom (δ , C .id) ∎))
