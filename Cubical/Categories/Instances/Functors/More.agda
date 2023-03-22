@@ -74,3 +74,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         F .F-hom (γ ⋆⟨ Γ ⟩ δ , C .id ⋆⟨ C ⟩ C .id)
           ≡⟨ F .F-seq (γ , C .id) (δ , C .id) ⟩
         F .F-hom (γ , C .id) ⋆⟨ D ⟩ F .F-hom (δ , C .id) ∎))
+
+    λFl : Functor (C ×C Γ) D → Functor Γ (FUNCTOR C D)
+    λFl F = λF (F ∘F (Snd Γ C ,F Fst Γ C))

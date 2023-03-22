@@ -16,10 +16,12 @@ open import Cubical.Categories.Instances.Sets
 open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.Functor
+open import Cubical.Categories.Functors.HomFunctor
 open import Cubical.Categories.Presheaf.Base
 
 open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Yoneda
+open import Cubical.Categories.Instances.Functors.More
 
 private
   variable
@@ -93,3 +95,10 @@ yonedaᴾ* {ℓ}{ℓ'}{ℓ''}{C} F c =
   the-iso .inv β .N-hom = β .N-hom
   the-iso .rightInv = λ b → refl
   the-iso .leftInv = λ a → refl
+
+-- | The Yoneda embedding as a functor
+YONEDA : {C : Category ℓ ℓ'} → Functor C (FUNCTOR (C ^op) (SET ℓ'))
+YONEDA {C = C} = λFl (C ^op) (SET _) (HomFunctor C)
+
+YONEDA^op : {C : Category ℓ ℓ'} → Functor (C ^op) (FUNCTOR C (SET ℓ'))
+YONEDA^op {C = C} = λF C (SET _) (HomFunctor C)

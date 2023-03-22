@@ -36,16 +36,18 @@ open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functors.HomFunctor
+
+open import Cubical.Categories.Presheaf.Representable
+open import Cubical.Categories.Instances.Sets.More
+open import Cubical.Categories.Instances.Functors.More
+open import Cubical.Categories.Yoneda.More
 
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
 -- the sets in the profunctor.
 
--- Here we formalize the most common case in category theory: the
--- categories have the same levels as each other and the profunctor
--- level is the same as the Hom sets, so that Hom itself is a
--- profunctor.
 private
   variable
     ℓC ℓC' ℓD ℓD' : Level
@@ -65,50 +67,63 @@ C o-[ ℓS ]-* D = Category.ob (PROF⊶ C D ℓS)
 _*-[_]-o_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
 
-asProf*-o : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C *-[ ℓD' ]-o D
-asProf*-o C D F = HomFunctor D ∘F (Id {C = D ^op} ×F F)
+private
+  variable
+    ℓs : Level
 
-asProfo-* : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C o-[ ℓD' ]-* D
-asProfo-* C D F = HomFunctor D ∘F ((F ^opF) ×F Id {C = D})
+-- | TODO: these should be equivalences (isos?) of categories
+Functor→Prof*-o : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C *-[ ℓD' ]-o D
+Functor→Prof*-o C D F = HomFunctor D ∘F (Id {C = D ^op} ×F F)
 
--- module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) where
---   -- Functor to
---   asProf*o : 
+Functor→Profo-* : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C o-[ ℓD' ]-* D
+Functor→Profo-* C D F = HomFunctor D ∘F ((F ^opF) ×F Id {C = D})
 
--- module _ (ℓ ℓ' : Level) where
---   Cat : Type _
---   Cat = Cubical.Categories.Category.Category ℓ ℓ'
+Prof*-o→Functor : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o D) → Functor C (FUNCTOR (D ^op) (SET ℓs))
+Prof*-o→Functor C D R = λFl (D ^op) (SET _) R
 
---   -- There are two common, but opposite conventions for what a
---   --  profunctor "from C to D" means: either
---   --  C^op × D → Set
---   --  D^op × C → Set
+Profo-*→Functor : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C o-[ ℓs ]-* D) → Functor (C ^op) (FUNCTOR D (SET ℓs))
+Profo-*→Functor C D R = λF D (SET _) R
 
---   -- To avoid confusion, we use a notation that supports both
---   -- (suggested by Mike Shulman):
---   -- 1. C ⊶ D means C^op × D → Set
---   -- 2. C ⊷ D means D^op × C → Set
+module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
+  open Category
 
---   -- The mnemonic is that the open side of the symbol indicates the
---   -- contravariant variable in that it is similar to an "op"
---   -- PROF⊶ : (C D : Cat) → Category _ _
---   -- PROF⊶ C D = FUNCTOR ((C ^op) ×C D) (SET ℓ')
+  -- | Note that this works for both *-o and o-*, either way, the
+  -- | contravariant variable goes on the left, to match Hom.
+  _p[_,_] : ∀ {ℓs} → (C *-[ ℓs ]-o D) → D .ob → C .ob → Type ℓs
+  R p[ d , c ] = ⟨ R ⟅ d , c ⟆ ⟩
 
---   PROF⊷ : (C D : Cat) → Category _ _
---   PROF⊷ C D = PROF⊶ D C
+  module _ {ℓs} (R : C *-[ ℓs ]-o D) where
+    ProfRepresents : (Functor C D) → Type _
+    ProfRepresents G = NatIso (LiftF {ℓs}{ℓD'} ∘F R) (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G)
 
---   record Profunctor⊶ (C D : Cat) : Type (ℓ-max ℓ (ℓ-suc ℓ')) where
---     constructor fromFunc
---     field
---       asFunc : Category.ob (PROF⊶ C D)
+    -- | Definition 1: A profunctor R representation is a functor G
+    -- | with a natural isomorphism between R and G viewed as a profunctor
+    ProfRepresentation : Type _
+    ProfRepresentation = Σ[ G ∈ Functor C D ] ProfRepresents G
 
---     private
---       R = asFunc
+    -- | Definition 2: A profunctor R representation is a functor G
+    -- | with a natural isomorphism between λF R and Y o G.
+    PshFunctorRepresentation : Type _
+    PshFunctorRepresentation =
+      Σ[ G ∈ Functor C D ]
+      NatIso (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
+             (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G))
 
---     module C = Category C
---     module D = Category D
---     _⋆C_ = C._⋆_
---     _⋆D_ = D._⋆_
+    -- | TODO: equivalence between 1 and 2 (follows from the fact that λFl is an equivalence of categories)
+
+    -- | Definition 3: Parameterized Universal Element
+    -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
+    ParamUniversalElement : Type _
+    ParamUniversalElement = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+
+    -- | TODO: equivalence between 2 and 3 (follows from equivalence
+    -- | between corresponding notions of representation of presheaves
+    -- | + an "automatic" naturality proof)
+
+    -- | Definition 4: Parameterized UnivElt
+    -- | Same but with the unpacked UnivElt definition
+    ParamUnivElt : Type _
+    ParamUnivElt = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
 
 --     Het[_,_] : C.ob → D.ob → Type ℓ'
 --     Het[ c , d ] = ⟨ asFunc ⟅ c , d ⟆ ⟩
