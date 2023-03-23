@@ -17,12 +17,30 @@ open import Cubical.Categories.Constructions.BinProduct
 
 private
   variable
-    ℓC ℓC' ℓD ℓD' ℓΓ ℓΓ' : Level
+    ℓC ℓC' ℓD ℓD' ℓΓ ℓΓ' ℓ ℓ' : Level
 
 module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
   open Category
   open Functor
   open NatTrans
+
+  -- TODO: don't really know what's going on w universes here. Introduced levels ℓ ℓ' not tied to C, D, or Γ in hopes to make this general
+  -- The type of this record makes no sense to me at the moment, but does make everything type check.
+  -- TODO: Maybe put this is a different file
+  record EquivalenceOfCategories {A B : Category ℓ ℓ'}(F : Functor A B) (G : Functor B A) : Type (ℓ-max ℓ ℓ') where
+    constructor is-equiv-of-cats
+    field
+      F∘G-iso-to-id : NatIso (funcComp F G) (Id)
+      G∘F-iso-to-id : NatIso (funcComp G F) (Id)
+
+  -- TODO: find proper syntax for existential quantification
+  -- Want to show that we have an equivalence of categories iff ess surj on objs, full, faithful
+  --alt-equiv-of-categories : {A B : Category ℓ ℓ'} → (F : Functor A B) →
+  --  isFull F →
+  --  isFaithful F →
+  --  isEssentiallySurj F →
+  --  ∃ G EquivalenceOfCategories F G
+  --alt-equiv-of-categories _ = ?
 
   appF : Functor ((FUNCTOR C D) ×C C) D
   appF .F-ob (F , c) = F ⟅ c ⟆
