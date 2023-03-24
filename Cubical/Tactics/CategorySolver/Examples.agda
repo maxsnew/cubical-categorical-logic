@@ -29,7 +29,7 @@ module Examples (𝓒 : Category ℓ ℓ') where
     → (f ⋆ (g ∘ id)) ≡ h
     → f ⋆ g ≡ h ∘ id
   ex f g h p =
-    f ⋆ g ≡⟨ {!solveCat! 𝓒!} ⟩
-    (f ⋆ (g ∘ id)) ≡⟨ p ⟩
+    f ⋆ g ≡⟨ solveCat! 𝓒 ⟩
+    (f ⋆ (id ⋆ g)) ≡⟨ p ⟩
     h ≡⟨ {!solveCat! 𝓒!} ⟩
     h ∘ id ∎

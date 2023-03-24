@@ -21,6 +21,70 @@ private
   variable
     ℓ ℓ' : Level
 
+_<$>_ : ∀ {ℓ ℓ'} {A : Type ℓ}{B : Type ℓ'} → (A → B) → TC A → TC B
+f <$> t = t >>= λ x → returnTC (f x)
+
+_<*>_ : ∀ {ℓ ℓ'} {A : Type ℓ}{B : Type ℓ'} → TC (A → B) → TC A → TC B
+s <*> t = s >>= λ f → t >>= λ x → returnTC (f x)
+
+wait-for-args : List (Arg Term) → TC (List (Arg Term))
+wait-for-type : Term → TC Term
+
+wait-for-type (var x args) = var x <$> wait-for-args args
+wait-for-type (con c args) = con c <$> wait-for-args args
+wait-for-type (def f args) = def f <$> wait-for-args args
+wait-for-type (lam v (abs x t)) = returnTC (lam v (abs x t))
+wait-for-type (pat-lam cs args) = returnTC (pat-lam cs args)
+wait-for-type (pi (arg i a) (abs x b)) = do
+  a ← wait-for-type a
+  b ← wait-for-type b
+  returnTC (pi (arg i a) (abs x b))
+wait-for-type (agda-sort s) = returnTC (agda-sort s)
+wait-for-type (lit l) = returnTC (lit l)
+wait-for-type (meta x x₁) = blockOnMeta x
+wait-for-type unknown = returnTC unknown
+
+wait-for-args [] = returnTC []
+wait-for-args (arg i a ∷ xs) =
+  (_∷_ <$> (arg i <$> wait-for-type a)) <*> wait-for-args xs
+
+unapply-path : Term → TC (Maybe (Term × Term × Term))
+unapply-path red@(def (quote PathP) (l h∷ T v∷ x v∷ y v∷ [])) = do
+  domain ← newMeta (def (quote Type) (l v∷ []))
+  ty ← returnTC (def (quote Path) (domain v∷ x v∷ y v∷ []))
+  -- debugPrint "tactic" 50
+  --   [ "(no reduction) unapply-path: got a "
+  --   , termErr red
+  --   , " but I really want it to be "
+  --   , termErr ty
+  --   ]
+  unify red ty
+  returnTC (just (domain , x , y))
+unapply-path tm = reduce tm >>= λ where
+  tm@(meta _ _) → do
+    dom ← newMeta (def (quote Type) [])
+    l ← newMeta dom
+    r ← newMeta dom
+    unify tm (def (quote Type) (varg dom ∷ varg l ∷ varg r ∷ []))
+    wait-for-type l
+    wait-for-type r
+    returnTC (just (dom , l , r))
+  red@(def (quote PathP) (l h∷ T v∷ x v∷ y v∷ [])) → do
+    domain ← newMeta (def (quote Type) (l v∷ []))
+    ty ← returnTC (def (quote Path) (domain v∷ x v∷ y v∷ []))
+    -- debugPrint "tactic" 50 ("unapply-path: got a " ∷ termErr red ∷ " but I really want it to be " ∷ termErr ty ∷ [])
+    unify red ty
+    returnTC (just (domain , x , y))
+  _ → returnTC nothing
+
+{-
+  get-boundary maps a term 'x ≡ y' to the pair '(x,y)'
+-}
+get-boundary : Term → TC (Maybe (Term × Term))
+get-boundary tm = unapply-path tm >>= λ where
+  (just (_ , x , y)) → returnTC (just (x , y))
+  nothing            → returnTC nothing
+
 module ReflectionSolver where
   module _ (category : Term) where
     pattern category-args xs =
@@ -43,52 +107,30 @@ module ReflectionSolver where
       is-⋆ : Name → Bool
       is-id : Name → Bool
 
-  -- | TODO: idk why these can't just be shared
-  _==_ = primQNameEquality
-  {-# INLINE _==_ #-}
-
-  {-
-    `getLastTwoArgsOf` maps a term 'def n (z₁ ∷ … ∷ zₙ ∷ x ∷ y ∷ [])' to the pair '(x,y)'
-    non-visible arguments are ignored.
-  -}
-  getLastTwoArgsOf : Name → Term → Maybe (Term × Term)
-  getLastTwoArgsOf n' (def n xs) =
-    if n == n'
-    then go xs
-    else nothing
-      where
-      go : List (Arg Term) → Maybe (Term × Term)
-      go (varg x ∷ varg y ∷ []) = just (x , y)
-      go (x ∷ xs)               = go xs
-      go _                      = nothing
-  getLastTwoArgsOf n' _ = nothing
-
-  {-
-    `splitEquation` maps a term 'x ≡ y' to the pair '(x,y)'
-  -}
-  splitEquation : Term → Maybe (Term × Term)
-  splitEquation = getLastTwoArgsOf (quote PathP)
-
   solve-macro : Term -- ^ The term denoting the category
               → Term -- ^ The hole whose goal should be an equality between morphisms in the category
               → TC Unit
   solve-macro category hole =
+    withNormalisation false (
+    dontReduceDefs (quote Category.id ∷ quote Category._⋆_ ∷ []) (
     do
       -- | First we normalize the goal
       goal ← inferType hole >>= normalise
       -- | Then we parse the goal into an AST
-      just (lhs , rhs) ← returnTC (map-Maybe (map-× (buildExpression category) (buildExpression category)) (splitEquation goal))
+      just (lhs , rhs) ← get-boundary goal
         where
           nothing
             → typeError(strErr "The cat solver didn't work. It's Max S. New's fault, though he probably doesn't understand why tbh" ∷ termErr goal ∷ [])
       -- | Then we invoke the solver
       -- | And we unify the result of the solver with the original hole.
+      elhs ← normalise lhs
+      erhs ← normalise rhs
       unify hole (def (quote solve ) (harg {q = quantity-ω} unknown ∷ harg {q = quantity-ω} unknown ∷ -- levels of the category
                                       category v∷
                                       harg {q = quantity-ω} unknown ∷ harg {q = quantity-ω} unknown ∷ -- domain/codomain of the morphisms
-                                      lhs v∷ rhs v∷
+                                      buildExpression category elhs v∷ buildExpression category erhs v∷
                                       def (quote refl) [] v∷ [])
-                                      )
+                                      )))
 macro
   solveCat! : Term → Term → TC _
   solveCat! = ReflectionSolver.solve-macro
