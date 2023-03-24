@@ -24,41 +24,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
   open Functor
   open NatTrans
 
-  -- TODO: don't really know what's going on w universes here. Introduced levels ℓ ℓ' not tied to C, D, or Γ in hopes to make this general
-  -- The type of this record makes no sense to me at the moment, but does make everything type check.
-  -- TODO: Maybe put this is a different file
-  record EquivalenceOfCategories {A B : Category ℓ ℓ'}(F : Functor A B) (G : Functor B A) : Type (ℓ-max ℓ ℓ') where
-    constructor is-equiv-of-cats
-    field
-      F∘G-iso-to-id : NatIso (funcComp F G) (Id)
-      G∘F-iso-to-id : NatIso (funcComp G F) (Id)
-
-  record EquivalenceOfCategories' {A B : Category ℓ ℓ'} (F : Functor A B) : Type (ℓ-max ℓ ℓ') where
-    constructor is-equiv-of-cats'
-    field
-      full : isFull F
-      faithful : isFaithful F
-      essentiallySurj : isEssentiallySurj F
-
-  -- Emily Riehl - Category Theory in Context (CTIC) Lemma 1.5.10
-  -- f-induces-unique-map-between-isos : {C : Category ℓ ℓ'} → {a b a' b' : C .ob} →
-  -- (f : Hom[ a , b ]) → (ϕ : CatIso a a') → (ψ : CatIso b b') →
-  -- Σ[ f' : Hom[ a', b' ] ] (∀ g → (TODO : would need to describe all 4 commuting diags from CTIC here))
-  -- TODO: Should just return ψ ∘ f ∘ ϕ
-
-  -- TODO: find proper syntax for existential quantification
-  -- Want to show that we have an equivalence of categories iff ess surj on objs, full, faithful
-  -- Want to just follow CTIC Theorem 1.5.9, but that uses choice
-  equiv-of-categories-forward : {A B : Category ℓ ℓ'} → (F : Functor A B) →
-    EquivalenceOfCategories' F →
-    Σ[ G ∈ Functor B A ] EquivalenceOfCategories F G
-  equiv-of-categories-forward _ = {!!}
-
-  equiv-of-categories-reverse : {A B : Category ℓ ℓ'} → (F : Functor A B) →
-    Σ[ G ∈ Functor B A ] EquivalenceOfCategories F G →
-    EquivalenceOfCategories' F
-  equiv-of-categories-reverse F G,EquivFG = {!!}
-
   appF : Functor ((FUNCTOR C D) ×C C) D
   appF .F-ob (F , c) = F ⟅ c ⟆
   appF .F-hom {x = (F , c)}{y = (F' , c')} (α , f) = F ⟪ f ⟫ ⋆⟨ D ⟩ α .N-ob c'
