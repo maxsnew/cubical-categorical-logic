@@ -33,14 +33,21 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       F∘G-iso-to-id : NatIso (funcComp F G) (Id)
       G∘F-iso-to-id : NatIso (funcComp G F) (Id)
 
+  -- Emily Riehl - Category Theory in Context (CTIC) Lemma 1.5.10
+  -- f-induces-unique-map-between-isos : {C : Category ℓ ℓ'} → {a b a' b' : C .ob} →
+  -- (f : Hom[ a , b ]) → (ϕ : CatIso a a') → (ψ : CatIso b b') →
+  -- Σ[ f' : Hom[ a', b' ] ] (∀ g → (TODO : would need to describe all 4 commuting diags from CTIC here))
+  -- TODO: Should just return ψ ∘ f ∘ ϕ
+
   -- TODO: find proper syntax for existential quantification
   -- Want to show that we have an equivalence of categories iff ess surj on objs, full, faithful
-  --alt-equiv-of-categories : {A B : Category ℓ ℓ'} → (F : Functor A B) →
-  --  isFull F →
-  --  isFaithful F →
-  --  isEssentiallySurj F →
-  --  ∃ G EquivalenceOfCategories F G
-  --alt-equiv-of-categories _ = ?
+  -- Want to just follow CTIC Theorem 1.5.9, but that uses choice
+  alt-equiv-of-categories-forward : {A B : Category ℓ ℓ'} → (F : Functor A B) →
+    isFull F →
+    isFaithful F →
+    isEssentiallySurj F →
+    Σ[ G ∈ Functor B A ] EquivalenceOfCategories F G
+  alt-equiv-of-categories-forward _ = {!!}
 
   appF : Functor ((FUNCTOR C D) ×C C) D
   appF .F-ob (F , c) = F ⟅ c ⟆
