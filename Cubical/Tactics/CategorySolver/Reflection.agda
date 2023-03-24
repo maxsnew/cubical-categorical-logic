@@ -115,7 +115,7 @@ module ReflectionSolver where
     dontReduceDefs (quote Category.id ∷ quote Category._⋆_ ∷ []) (
     do
       -- | First we normalize the goal
-      goal ← inferType hole >>= normalise
+      goal ← inferType hole >>= reduce
       -- | Then we parse the goal into an AST
       just (lhs , rhs) ← get-boundary goal
         where
@@ -125,12 +125,15 @@ module ReflectionSolver where
       -- | And we unify the result of the solver with the original hole.
       elhs ← normalise lhs
       erhs ← normalise rhs
-      unify hole (def (quote solve ) (harg {q = quantity-ω} unknown ∷ harg {q = quantity-ω} unknown ∷ -- levels of the category
+      noConstraints (unify hole (def (quote solve ) (harg {q = quantity-ω} unknown ∷ harg {q = quantity-ω} unknown ∷ -- levels of the category
                                       category v∷
                                       harg {q = quantity-ω} unknown ∷ harg {q = quantity-ω} unknown ∷ -- domain/codomain of the morphisms
                                       buildExpression category elhs v∷ buildExpression category erhs v∷
                                       def (quote refl) [] v∷ [])
-                                      )))
+                                      ) <|> typeError ((strErr "Could not equate the following expressions:\n  " ∷
+                                                         termErr elhs ∷
+                                                         strErr "\nAnd\n  " ∷
+                                                         termErr erhs ∷ [])))))
 macro
   solveCat! : Term → Term → TC _
   solveCat! = ReflectionSolver.solve-macro
