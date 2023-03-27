@@ -31,15 +31,7 @@ module Eval (𝓒 : Category ℓ ℓ') where
   eval : ∀ {A B} → FreeCat (Ugr 𝓒) [ A , B ] → 𝓒 [ A , B ]
   eval {A}{B} e = Iso.fun (yonedaᴾ {C = 𝓒} (𝓒 [-, B ]) A) Yo.⟦ e ⟧
 
-  -- if f, f-1 are inverse, and I want to show f x = y it suffices to show x = f^-1 y
-  -- 
-
   -- | Eval agrees with the tautological semantics
-  --
-  -- I.e., Yoneda.fun (Yo.⟦ e ⟧) ≡ Tauto.⟦ e ⟧
-  -- Well, (Yo.⟦ e ⟧) ≡ YONEDA ⟪ Tauto .⟦ e ⟧ ⟫
-  --
-  -- want to show f (Tauto. ⟦ ⟧)
   isEqualToNormalForm : ∀ {A B}
                       → (e : FreeCat (Ugr 𝓒) [ A , B ])
                       → eval e ≡ Tauto.⟦ e ⟧
