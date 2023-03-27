@@ -2,75 +2,65 @@
 module Cubical.Tactics.CategorySolver.Solver where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Properties
 open import Cubical.Categories.Category
+open import Cubical.Categories.Functor.Base
+open import Cubical.Categories.Yoneda
+open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Presheaf
+
+open import Cubical.Categories.Constructions.Free.General
+open import Cubical.Categories.Yoneda.More
 
 private
   variable
     ℓ ℓ' : Level
 open Category
-
--- | A type theoretic gloss on the free category
-module _ (C : Category ℓ ℓ') where
-  BaseTy = C .ob
-  FunSym = C .Hom[_,_]
-  data UTT (Γ : BaseTy) : BaseTy → Type (ℓ-max ℓ ℓ') where
-    var : UTT Γ Γ
-    app : ∀ {A B} → FunSym A B → UTT Γ A → UTT Γ B
-
-  data Exp : BaseTy → BaseTy → Type (ℓ-max ℓ ℓ') where
-    idₑ  : ∀ {Γ} → Exp Γ Γ
-    _⋆ₑ_ : ∀ {A B C} → Exp A B → Exp B C → Exp A C
-    ↑_   : ∀ {A B} → FunSym A B → Exp A B
+open Functor
 
 module Eval (𝓒 : Category ℓ ℓ') where
-  open Category 𝓒
+  -- Semantics in 𝓒 itself, tautologically
+  module Tauto = Semantics (Ugr 𝓒) 𝓒 (Uhom (Id {C = 𝓒}))
+  -- Semantics in 𝓟o 𝓒, interpreting fun symbols using Yoneda
+  module Yo    = Semantics (Ugr 𝓒) (PresheafCategory 𝓒 ℓ') (Uhom (YONEDA {C = 𝓒}))
+  
+  -- | Evaluate by taking the semantics in 𝓟 𝓒 and
+  -- | use the Yoneda lemma to extract a morphism in 𝓒.
+  eval : ∀ {A B} → FreeCat (Ugr 𝓒) [ A , B ] → 𝓒 [ A , B ]
+  eval {A}{B} e = Iso.fun (yonedaᴾ {C = 𝓒} (𝓒 [-, B ]) A) Yo.⟦ e ⟧
 
-  ⟦_⟧ : ∀ {A B} → Exp 𝓒 A B → 𝓒 [ A , B ]
-  ⟦ idₑ ⟧ =  𝓒 .id
-  ⟦ e ⋆ₑ e' ⟧ = ⟦ e ⟧ ⋆⟨ 𝓒 ⟩ ⟦ e' ⟧
-  ⟦ ↑ f ⟧ = f
+  -- if f, f-1 are inverse, and I want to show f x = y it suffices to show x = f^-1 y
+  -- 
 
-  NormalForm = UTT
-
-  _⟨_⟩ : ∀ {A B C} → NormalForm 𝓒 B C → NormalForm 𝓒 A B → NormalForm 𝓒 A C
-  var ⟨ γ ⟩ = γ
-  app f t ⟨ γ ⟩ = app f (t ⟨ γ ⟩)
-
-  normalize : ∀ {A B} → Exp 𝓒 A B → NormalForm 𝓒 A B
-  normalize idₑ = var
-  normalize (e ⋆ₑ e₁) = normalize e₁ ⟨ normalize e ⟩
-  normalize (↑ f) = app f var
-
-  eval : ∀ {A B} → NormalForm 𝓒 A B → 𝓒 [ A , B ]
-  eval var = 𝓒 .id 
-  eval (app f t) = eval t ⋆⟨ 𝓒 ⟩ f
-
-  evalHomomorphism : ∀ {A B C} → (t : NormalForm 𝓒 B C) → (γ : NormalForm 𝓒 A B)
-           → eval (t ⟨ γ ⟩) ≡ eval γ ⋆⟨ 𝓒 ⟩ eval t
-  evalHomomorphism var γ = sym (𝓒 .⋆IdR _)
-  evalHomomorphism (app f t) γ =
-    (λ i → f ∘⟨ 𝓒 ⟩ evalHomomorphism t γ i )
-    ∙ 𝓒 .⋆Assoc _ _ _
-
-module EqualityToNormalForm (𝓒 : Category ℓ ℓ') where
-  open Eval 𝓒
-  open Category 𝓒
-
+  -- | Eval agrees with the tautological semantics
+  --
+  -- I.e., Yoneda.fun (Yo.⟦ e ⟧) ≡ Tauto.⟦ e ⟧
+  -- Well, (Yo.⟦ e ⟧) ≡ YONEDA ⟪ Tauto .⟦ e ⟧ ⟫
+  --
+  -- want to show f (Tauto. ⟦ ⟧)
   isEqualToNormalForm : ∀ {A B}
-                      → (e : Exp 𝓒 A B)
-                      → eval (normalize e) ≡ ⟦ e ⟧
-  isEqualToNormalForm idₑ = refl
-  isEqualToNormalForm (e ⋆ₑ e₁) = evalHomomorphism (normalize e₁) (normalize e) ∙ λ i → isEqualToNormalForm e i ⋆⟨ 𝓒 ⟩ isEqualToNormalForm e₁ i
-  isEqualToNormalForm (↑ _) = 𝓒 .⋆IdL _
+                      → (e : FreeCat (Ugr 𝓒) [ A , B ])
+                      → eval e ≡ Tauto.⟦ e ⟧
+  isEqualToNormalForm {A}{B} e =
+    Iso.fun (yonedaᴾ {C = 𝓒} (𝓒 [-, _ ]) _) Yo.⟦ e ⟧
+      ≡[ i ]⟨ Iso.fun (yonedaᴾ {C = 𝓒} (𝓒 [-, _ ]) _) (lemma i) ⟩
+    Iso.fun (yonedaᴾ {C = 𝓒} (𝓒 [-, _ ]) _) (YONEDA ⟪ Tauto.⟦ e ⟧ ⟫)
+      ≡⟨ Iso.rightInv (yonedaᴾ {C = 𝓒} (𝓒 [-, _ ]) _) Tauto.⟦ e ⟧ ⟩
+    Tauto.⟦ e ⟧ ∎
+    where
+      lemma : Yo.⟦ e ⟧ ≡ YONEDA ⟪ Tauto.⟦ e ⟧ ⟫
+      lemma = sym (uniq-on-morphisms (Ugr 𝓒) (YONEDA {C = 𝓒} ∘F Tauto.sem) e)
 
-  solve : ∀ {A B} → (e₁ e₂ : Exp 𝓒 A B)
-        → eval (normalize e₁) ≡ eval (normalize e₂)
-        → ⟦ e₁ ⟧ ≡ ⟦ e₂ ⟧
+  solve : ∀ {A B} → (e₁ e₂ : FreeCat (Ugr 𝓒) [ A , B ])
+        → eval e₁ ≡ eval e₂
+        → Tauto.⟦ e₁ ⟧ ≡ Tauto.⟦ e₂ ⟧
   solve e₁ e₂ p = sym (isEqualToNormalForm e₁) ∙ p ∙ isEqualToNormalForm e₂
 
 solve : (𝓒 : Category ℓ ℓ')
       → {A B : 𝓒 .ob}
-      → (e₁ e₂ : Exp 𝓒 A B)
-      → (p : Eval.eval 𝓒 (Eval.normalize 𝓒 e₁) ≡ Eval.eval 𝓒 (Eval.normalize 𝓒 e₂))
+      → (e₁ e₂ : FreeCat (Ugr 𝓒) [ A , B ])
+      → (p : Eval.eval 𝓒 e₁ ≡ Eval.eval 𝓒 e₂)
       → _
-solve = EqualityToNormalForm.solve
+solve = Eval.solve

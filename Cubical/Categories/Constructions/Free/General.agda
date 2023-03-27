@@ -16,6 +16,18 @@ private
   variable
     ℓc ℓc' : Level
 
+open Category
+
+-- Underlying graph of a category
+Ugr : ∀ {ℓc ℓc'} (𝓒 : Category ℓc ℓc') → Graph ℓc ℓc'
+Ugr 𝓒 .Node = 𝓒 .ob
+Ugr 𝓒 .Edge = 𝓒 .Hom[_,_]
+
+Uhom : ∀ {ℓc ℓc' ℓd ℓd'} {𝓒 : Category ℓc ℓc'} {𝓓 : Category ℓd ℓd'} (F : Functor 𝓒 𝓓)
+     → GraphHom (Ugr 𝓒) (Ugr 𝓓)
+Uhom F ._$g_ = Functor.F-ob F
+Uhom F ._<$g>_ = Functor.F-hom F
+
 module _ {ℓv ℓe : Level} where
   module _ (G : Graph ℓv ℓe) where
     -- "Category expressions"
@@ -29,7 +41,6 @@ module _ {ℓv ℓe : Level} where
               → (e ⋆ₑ f) ⋆ₑ g ≡ e ⋆ₑ (f ⋆ₑ g)
       isSetExp : ∀ {A B} → isSet (Exp A B)
 
-    open Category
     FreeCat : Category ℓv (ℓ-max ℓv ℓe)
     FreeCat .ob = G .Node
     FreeCat .Hom[_,_] = Exp
@@ -39,16 +50,6 @@ module _ {ℓv ℓe : Level} where
     FreeCat .⋆IdR = ⋆ₑIdR
     FreeCat .⋆Assoc = ⋆ₑAssoc
     FreeCat .isSetHom = isSetExp
-
-    -- Underlying graph of a category
-    Ugr : ∀ {ℓc ℓc'} (𝓒 : Category ℓc ℓc') → Graph ℓc ℓc'
-    Ugr 𝓒 .Node = 𝓒 .ob
-    Ugr 𝓒 .Edge = 𝓒 .Hom[_,_]
-
-    Uhom : ∀ {ℓc ℓc' ℓd ℓd'} {𝓒 : Category ℓc ℓc'} {𝓓 : Category ℓd ℓd'} (F : Functor 𝓒 𝓓)
-         → GraphHom (Ugr 𝓒) (Ugr 𝓓)
-    Uhom F ._$g_ = Functor.F-ob F
-    Uhom F ._<$g>_ = Functor.F-hom F
 
     η : GraphHom G (Ugr FreeCat)
     η ._$g_ = λ z → z

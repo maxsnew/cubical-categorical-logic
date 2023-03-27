@@ -21,7 +21,6 @@ open import Cubical.Categories.Presheaf.Base
 
 open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Yoneda
-open import Cubical.Categories.Instances.Functors.More
 
 private
   variable
@@ -96,9 +95,14 @@ yonedaᴾ* {ℓ}{ℓ'}{ℓ''}{C} F c =
   the-iso .rightInv = λ b → refl
   the-iso .leftInv = λ a → refl
 
--- | The Yoneda embedding as a functor
+-- But this one is nice because its action on functors is
+-- *definitionally* equal to the definition used in the formulation of the Yoneda lemma
+open Category
 YONEDA : {C : Category ℓ ℓ'} → Functor C (FUNCTOR (C ^op) (SET ℓ'))
-YONEDA {C = C} = λFl (C ^op) (SET _) (HomFunctor C)
+YONEDA {C = C} .F-ob a = C [-, a ]
+YONEDA {C = C} .F-hom f .N-ob b g  = g ⋆⟨ C ⟩ f
+YONEDA {C = C} .F-hom f .N-hom g = funExt (λ h → C .⋆Assoc g h f)
+YONEDA {C = C} .F-id = makeNatTransPath (funExt (λ a → funExt (λ f → C .⋆IdR f)))
+YONEDA {C = C} .F-seq f g = makeNatTransPath (funExt (λ a → funExt (λ h → sym (C .⋆Assoc h f g))))
 
-YONEDA^op : {C : Category ℓ ℓ'} → Functor (C ^op) (FUNCTOR C (SET ℓ'))
-YONEDA^op {C = C} = λF C (SET _) (HomFunctor C)
+-- Should prove (in another module) YONEDA ≡ λFl (C ^op) (SET _) (HomFunctor C)

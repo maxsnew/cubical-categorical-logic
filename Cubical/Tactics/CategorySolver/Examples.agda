@@ -5,21 +5,11 @@ open import Cubical.Foundations.Prelude hiding (≡⟨⟩-syntax; _≡⟨_⟩_)
 
 open import Cubical.Categories.Category
 open import Cubical.Tactics.CategorySolver.Reflection
+open import AltEquationalReasoning
 
 private
   variable
     ℓ ℓ' : Level
-
-≡⟨⟩-syntax : ∀ {ℓ} {A : Type ℓ} (x : A) {y z} → y ≡ z → x ≡ y → x ≡ z
-≡⟨⟩-syntax x q p = p ∙ q
-
-infixr 2 ≡⟨⟩-syntax
--- infix  3 _∎
-
-syntax ≡⟨⟩-syntax x q p = x ≡⟨ p ⟩ q
-
--- _∎ : ∀ {ℓ} {A : Type ℓ} (x : A) → x ≡ x
--- x ∎ = refl
 
 module Examples (𝓒 : Category ℓ ℓ') where
   open Category 𝓒

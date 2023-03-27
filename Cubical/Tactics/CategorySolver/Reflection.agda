@@ -15,6 +15,7 @@ open import Cubical.Data.Unit
 open import Cubical.Reflection.Base
 
 open import Cubical.Categories.Category
+open import Cubical.Categories.Constructions.Free.General
 open import Cubical.Tactics.CategorySolver.Solver
 
 private
