@@ -28,8 +28,7 @@ Uhom : ∀ {ℓc ℓc' ℓd ℓd'} {𝓒 : Category ℓc ℓc'} {𝓓 : Category
 Uhom F ._$g_ = Functor.F-ob F
 Uhom F ._<$g>_ = Functor.F-hom F
 
-module _ {ℓv ℓe : Level} where
-  module _ (G : Graph ℓv ℓe) where
+module _ {ℓv ℓe : Level} (G : Graph ℓv ℓe) where
     -- "Category expressions"
     data Exp : G .Node → G .Node → Type (ℓ-max ℓv ℓe) where
       ↑_   : ∀ {A B} → G .Edge A B → Exp A B
@@ -71,6 +70,10 @@ module _ {ℓv ℓe : Level} where
       sem .Functor.F-hom e = ⟦ e ⟧
       sem .Functor.F-id = refl
       sem .Functor.F-seq e e' = refl
+
+      sem-extends-ı : η ⋆GrHom Uhom sem ≡ ı
+      sem-extends-ı i ._$g_ x = ı  $g  x
+      sem-extends-ı i <$g> x  = ı <$g> x
 
     module _ {𝓒 : Category ℓc ℓc'} (F : Functor FreeCat 𝓒) where
       open Semantics 𝓒 (η ⋆GrHom Uhom F)
@@ -126,3 +129,28 @@ module _ {ℓv ℓe : Level} where
           (λ i → uniq-on-morphisms e)
           (λ i → uniq-on-morphisms e')
           i j
+      uniq : F ≡ sem
+      uniq = Functor≡ (λ c → refl) uniq-on-morphisms
+
+    -- TODO: better names
+    free-cat-uniqueness : ∀ {𝓒 : Category ℓc ℓc'}
+               → (F F' : Functor FreeCat 𝓒)
+               → (η ⋆GrHom Uhom F) ≡ (η ⋆GrHom Uhom F')
+               → F ≡ F'
+    free-cat-uniqueness {𝓒 = 𝓒} F F' p =
+      F ≡⟨ uniq F ⟩
+      Semantics.sem 𝓒 _ ≡[ i ]⟨ Semantics.sem 𝓒 (p i) ⟩
+      Semantics.sem 𝓒 _ ≡⟨ sym (uniq F') ⟩
+      F' ∎
+
+    uniqueness-reasoning : ∀ {𝓒 : Category ℓc ℓc'}
+               → (F : Functor FreeCat 𝓒) (ı : GraphHom G (Ugr 𝓒))
+               → (η ⋆GrHom Uhom F) ≡ ı
+               → F ≡ Semantics.sem _ ı
+    uniqueness-reasoning F ı p =
+      F ≡⟨ uniq F ⟩
+      Semantics.sem _ (η ⋆GrHom Uhom F) ≡⟨ cong (Semantics.sem _) p ⟩
+      Semantics.sem _ ı ∎
+-- co-unit of the 2-adjunction
+ϵ : ∀ {𝓒 : Category ℓc ℓc'} → Functor (FreeCat (Ugr 𝓒)) 𝓒
+ϵ {𝓒 = 𝓒} = Semantics.sem (Ugr 𝓒) 𝓒 (Uhom {𝓓 = 𝓒} Id)

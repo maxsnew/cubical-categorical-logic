@@ -1,11 +1,10 @@
 {-# OPTIONS --safe #-}
 module Cubical.Tactics.CategorySolver.Examples where
 
-open import Cubical.Foundations.Prelude hiding (≡⟨⟩-syntax; _≡⟨_⟩_)
+open import Cubical.Foundations.Prelude
 
 open import Cubical.Categories.Category
 open import Cubical.Tactics.CategorySolver.Reflection
-open import AltEquationalReasoning
 
 private
   variable

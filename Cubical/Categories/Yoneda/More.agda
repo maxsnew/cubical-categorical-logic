@@ -11,6 +11,7 @@ open import Cubical.Foundations.Equiv
 open import Cubical.HITs.PropositionalTruncation
 
 open import Cubical.Categories.Category
+open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.Constructions.Lift
 open import Cubical.Categories.Instances.Sets
 open import Cubical.Categories.Instances.Functors
@@ -105,4 +106,7 @@ YONEDA {C = C} .F-hom f .N-hom g = funExt (λ h → C .⋆Assoc g h f)
 YONEDA {C = C} .F-id = makeNatTransPath (funExt (λ a → funExt (λ f → C .⋆IdR f)))
 YONEDA {C = C} .F-seq f g = makeNatTransPath (funExt (λ a → funExt (λ h → sym (C .⋆Assoc h f g))))
 
+isFaithfulYoneda : {C : Category ℓ ℓ'} → isFaithful (YONEDA {C = C})
+isFaithfulYoneda {C = C} A B f g p =
+  sym (C .⋆IdL f) ∙ (λ i → p i .N-ob A (C .id)) ∙ C .⋆IdL g
 -- Should prove (in another module) YONEDA ≡ λFl (C ^op) (SET _) (HomFunctor C)
