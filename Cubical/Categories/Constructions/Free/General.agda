@@ -4,11 +4,13 @@
 
 module Cubical.Categories.Constructions.Free.General where
 
+open import Cubical.Categories.Morphism
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Categories.Category.Base
 open import Cubical.Categories.Functor.Base
-open import Cubical.Categories.NaturalTransformation.Base hiding (_⟦_⟧)
+open import Cubical.Categories.NaturalTransformation hiding (_⟦_⟧)
+open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Data.Graph.Base
 
 open import Cubical.Data.Graph.Properties
@@ -19,6 +21,8 @@ private
 
 open Category
 open Functor
+open NatIso hiding (sqRL; sqLL)
+open NatTrans
 
 -- Underlying graph of a category
 Ugr : ∀ {ℓc ℓc'} (𝓒 : Category ℓc ℓc') → Graph ℓc ℓc'
@@ -45,7 +49,33 @@ module _ (G : Graph ℓg ℓg') (𝓒 : Category ℓc ℓc') where
   InterpIso : Interp → Interp → Type _
   InterpIso ı ı' = Σ (InterpTrans ı ı') isInterpIso
 
+  idInterpIso : {ı : Interp} → InterpIso ı ı
+  idInterpIso .fst .fst v = 𝓒 .id
+  idInterpIso .fst .snd e = 𝓒 .⋆IdR _ ∙ sym (𝓒 .⋆IdL _)
+  idInterpIso .snd v = idCatIso .snd
+
+  module InterpReasoning (ı : Interp) (ı' : Interp) (α : InterpIso ı ı') where
+    open isIso
+    sqRL : ∀ {v w} → {e : G .Edge v w}
+         → ı <$g> e ≡ α .fst .fst v ⋆⟨ 𝓒 ⟩ ı' <$g> e ⋆⟨ 𝓒 ⟩ α .snd w .inv
+    sqRL {v}{w}{e} = invMoveR (isIso→areInv (α .snd w)) (α .fst .snd e)
+
+    -- copied from NaturalTransformation.Base
+    sqLL : ∀ {v w} → {e : G .Edge v w}
+         → ı' <$g> e ⋆⟨ 𝓒 ⟩ α .snd w .inv ≡ α .snd v .inv ⋆⟨ 𝓒 ⟩ (ı <$g> e)
+    sqLL {v}{w}{e} = invMoveL (isIso→areInv (α .snd v)) (sym (sqRL ∙ 𝓒 .⋆Assoc _ _ _))
+
   -- if 𝓒 is univalent, interpIso should be equivalent to identity
+
+_⋆Interp_ : ∀ {G : Graph ℓg ℓg'}
+              {𝓒 : Category ℓc ℓc'}
+              {𝓓 : Category ℓd ℓd'}
+              (ı : Interp G 𝓒)
+              (F : Functor 𝓒 𝓓)
+              → Interp G 𝓓
+(ı ⋆Interp F) ._$g_ x = Functor.F-ob F (ı $g x)
+(ı ⋆Interp F) ._<$g>_ e = Functor.F-hom F (ı <$g> e)
+
 
 module _ (G : Graph ℓg ℓg') where
     -- "Category expressions"
@@ -90,13 +120,12 @@ module _ (G : Graph ℓg ℓg') where
       sem .Functor.F-id = refl
       sem .Functor.F-seq e e' = refl
 
-      sem-extends-ı : η ⋆GrHom Uhom sem ≡ ı
-      sem-extends-ı i ._$g_ x = ı  $g  x
-      sem-extends-ı i <$g> x  = ı <$g> x
+      sem-extends-ı : InterpIso _ 𝓒 (η ⋆Interp sem) ı
+      sem-extends-ı .fst .fst = idInterpIso G 𝓒 {ı} .fst .fst
+      sem-extends-ı .fst .snd = idInterpIso _ 𝓒 {ı} .fst .snd
+      sem-extends-ı .snd = idInterpIso _ 𝓒 {ı} .snd
 
       module _ (F : Functor FreeCat 𝓒) (α : InterpIso G 𝓒 (η ⋆GrHom Uhom F) ı) where
-        open NatIso
-        open NatTrans
         αMorphisms = α .fst .fst
         αNat = α .fst .snd
 
@@ -162,8 +191,15 @@ module _ (G : Graph ℓg ℓg') where
         semIIso .trans .N-ob = αMorphisms
         semIIso .trans .N-hom = semITransIsNat
         semIIso .nIso = α .snd
-
         -- TODO: prove semIIso restricts to α and it's the unique such natIso
+    uniqueness-principle : ∀ {𝓒 : Category ℓc ℓc'} →
+                           (F : Functor FreeCat 𝓒) →
+                           (F' : Functor FreeCat 𝓒) →
+                           (agree-on-generators : InterpIso _ 𝓒 (η ⋆Interp F) (η ⋆Interp F')) →
+                           NatIso F F'
+    uniqueness-principle {𝓒 = 𝓒} F F' agree-on-generators =
+      seqNatIso (Semantics.semIIso 𝓒 (η ⋆Interp F') F agree-on-generators)
+      (symNatIso (Semantics.semIIso 𝓒 (η ⋆Interp F') F' (idInterpIso G 𝓒)))
 -- co-unit of the 2-adjunction
 ϵ : ∀ {𝓒 : Category ℓc ℓc'} → Functor (FreeCat (Ugr 𝓒)) 𝓒
 ϵ {𝓒 = 𝓒} = Semantics.sem (Ugr 𝓒) 𝓒 (Uhom {𝓓 = 𝓒} Id)
