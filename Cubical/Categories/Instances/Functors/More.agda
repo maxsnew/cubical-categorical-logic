@@ -73,5 +73,40 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           ≡⟨ F .F-seq (γ , C .id) (δ , C .id) ⟩
         F .F-hom (γ , C .id) ⋆⟨ D ⟩ F .F-hom (δ , C .id) ∎))
 
+    -- λF-functor : Functor (FUNCTOR (Γ ×C C) D) (FUNCTOR Γ (FUNCTOR C D))
+    -- λF-functor .F-ob = λF
+    -- Want to define λF-functor .F-hom η to be the map (b ↦ F a b) ↦ (b ↦ η (F a b))
+
+    -- {!!}{!!}{!!}
+    λF-functor : Functor (FUNCTOR (Γ ×C C) D) (FUNCTOR Γ (FUNCTOR C D))
+    λF-functor .F-ob = λF
+    λF-functor .F-hom η .N-ob γ .N-ob c = η .N-ob (γ , c)
+    λF-functor .F-hom η .N-ob γ .N-hom ϕ = η .N-hom (Γ .id , ϕ)
+
+    -- ((λF F .F-hom f) ⋆⟨ D ⟩ (λF-functor .F-hom η) .N-ob y) .N-ob c
+    -- ((λF F .F-hom f) .N-ob c) ⋆⟨ ? ⟩ ((λF-functor .F-hom η) .N-ob y) .N-ob c
+    -- (F .F-hom (f , C .id)) ⋆⟨ ? ⟩ (η .N-ob (y , c))
+    -- (η .N-ob (x , c)) ⋆⟨ ? ⟩ (G .F-hom (f , C .id))
+    -- ((λF-functor .F-hom η) .N-ob x) .N-ob c ⋆⟨ ? ⟩ (λF G .F-hom f) .N-ob c
+    -- ((λF-functor .F-hom η) .N-ob x ⋆⟨ D ⟩ (λF G .F-hom f)) .N-ob c
+
+    λF-functor .F-hom {F} {G} η .N-hom {x} {y} f = {!!}
+
+    -- λF-fucnotr .F-hom idTrans F
+    -- = ((idTrans F) .N-ob γ) .N-ob c
+    -- = (idTrans F) .N-ob (γ , c)
+    -- = D .id
+    -- = idTranse(λF .F-hom F) .N-ob _ = D .id
+    λF-functor .F-id = {!i
+
+!}
+    λF-functor .F-seq η η' = {!!}
+
+
+
+
+    -- λF-ess-surj : isEssentiallySurj λF
+    -- λF-ess-surj = ?
+
     λFl : Functor (C ×C Γ) D → Functor Γ (FUNCTOR C D)
     λFl F = λF (F ∘F (Snd Γ C ,F Fst Γ C))
