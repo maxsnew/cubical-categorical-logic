@@ -14,6 +14,7 @@ open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Data.Graph.Base
 
 open import Cubical.Data.Graph.Properties
+open import Cubical.Categories.Constructions.Free.UnderlyingGraph
 
 private
   variable
@@ -23,59 +24,6 @@ open Category
 open Functor
 open NatIso hiding (sqRL; sqLL)
 open NatTrans
-
--- Underlying graph of a category
-Ugr : ∀ {ℓc ℓc'} (𝓒 : Category ℓc ℓc') → Graph ℓc ℓc'
-Ugr 𝓒 .Node = 𝓒 .ob
-Ugr 𝓒 .Edge = 𝓒 .Hom[_,_]
-
-Uhom : ∀ {ℓc ℓc' ℓd ℓd'} {𝓒 : Category ℓc ℓc'} {𝓓 : Category ℓd ℓd'} (F : Functor 𝓒 𝓓)
-     → GraphHom (Ugr 𝓒) (Ugr 𝓓)
-Uhom F ._$g_ = Functor.F-ob F
-Uhom F ._<$g>_ = Functor.F-hom F
-
-module _ (G : Graph ℓg ℓg') (𝓒 : Category ℓc ℓc') where
-  Interp : Type _
-  Interp = GraphHom G (Ugr 𝓒)
-
-  InterpTrans : Interp → Interp → Type _
-  InterpTrans ı ı' =
-    Σ[ f ∈ (∀ v → 𝓒 [ ı $g v , ı' $g v ])]
-    (∀ {v}{w}(e : G .Edge v w) → f w ∘⟨ 𝓒 ⟩ (ı <$g> e) ≡ ı' <$g> e ∘⟨ 𝓒 ⟩ f v)
-
-  isInterpIso : { ı ı' : Interp} → InterpTrans ı ı' → Type (ℓ-max ℓg ℓc')
-  isInterpIso α = ∀ v → isIso 𝓒 (α .fst v)
-
-  InterpIso : Interp → Interp → Type _
-  InterpIso ı ı' = Σ (InterpTrans ı ı') isInterpIso
-
-  idInterpIso : {ı : Interp} → InterpIso ı ı
-  idInterpIso .fst .fst v = 𝓒 .id
-  idInterpIso .fst .snd e = 𝓒 .⋆IdR _ ∙ sym (𝓒 .⋆IdL _)
-  idInterpIso .snd v = idCatIso .snd
-
-  module InterpReasoning (ı : Interp) (ı' : Interp) (α : InterpIso ı ı') where
-    open isIso
-    sqRL : ∀ {v w} → {e : G .Edge v w}
-         → ı <$g> e ≡ α .fst .fst v ⋆⟨ 𝓒 ⟩ ı' <$g> e ⋆⟨ 𝓒 ⟩ α .snd w .inv
-    sqRL {v}{w}{e} = invMoveR (isIso→areInv (α .snd w)) (α .fst .snd e)
-
-    -- copied from NaturalTransformation.Base
-    sqLL : ∀ {v w} → {e : G .Edge v w}
-         → ı' <$g> e ⋆⟨ 𝓒 ⟩ α .snd w .inv ≡ α .snd v .inv ⋆⟨ 𝓒 ⟩ (ı <$g> e)
-    sqLL {v}{w}{e} = invMoveL (isIso→areInv (α .snd v)) (sym (sqRL ∙ 𝓒 .⋆Assoc _ _ _))
-
-  -- if 𝓒 is univalent, interpIso should be equivalent to identity
-
-_⋆Interp_ : ∀ {G : Graph ℓg ℓg'}
-              {𝓒 : Category ℓc ℓc'}
-              {𝓓 : Category ℓd ℓd'}
-              (ı : Interp G 𝓒)
-              (F : Functor 𝓒 𝓓)
-              → Interp G 𝓓
-(ı ⋆Interp F) ._$g_ x = Functor.F-ob F (ı $g x)
-(ı ⋆Interp F) ._<$g>_ e = Functor.F-hom F (ı <$g> e)
-
 
 module _ (G : Graph ℓg ℓg') where
     -- "Category expressions"
@@ -120,10 +68,8 @@ module _ (G : Graph ℓg ℓg') where
       sem .Functor.F-id = refl
       sem .Functor.F-seq e e' = refl
 
-      sem-extends-ı : InterpIso _ 𝓒 (η ⋆Interp sem) ı
-      sem-extends-ı .fst .fst = idInterpIso G 𝓒 {ı} .fst .fst
-      sem-extends-ı .fst .snd = idInterpIso _ 𝓒 {ı} .fst .snd
-      sem-extends-ı .snd = idInterpIso _ 𝓒 {ı} .snd
+      sem-extends-ı : (η ⋆Interp sem) ≡ ı
+      sem-extends-ı = refl
 
       module _ (F : Functor FreeCat 𝓒) (α : InterpIso G 𝓒 (η ⋆GrHom Uhom F) ı) where
         αMorphisms = α .fst .fst

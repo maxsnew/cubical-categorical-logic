@@ -14,6 +14,7 @@ open import Cubical.Categories.Presheaf
 
 open import Cubical.Data.Graph.Properties
 open import Cubical.Categories.Constructions.Free.General
+open import Cubical.Categories.Constructions.Free.UnderlyingGraph
 open import Cubical.Categories.Yoneda.More
 
 private

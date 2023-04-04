@@ -13,6 +13,7 @@ open import Cubical.Data.Graph.Base
 open import Cubical.Data.Graph.Properties
 open import Cubical.Data.Empty
 open import Cubical.Categories.Constructions.Free.General as Free hiding (module Semantics)
+open import Cubical.Categories.Constructions.Free.UnderlyingGraph
 
 open import Cubical.Tactics.CategorySolver.Reflection
 
@@ -25,6 +26,7 @@ open Functor
 open NatTrans
 open NatIso
 open isIso
+
 
 module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : GraphHom G H) where
   data FExp : H .Node → H .Node → Type (((ℓ-max ℓg (ℓ-max ℓg' (ℓ-max ℓh ℓh'))))) where
@@ -44,7 +46,7 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : GraphHom G H) where
     F-seqₑ : ∀ {A B C} (f : Exp G A B)(g : Exp G B C) → F⟪ f ⋆ₑ g ⟫ ≡ (F⟪ f ⟫ ⋆f F⟪ g ⟫)
 
     -- that agrees with ϕ on generators
-    F⟪⟫-phi-agree : ∀ {A B} → (e : G .Edge A B) → F⟪ ↑ e ⟫ ≡ ↑f (ϕ <$g> e)
+    F⟪⟫-ϕ-agree : ∀ {A B} → (e : G .Edge A B) → F⟪ ↑ e ⟫ ≡ ↑f (ϕ <$g> e)
 
   FreeH+ϕ : Category _ _
   FreeH+ϕ .ob = H .Node
@@ -64,22 +66,34 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : GraphHom G H) where
     homo ._$g_ = _$g_ ϕ
     homo ._<$g>_ = λ z → F⟪ ↑ z ⟫
 
+  -- The universal interpretation
+  ηG : Interp G FreeG
+  ηG = η G
+
+  ηH : Interp H FreeH+ϕ
+  ηH $g x = x
+  ηH <$g> x = ↑f x
+
+  ηϕ : InterpIso G FreeH+ϕ (ηG ⋆Interp Freeϕ) (ϕ ⋆GrHom ηH)
+  ηϕ .fst .fst v = FreeH+ϕ .id
+  ηϕ .fst .snd e = FreeH+ϕ .⋆IdR _ ∙ F⟪⟫-ϕ-agree _ ∙ sym (FreeH+ϕ .⋆IdL _)
+  ηϕ .snd v = idCatIso .snd
+
   module Semantics {𝓒 : Category ℓc ℓc'}{𝓓 : Category ℓd ℓd'}(𝓕 : Functor 𝓒 𝓓)
                    (ıG : GraphHom G (Ugr 𝓒))
                    (ıH : GraphHom H (Ugr 𝓓))
-                   (ıϕ : (ıG ⋆GrHom Uhom 𝓕) ≡ (ϕ ⋆GrHom ıH)) -- should reduce to natiso unless assuming univalence
+                   (ıϕ : InterpIso G 𝓓 (ıG ⋆GrHom Uhom 𝓕) (ϕ ⋆GrHom ıH))
                    where
      sem𝓒 = Free.Semantics.sem G 𝓒 ıG
-
-     ϕ≅ : NatIso {D = 𝓓} (Free.Semantics.sem _ _ (ıG ⋆GrHom Uhom 𝓕)) (Free.Semantics.sem _ _ (ϕ ⋆GrHom ıH))
-     ϕ≅ = pathToNatIso (cong (Free.Semantics.sem _ _) ıϕ)
+     sem𝓒-extends-ıG : (ηG ⋆Interp sem𝓒) ≡ ıG
+     sem𝓒-extends-ıG = refl
 
      ⟦_⟧ : ∀ {A B} → FExp A B → 𝓓 [ ıH $g A , ıH $g B ]
      -- first the data
      ⟦ ↑f x ⟧ = ıH <$g> x
      ⟦ idf ⟧ = 𝓓 .id
      ⟦ f ⋆f f₁ ⟧ = ⟦ f ⟧ ⋆⟨ 𝓓 ⟩ ⟦ f₁ ⟧
-     ⟦ F⟪_⟫ {A}{B} x ⟧ = ϕ≅ .nIso A .inv ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ x ⟫ ⟫ ⋆⟨ 𝓓 ⟩ ϕ≅ .trans .N-ob B
+     ⟦ F⟪_⟫ {A}{B} x ⟧ = ıϕ .snd A .inv ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ x ⟫ ⟫ ⋆⟨ 𝓓 ⟩ ıϕ .fst .fst B -- ϕ≅ .trans .N-ob B
      -- then the equalities
      ⟦ ⋆fIdL f i ⟧ = 𝓓 .⋆IdL ⟦ f ⟧ i
      ⟦ ⋆fIdR f i ⟧ = 𝓓 .⋆IdR ⟦ f ⟧ i
@@ -87,27 +101,27 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : GraphHom G H) where
      -- apologies
      ⟦ F-idₑ {A} i ⟧ =
        ((λ i →
-         ((λ i → ϕ≅ .nIso A .inv ⋆⟨ 𝓓 ⟩ (𝓕 ∘F sem𝓒) .F-id i) ∙ 𝓓 .⋆IdR _) i
-         ⋆⟨ 𝓓 ⟩ (ϕ≅ .trans .N-ob A))
-         ∙ ϕ≅ .nIso A .sec) i
+         ((λ i → ıϕ .snd A .inv ⋆⟨ 𝓓 ⟩ (𝓕 ∘F sem𝓒) .F-id i) ∙ 𝓓 .⋆IdR _) i
+         ⋆⟨ 𝓓 ⟩ (ıϕ .fst .fst A))
+         ∙ ıϕ .snd A .sec) i
      ⟦ F-seqₑ {A}{B}{C} f g i ⟧ =
-       (seq' 𝓓 (seq' 𝓓 (ϕ≅ .nIso A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⋆ₑ g ⟫ ⟫)) (ϕ≅ .trans .N-ob C)
-          ≡[ i ]⟨ seq' 𝓓 (seq' 𝓓 (ϕ≅ .nIso A .inv) (funcComp 𝓕 sem𝓒 .F-seq f g i)) (ϕ≅ .trans .N-ob C) ⟩
-        seq' 𝓓 (seq' 𝓓 (ϕ≅ .nIso A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫ ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫)) (ϕ≅ .trans .N-ob C)
+       (seq' 𝓓 (seq' 𝓓 (ıϕ .snd A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⋆ₑ g ⟫ ⟫)) (ıϕ .fst .fst C)
+          ≡[ i ]⟨ seq' 𝓓 (seq' 𝓓 (ıϕ .snd A .inv) (funcComp 𝓕 sem𝓒 .F-seq f g i)) (ıϕ .fst .fst C) ⟩
+        seq' 𝓓 (seq' 𝓓 (ıϕ .snd A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫ ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫)) (ıϕ .fst .fst C)
           ≡⟨ solveCat! 𝓓 ⟩
-        (seq' 𝓓 (ϕ≅ .nIso A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫)) ⋆⟨ 𝓓 ⟩ 𝓓 .id ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫ ⋆⟨ 𝓓 ⟩ (ϕ≅ .trans .N-ob C)
-          ≡[ i ]⟨ (seq' 𝓓 (ϕ≅ .nIso A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫)) ⋆⟨ 𝓓 ⟩ ϕ≅ .nIso B .ret (~ i) ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫ ⋆⟨ 𝓓 ⟩ (ϕ≅ .trans .N-ob C) ⟩
-        (seq' 𝓓 (ϕ≅ .nIso A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫)) ⋆⟨ 𝓓 ⟩ (ϕ≅ .trans .N-ob B ⋆⟨ 𝓓 ⟩ ϕ≅ .nIso B .inv) ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫ ⋆⟨ 𝓓 ⟩ (ϕ≅ .trans .N-ob C)
+        (seq' 𝓓 (ıϕ .snd A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫)) ⋆⟨ 𝓓 ⟩ 𝓓 .id ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫ ⋆⟨ 𝓓 ⟩ (ıϕ .fst .fst C)
+          ≡[ i ]⟨ (seq' 𝓓 (ıϕ .snd A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫)) ⋆⟨ 𝓓 ⟩ ıϕ .snd B .ret (~ i) ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫ ⋆⟨ 𝓓 ⟩ (ıϕ .fst .fst C) ⟩
+        (seq' 𝓓 (ıϕ .snd A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫)) ⋆⟨ 𝓓 ⟩ (ıϕ .fst .fst B ⋆⟨ 𝓓 ⟩ ıϕ .snd B .inv) ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫ ⋆⟨ 𝓓 ⟩ (ıϕ .fst .fst C)
           ≡⟨ solveCat! 𝓓 ⟩
-        seq' 𝓓 (seq' 𝓓 (seq' 𝓓 (ϕ≅ .nIso A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫)) (ϕ≅ .trans .N-ob B)) (seq' 𝓓 (seq' 𝓓 (ϕ≅ .nIso B .inv) (𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫)) (ϕ≅ .trans .N-ob C)) ∎
+        seq' 𝓓 (seq' 𝓓 (seq' 𝓓 (ıϕ .snd A .inv) (𝓕 ⟪ sem𝓒 ⟪ f ⟫ ⟫)) (ıϕ .fst .fst B)) (seq' 𝓓 (seq' 𝓓 (ıϕ .snd B .inv) (𝓕 ⟪ sem𝓒 ⟪ g ⟫ ⟫)) (ıϕ .fst .fst C)) ∎
        ) i
-     ⟦ F⟪⟫-phi-agree {A}{B} e i ⟧ =
-       (ϕ≅ .nIso A .inv ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ ↑ e ⟫ ⟫ ⋆⟨ 𝓓 ⟩ ϕ≅ .trans .N-ob B
-          ≡[ i ]⟨ sqLL ϕ≅ {f = ↑ e} (~ i) ⋆⟨ 𝓓 ⟩ ϕ≅ .trans .N-ob B ⟩
-         ıH <$g> (ϕ <$g> e) ⋆⟨ 𝓓 ⟩ ϕ≅ .nIso B .inv ⋆⟨ 𝓓 ⟩ ϕ≅ .trans .N-ob B
+     ⟦ F⟪⟫-ϕ-agree {A}{B} e i ⟧ =
+       (ıϕ .snd A .inv ⋆⟨ 𝓓 ⟩ 𝓕 ⟪ sem𝓒 ⟪ ↑ e ⟫ ⟫ ⋆⟨ 𝓓 ⟩ ıϕ .fst .fst B
+          ≡[ i ]⟨ InterpReasoning.sqLL _ _ _ _ ıϕ {e = e} (~ i) ⋆⟨ 𝓓 ⟩ ıϕ .fst .fst B ⟩
+         ıH <$g> (ϕ <$g> e) ⋆⟨ 𝓓 ⟩ ıϕ .snd B .inv ⋆⟨ 𝓓 ⟩ ıϕ .fst .fst B
           ≡⟨ 𝓓 .⋆Assoc _ _ _ ⟩
-         ıH <$g> (ϕ <$g> e) ⋆⟨ 𝓓 ⟩ (ϕ≅ .nIso B .inv ⋆⟨ 𝓓 ⟩ ϕ≅ .trans .N-ob B)
-          ≡⟨ (λ i → (ıH <$g> (ϕ <$g> e)) ⋆⟨ 𝓓 ⟩ ϕ≅ .nIso B .sec i) ⟩
+         ıH <$g> (ϕ <$g> e) ⋆⟨ 𝓓 ⟩ (ıϕ .snd B .inv ⋆⟨ 𝓓 ⟩ ıϕ .fst .fst B)
+          ≡⟨ (λ i → (ıH <$g> (ϕ <$g> e)) ⋆⟨ 𝓓 ⟩ ıϕ .snd B .sec i) ⟩
          ıH <$g> (ϕ <$g> e) ⋆⟨ 𝓓 ⟩ 𝓓 .id
           ≡⟨ 𝓓 .⋆IdR _ ⟩
         ıH <$g> (ϕ <$g> e) ∎
@@ -121,8 +135,16 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : GraphHom G H) where
      sem𝓓 .F-id = refl   
      sem𝓓 .F-seq f g = refl
 
-     -- semϕ : (sem𝓓 ∘F Freeϕ) ≡ (𝓕 ∘F sem𝓒)
-     -- semϕ = free-cat-uniqueness G _ _ lemma where
-     --   lemma : (η G ⋆GrHom Uhom (funcComp sem𝓓 Freeϕ)) ≡ (η G ⋆GrHom Uhom (funcComp 𝓕 sem𝓒))
-     --   lemma i $g x = ıϕ (~ i) $g x
-     --   lemma i <$g> x = {!!}
+     sem𝓓-extends-ıH : (ηH ⋆Interp sem𝓓) ≡ ıH
+     sem𝓓-extends-ıH = refl
+
+     semF : NatIso (𝓕 ∘F sem𝓒) (sem𝓓 ∘F Freeϕ)
+     semF = uniqueness-principle G (𝓕 ∘F sem𝓒) (sem𝓓 ∘F Freeϕ)
+       (ıϕ
+       ∙II (pathToInterpIso _ _ (sym sem𝓓-extends-ıH) ∘ˡInterp ϕ)
+       ∙II (sem𝓓 ∘ʳInterp symInterpIso ηϕ))
+       where
+         infixr 1 _∙II_
+         _∙II_ : ∀ {ı ı' ı'' : Interp G 𝓓} → InterpIso _ 𝓓 ı ı' → InterpIso _ 𝓓 ı' ı'' → InterpIso _ 𝓓 ı ı''
+         f ∙II g = _∘InterpIso_ _ _ g f
+

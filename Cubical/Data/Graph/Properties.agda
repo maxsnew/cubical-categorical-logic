@@ -13,4 +13,6 @@ module _ {ℓv ℓe ℓv' ℓe' ℓv'' ℓe''} {G : Graph ℓv ℓe}{G' : Graph 
   _⋆GrHom_ : GraphHom G G' → GraphHom G' G'' → GraphHom G G''
   (ϕ ⋆GrHom ψ) ._$g_ = λ z → ψ $g (ϕ $g z)
   (ϕ ⋆GrHom ψ) ._<$g>_ e = ψ <$g> (ϕ <$g> e)
-  
+
+  _∘GrHom_ : GraphHom G' G'' → GraphHom G G' → GraphHom G G''
+  ψ ∘GrHom ϕ = ϕ ⋆GrHom ψ
