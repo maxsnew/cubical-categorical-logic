@@ -1,6 +1,6 @@
 -- Free category over a directed graph/quiver
 -- This time without any assumptions on the HLevels of the graph
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --lossy-unification #-}
 
 module Cubical.Categories.Constructions.Free.General where
 
@@ -137,7 +137,21 @@ module _ (G : Graph ℓg ℓg') where
         semIIso .trans .N-ob = αMorphisms
         semIIso .trans .N-hom = semITransIsNat
         semIIso .nIso = α .snd
-        -- TODO: prove semIIso restricts to α and it's the unique such natIso
+
+        semII-restricts-to-α : semIIso ⊙ˡInterp η ≡ α
+        semII-restricts-to-α = refl
+        -- TODO: prove semIIso is the unique such natIso
+
+    module _ {𝓒 : Category ℓc ℓc'}{𝓓 : Category ℓd ℓd'}
+             (ı : Interp G 𝓒)
+             (F : Functor 𝓒 𝓓)
+             where
+      sem-is-natural : NatIso (F ∘F Semantics.sem 𝓒 ı) (Semantics.sem 𝓓 (F ∘Interp ı))
+      sem-is-natural = Semantics.semIIso _ (F ∘Interp ı) (F ∘F Semantics.sem _ ı) (idInterpIso G _)
+
+      sem-is-natural-restricts : sem-is-natural ⊙ˡInterp η ≡ idInterpIso G 𝓓
+      sem-is-natural-restricts = Semantics.semII-restricts-to-α _ (F ∘Interp ı) (F ∘F Semantics.sem _ ı) (idInterpIso G _)
+
     uniqueness-principle : ∀ {𝓒 : Category ℓc ℓc'} →
                            (F : Functor FreeCat 𝓒) →
                            (F' : Functor FreeCat 𝓒) →
@@ -146,6 +160,29 @@ module _ (G : Graph ℓg ℓg') where
     uniqueness-principle {𝓒 = 𝓒} F F' agree-on-generators =
       seqNatIso (Semantics.semIIso 𝓒 (η ⋆Interp F') F agree-on-generators)
       (symNatIso (Semantics.semIIso 𝓒 (η ⋆Interp F') F' (idInterpIso G 𝓒)))
+
+    uniqueness-principle-restricts : ∀ {𝓒 : Category ℓc ℓc'} →
+                           (F : Functor FreeCat 𝓒) →
+                           (F' : Functor FreeCat 𝓒) →
+                           (agree-on-generators : InterpIso _ 𝓒 (η ⋆Interp F) (η ⋆Interp F')) →
+                           uniqueness-principle F F' agree-on-generators ⊙ˡInterp η ≡ agree-on-generators
+    uniqueness-principle-restricts F F' agree =
+      uniqueness-principle F F' agree ⊙ˡInterp η
+        ≡⟨ ⊙ˡInterp-Seq ((Semantics.semIIso _ (η ⋆Interp F') F agree)) ((symNatIso (Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso _ _)))) η ⟩
+      seqInterpIso ((Semantics.semIIso _ (η ⋆Interp F') F agree) ⊙ˡInterp η)
+                   ((symNatIso (Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso _ _))) ⊙ˡInterp η)
+        ≡⟨ cong₂ seqInterpIso (Semantics.semII-restricts-to-α _ (η ⋆Interp F') F agree) lemma ⟩
+      seqInterpIso agree (idInterpIso _ _)
+        ≡⟨ seqInterpIsoId agree ⟩
+      agree ∎
+      where
+        lemma : (symNatIso (Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso G _)) ⊙ˡInterp η)
+                ≡ idInterpIso G _
+        lemma = ⊙ˡInterp-Sym ((Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso G _))) η
+                ∙ cong symInterpIso (Semantics.semII-restricts-to-α _ (η ⋆Interp F') F' ((idInterpIso G _)))
+                ∙ symInterpIsoId
+
+
 -- co-unit of the 2-adjunction
 ϵ : ∀ {𝓒 : Category ℓc ℓc'} → Functor (FreeCat (Ugr 𝓒)) 𝓒
 ϵ {𝓒 = 𝓒} = Semantics.sem (Ugr 𝓒) 𝓒 (Uhom {𝓓 = 𝓒} Id)

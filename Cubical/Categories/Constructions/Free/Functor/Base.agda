@@ -1,5 +1,5 @@
 -- Free functor between categories generated from two graphs and a homomorphism between them
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --lossy-unification #-}
 module Cubical.Categories.Constructions.Free.Functor.Base where
 
 open import Cubical.Foundations.Prelude
@@ -9,6 +9,7 @@ open import Cubical.Categories.Category.Base
 open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.NaturalTransformation.Base hiding (_⟦_⟧)
 open import Cubical.Data.Graph.Base
+open import Cubical.Data.Sigma
 
 open import Cubical.Data.Graph.Properties
 open import Cubical.Data.Empty
@@ -140,11 +141,13 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : GraphHom G H) where
 
      semF : NatIso (𝓕 ∘F sem𝓒) (sem𝓓 ∘F Freeϕ)
      semF = uniqueness-principle G (𝓕 ∘F sem𝓒) (sem𝓓 ∘F Freeϕ)
-       (ıϕ
-       ∙II (pathToInterpIso _ _ (sym sem𝓓-extends-ıH) ∘ˡInterp ϕ)
-       ∙II (sem𝓓 ∘ʳInterp symInterpIso ηϕ))
-       where
-         infixr 1 _∙II_
-         _∙II_ : ∀ {ı ı' ı'' : Interp G 𝓓} → InterpIso _ 𝓓 ı ı' → InterpIso _ 𝓓 ı' ı'' → InterpIso _ 𝓓 ı ı''
-         f ∙II g = _∘InterpIso_ _ _ g f
+       (seqInterpIso ıϕ (symInterpIso (sem𝓓 ⊙ʳInterp ηϕ)))
+
+     semF-extends-ıϕ : seqInterpIso (semF ⊙ˡInterp ηG) (sem𝓓 ⊙ʳInterp ηϕ) ≡ ıϕ
+     semF-extends-ıϕ =
+       seqInterpIso (semF ⊙ˡInterp ηG) (sem𝓓 ⊙ʳInterp ηϕ)
+         ≡[ i ]⟨ seqInterpIso (uniqueness-principle-restricts _ _ (sem𝓓 ∘F Freeϕ) ((seqInterpIso ıϕ (symInterpIso (sem𝓓 ⊙ʳInterp ηϕ)))) i) (sem𝓓 ⊙ʳInterp ηϕ) ⟩
+       seqInterpIso (seqInterpIso ıϕ (symInterpIso (sem𝓓 ⊙ʳInterp ηϕ))) (sem𝓓 ⊙ʳInterp ηϕ)
+         ≡⟨ seqInterpIsoAssoc _ _ _ ∙ cong (seqInterpIso ıϕ) (symInterpIsoInvl _) ∙ seqInterpIsoId _ ⟩
+       ıϕ ∎
 
