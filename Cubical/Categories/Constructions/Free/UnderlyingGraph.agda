@@ -96,14 +96,14 @@ module _ {G : Graph ℓg ℓg'}{𝓒 : Category ℓc ℓc'} where
   InterpIso≡ : ∀ {ı ı'}{α β : IIso ı ı'} → (∀ v → α .fst .fst v ≡ β .fst .fst v) → α ≡ β
   InterpIso≡ p = Σ≡Prop (λ x → isPropΠ (λ x → isPropIsIso _)) (InterpTrans≡ p)
 
-
-
 seqInterpIso : ∀ {G : Graph ℓg ℓg'} {𝓒 : Category ℓc ℓc'}
              → {ı ı' ı'' : Interp G 𝓒}
              → InterpIso G 𝓒 ı ı'
              → InterpIso G 𝓒 ı' ı''
              → InterpIso G 𝓒 ı ı''
 seqInterpIso α α' = _∘InterpIso_ _ _ α' α
+
+_⋆InterpIso_ = seqInterpIso
 
 seqInterpIsoId : ∀ {G : Graph ℓg ℓg'} {𝓒 : Category ℓc ℓc'}
              → {ı ı' : Interp G 𝓒}

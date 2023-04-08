@@ -61,11 +61,12 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : GraphHom G H) where
 
   FreeG = FreeCat G
 
+  Freeϕ-homo : Interp G FreeH+ϕ
+  Freeϕ-homo ._$g_ = ϕ ._$g_
+  Freeϕ-homo ._<$g>_ = λ z → F⟪ ↑ z ⟫
+
   Freeϕ : Functor FreeG FreeH+ϕ
-  Freeϕ = Free.Semantics.sem G FreeH+ϕ homo where
-    homo : GraphHom G (Ugr FreeH+ϕ)
-    homo ._$g_ = _$g_ ϕ
-    homo ._<$g>_ = λ z → F⟪ ↑ z ⟫
+  Freeϕ = Free.Semantics.sem G FreeH+ϕ Freeϕ-homo
 
   -- The universal interpretation
   ηG : Interp G FreeG
