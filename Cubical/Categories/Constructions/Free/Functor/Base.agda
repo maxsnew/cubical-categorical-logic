@@ -149,6 +149,6 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : GraphHom G H) where
        seqInterpIso (semF ⊙ˡInterp ηG) (sem𝓓 ⊙ʳInterp ηϕ)
          ≡[ i ]⟨ seqInterpIso (uniqueness-principle-restricts _ _ (sem𝓓 ∘F Freeϕ) ((seqInterpIso ıϕ (symInterpIso (sem𝓓 ⊙ʳInterp ηϕ)))) i) (sem𝓓 ⊙ʳInterp ηϕ) ⟩
        seqInterpIso (seqInterpIso ıϕ (symInterpIso (sem𝓓 ⊙ʳInterp ηϕ))) (sem𝓓 ⊙ʳInterp ηϕ)
-         ≡⟨ seqInterpIsoAssoc _ _ _ ∙ cong (seqInterpIso ıϕ) (symInterpIsoInvl _) ∙ seqInterpIsoId _ ⟩
+         ≡⟨ seqInterpIsoAssoc _ _ _ ∙ cong (seqInterpIso ıϕ) (symInterpIsoInvl _) ∙ seqInterpIsoIdR _ ⟩
        ıϕ ∎
 

@@ -16,7 +16,7 @@ open import Cubical.Categories.NaturalTransformation.Base
 
 private
   variable
-    ℓA ℓA' ℓB ℓB' ℓC ℓC' ℓD ℓD' : Level
+    ℓA ℓA' ℓB ℓB' ℓC ℓC' ℓD ℓD' ℓE ℓE' : Level
 
 open Category
 open NatTrans
@@ -40,3 +40,22 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} where
       ∙ cong (D ⋆ ı .trans .N-ob x) (ı' .nIso x .ret)
       ∙ D .⋆IdR (ı .trans .N-ob x))
     ∙ ı .nIso x .ret
+
+  CAT⋆IdR : {F : Functor C D} → NatIso (Id ∘F F) F
+  CAT⋆IdR {F} .trans .N-ob = idTrans F .N-ob
+  CAT⋆IdR {F} .trans .N-hom = idTrans F .N-hom
+  CAT⋆IdR {F} .nIso = idNatIso F .nIso
+
+module _ {B : Category ℓB ℓB'}{C : Category ℓC ℓC'}{D : Category ℓD ℓD'} where
+  _∘ʳi_ : ∀ (K : Functor C D) → {G H : Functor B C} (β : NatIso G H)
+       → NatIso (K ∘F G) (K ∘F H)
+  _∘ʳi_ K β .trans = K ∘ʳ β .trans
+  _∘ʳi_ K β .nIso x = preserveIsosF {F = K} (β .trans .N-ob _ , β .nIso x) .snd
+
+
+  CAT⋆Assoc : {E : Category ℓE ℓE'}
+            (F : Functor B C)(G : Functor C D)(H : Functor D E)
+            → NatIso (H ∘F (G ∘F F)) ((H ∘F G) ∘F F)
+  CAT⋆Assoc F G H .trans .N-ob = idTrans ((H ∘F G) ∘F F) .N-ob
+  CAT⋆Assoc F G H .trans .N-hom = idTrans ((H ∘F G) ∘F F) .N-hom
+  CAT⋆Assoc F G H .nIso = idNatIso ((H ∘F G) ∘F F) .nIso

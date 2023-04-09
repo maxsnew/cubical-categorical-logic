@@ -173,7 +173,7 @@ module _ (G : Graph ℓg ℓg') where
                    ((symNatIso (Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso _ _))) ⊙ˡInterp η)
         ≡⟨ cong₂ seqInterpIso (Semantics.semII-restricts-to-α _ (η ⋆Interp F') F agree) lemma ⟩
       seqInterpIso agree (idInterpIso _ _)
-        ≡⟨ seqInterpIsoId agree ⟩
+        ≡⟨ seqInterpIsoIdR agree ⟩
       agree ∎
       where
         lemma : (symNatIso (Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso G _)) ⊙ˡInterp η)

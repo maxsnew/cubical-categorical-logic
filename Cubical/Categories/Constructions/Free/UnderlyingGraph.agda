@@ -105,11 +105,17 @@ seqInterpIso α α' = _∘InterpIso_ _ _ α' α
 
 _⋆InterpIso_ = seqInterpIso
 
-seqInterpIsoId : ∀ {G : Graph ℓg ℓg'} {𝓒 : Category ℓc ℓc'}
+seqInterpIsoIdR : ∀ {G : Graph ℓg ℓg'} {𝓒 : Category ℓc ℓc'}
              → {ı ı' : Interp G 𝓒}
              → (α : InterpIso G 𝓒 ı ı')
              → (seqInterpIso α (idInterpIso _ _)) ≡ α
-seqInterpIsoId {𝓒 = 𝓒} α = InterpIso≡ λ v → 𝓒 .⋆IdR _
+seqInterpIsoIdR {𝓒 = 𝓒} α = InterpIso≡ λ v → 𝓒 .⋆IdR _
+
+seqInterpIsoIdL : ∀ {G : Graph ℓg ℓg'} {𝓒 : Category ℓc ℓc'}
+             → {ı ı' : Interp G 𝓒}
+             → (α : InterpIso G 𝓒 ı ı')
+             → (seqInterpIso (idInterpIso _ _) α) ≡ α
+seqInterpIsoIdL {𝓒 = 𝓒} α = InterpIso≡ λ v → 𝓒 .⋆IdL _
 
 seqInterpIsoAssoc : ∀ {G : Graph ℓg ℓg'} {𝓒 : Category ℓc ℓc'}
                   → {ı ı' ı'' ı''' : Interp G 𝓒}
@@ -177,6 +183,15 @@ module _ {G : Graph ℓg ℓg'} {𝓒 : Category ℓc ℓc'}{𝓓 : Category ℓ
   (K ⊙ʳInterp α) .fst .fst v = K ⟪ α .fst .fst v ⟫
   (K ⊙ʳInterp α) .fst .snd e = preserveCommF {F = K}(α .fst .snd e)
   (K ⊙ʳInterp α) .snd v = preserveIsosF {F = K} (isIsoInterpIso _ _ α v) .snd
+
+  ⊙ʳInterp-IdIso : ∀ {K : Functor 𝓒 𝓓}{ı : Interp G 𝓒} → K ⊙ʳInterp (idInterpIso _ _ {ı}) ≡ idInterpIso _ _
+  ⊙ʳInterp-IdIso {K} = InterpIso≡ λ v → K .F-id
+
+  ⊙ʳInterp-CompIso : ∀ {K : Functor 𝓒 𝓓}{ı ı' ı'' : Interp G 𝓒}
+                     (α : InterpIso _ _ ı ı') (β : InterpIso _ _ ı' ı'')
+                   → K ⊙ʳInterp (α ⋆InterpIso β) ≡ (K ⊙ʳInterp α) ⋆InterpIso (K ⊙ʳInterp β)
+  ⊙ʳInterp-CompIso {K} α β = InterpIso≡ λ v → K .F-seq _ _
+
   -- "heterogeneous" whiskering of an interpretation with a natural isomorphism
   _⊙ˡInterp_ : ∀ {F F' : Functor 𝓒 𝓓} (α : NatIso F F') (ı : Interp G 𝓒) → InterpIso G 𝓓 (F ∘Interp ı) (F' ∘Interp ı)
   (α ⊙ˡInterp ı) .fst .fst v = α .trans .N-ob (ı $g v)
@@ -202,3 +217,23 @@ module _ {G : Graph ℓg ℓg'} {𝓒 : Category ℓc ℓc'}{𝓓 : Category ℓ
   -- "parallel" composition of a natural isomorphism and an interp isomorphism
   _⊙Interp_ : ∀ {F F' : Functor 𝓒 𝓓} (α : NatIso F F') {ı ı' : Interp G 𝓒} → (β : InterpIso _ 𝓒 ı ı') → InterpIso G 𝓓 (F ∘Interp ı) (F' ∘Interp ı')
   _⊙Interp_ {F}{F'} α {ı}{ı'} β = (F ⊙ʳInterp β) ∙I (α ⊙ˡInterp ı')
+
+
+⊙ʳInterpIdF : {G : Graph ℓg ℓg'}{𝓒 : Category ℓc ℓc'} {ı ı' : Interp G 𝓒} → (α : InterpIso G 𝓒 ı ı')
+            → Id ⊙ʳInterp α ≡ α
+⊙ʳInterpIdF α = InterpIso≡ (λ v → refl)
+
+⊙ʳInterpCompF : {G : Graph ℓg ℓg'}{𝓒 : Category ℓc ℓc'}{𝓓 : Category ℓd ℓd'}{𝓔 : Category ℓe ℓe'}
+                 (K : Functor 𝓓 𝓔) (J : Functor 𝓒 𝓓)
+                 {ı ı' : Interp G 𝓒} → (α : InterpIso G 𝓒 ı ı')
+              → (K ∘F J) ⊙ʳInterp α ≡ K ⊙ʳInterp (J ⊙ʳInterp α)
+⊙ʳInterpCompF K J α = InterpIso≡ λ v → refl
+
+∘ʳ⊙ˡ≡⊙ʳ⊙ˡ : {G : Graph ℓg ℓg'} {𝓒 : Category ℓc ℓc'}
+        (ı : Interp G 𝓒)
+        {𝓓 : Category ℓd ℓd'} {F F' : Functor 𝓒 𝓓}
+        (α : NatIso F F')
+        {𝓔 : Category ℓe ℓe'}
+        (K : Functor 𝓓 𝓔)
+     → (K ∘ʳi α) ⊙ˡInterp ı ≡ K ⊙ʳInterp (α ⊙ˡInterp ı)
+∘ʳ⊙ˡ≡⊙ʳ⊙ˡ ı α K = refl
