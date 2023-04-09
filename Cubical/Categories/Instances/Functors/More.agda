@@ -79,7 +79,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
     -- {!!}{!!}{!!}
     λF-functor : Functor (FUNCTOR (Γ ×C C) D) (FUNCTOR Γ (FUNCTOR C D))
-    λF-functor .F-ob = λF
+    λF-functor .F-ob = λFr
     λF-functor .F-hom η .N-ob γ .N-ob c = η .N-ob (γ , c)
     λF-functor .F-hom η .N-ob γ .N-hom ϕ = η .N-hom (Γ .id , ϕ)
 
@@ -90,16 +90,18 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- ((λF-functor .F-hom η) .N-ob x) .N-ob c ⋆⟨ ? ⟩ (λF G .F-hom f) .N-ob c
     -- ((λF-functor .F-hom η) .N-ob x ⋆⟨ D ⟩ (λF G .F-hom f)) .N-ob c
 
-    λF-functor .F-hom {F} {G} η .N-hom {x} {y} f = {!!}
+    λF-functor .F-hom {F} {G} η .N-hom {x} {y} f = {!
+    funExt (λ c →
+    (λF F .F-hom f) .N-ob c ⋆⟨ D ⟩ (((λF-functor .F-hom η) .N-ob y) .N-ob c)
+    )
+!}
 
     -- λF-fucnotr .F-hom idTrans F
     -- = ((idTrans F) .N-ob γ) .N-ob c
     -- = (idTrans F) .N-ob (γ , c)
     -- = D .id
     -- = idTranse(λF .F-hom F) .N-ob _ = D .id
-    λF-functor .F-id = {!i
-
-!}
+    λF-functor .F-id = {!!}
     λF-functor .F-seq η η' = {!!}
 
 
