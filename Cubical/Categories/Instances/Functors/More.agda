@@ -14,6 +14,9 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.Constructions.BinProduct
+open import Cubical.Categories.Equivalence.WeakEquivalence
+open import Cubical.Categories.Functor.Properties
+open import Cubical.Categories.Equivalence.Base
 
 open import AltEquationalReasoning
 open import Cubical.Tactics.CategorySolver.Reflection
@@ -92,15 +95,43 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
      --  ≡⟨ refl ⟩
      --  ((λF-functor .F-hom η) .N-ob γ₁ ⋆⟨ FUNCTOR C D ⟩ (λFr G .F-hom f)) .N-ob c ∎))
 
-
     λF-functor .F-id = makeNatTransPath (funExt λ (γ : Γ .ob) → refl)
     λF-functor .F-seq η η' = makeNatTransPath (funExt λ (γ : Γ .ob) → refl)
 
 
+    λF-ess-surj : isEssentiallySurj λF-functor
+    λF-ess-surj = {!!}
 
+    λF-isFull : isFull λF-functor
+    λF-isFull = {!!}
 
-    -- λF-ess-surj : isEssentiallySurj λF
-    -- λF-ess-surj = ?
+    λF-isFaithful : isFaithful λF-functor
+    λF-isFaithful F G η₁ η₂ λη₁=λη₂ = makeNatTransPath (funExt (λ (γ , c) →
+      η₁ .N-ob (γ , c)
+        ≡⟨ {!λ (i : I) → λη₁=λη₂ i .N-ob γ .N-ob c i!} ⟩
+      η₂ .N-ob (γ , c)
+      ∎))
+
+    λF-isFullyFaithful : isFullyFaithful λF-functor
+    λF-isFullyFaithful = isFull+Faithful→isFullyFaithful {F = λF-functor} λF-isFull λF-isFaithful
+
+    open isWeakEquivalence
+
+    λF-isWeakEquiv : isWeakEquivalence λF-functor
+    λF-isWeakEquiv .fullfaith = λF-isFullyFaithful
+    λF-isWeakEquiv .esssurj = λF-ess-surj
+
+    -- open isUnivalent
+
+    -- λF-isEquivalence : isEquivalence λF-functor
+    -- λF-isEquivalence = isWeakEquiv→isEquiv λF-isWeakEquiv
+
+    -- open _≃ᶜ_
+
+    -- curryEquivalence : FUNCTOR (Γ ×C C) D ≃ᶜ FUNCTOR Γ (FUNCTOR C D)
+    -- curryEquivalence .func = λF-functor
+    -- curryEquivalence .isEquiv = λF-isEquivalence where
+    --   open Cubical.Categories.Equivalence.Base.
 
     λFl : Functor (C ×C Γ) D → Functor Γ (FUNCTOR C D)
     λFl F = λFr (F ∘F (Snd Γ C ,F Fst Γ C))
