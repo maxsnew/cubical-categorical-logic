@@ -46,18 +46,18 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     (F ⟪ f ⟫ ⋆⟨ D ⟩ α .N-ob c') ⋆⟨ D ⟩ (F' ⟪ f' ⟫ ⋆⟨ D ⟩ α' .N-ob c'') ∎
 
   module _ {Γ : Category ℓΓ ℓΓ'} where
-    λF : Functor (Γ ×C C) D → Functor Γ (FUNCTOR C D)
-    λF F .F-ob a .F-ob b = F ⟅ a , b ⟆
-    λF F .F-ob a .F-hom f = F .F-hom (Γ .id , f)
-    λF F .F-ob a .F-id = F .F-id
-    λF F .F-ob a .F-seq f g =
+    λFr : Functor (Γ ×C C) D → Functor Γ (FUNCTOR C D)
+    λFr F .F-ob a .F-ob b = F ⟅ a , b ⟆
+    λFr F .F-ob a .F-hom f = F .F-hom (Γ .id , f)
+    λFr F .F-ob a .F-id = F .F-id
+    λFr F .F-ob a .F-seq f g =
       F .F-hom (Γ .id , f ⋆⟨ C ⟩ g)
         ≡⟨ (λ i → F .F-hom ((Γ .⋆IdL (Γ .id) (~ i)) , f ⋆⟨ C ⟩ g)) ⟩
       F .F-hom (Γ .id ⋆⟨ Γ ⟩ Γ .id , f ⋆⟨ C ⟩ g)
         ≡⟨ F .F-seq (Γ .id , f) (Γ .id , g) ⟩
       F .F-hom (Γ .id , f) ⋆⟨ D ⟩ F .F-hom (Γ .id , g ) ∎
-    λF F .F-hom γ .N-ob b = F .F-hom (γ , C .id)
-    λF F .F-hom γ .N-hom f =
+    λFr F .F-hom γ .N-ob b = F .F-hom (γ , C .id)
+    λFr F .F-hom γ .N-hom f =
       F .F-hom (Γ .id , f) ⋆⟨ D ⟩ F .F-hom (γ , C .id)
         ≡⟨ sym (F .F-seq (Γ .id , f) (γ , C .id)) ⟩
       F .F-hom (Γ .id ⋆⟨ Γ ⟩ γ , f ⋆⟨ C ⟩ C .id)
@@ -65,8 +65,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       F .F-hom (γ ⋆⟨ Γ ⟩ Γ .id , C .id ⋆⟨ C ⟩ f)
         ≡⟨ F .F-seq (γ , C .id) (Γ .id , f) ⟩
       F .F-hom (γ , C .id) ⋆⟨ D ⟩ F .F-hom (Γ .id , f)  ∎
-    λF F .F-id = makeNatTransPath (funExt (λ a → F .F-id))
-    λF F .F-seq γ δ = makeNatTransPath (funExt (λ a →
+    λFr F .F-id = makeNatTransPath (funExt (λ a → F .F-id))
+    λFr F .F-seq γ δ = makeNatTransPath (funExt (λ a →
         F .F-hom (γ ⋆⟨ Γ ⟩ δ , C .id)
           ≡⟨ (λ i → F .F-hom (γ ⋆⟨ Γ ⟩ δ , C .⋆IdL (C .id) (~ i))) ⟩
         F .F-hom (γ ⋆⟨ Γ ⟩ δ , C .id ⋆⟨ C ⟩ C .id)
@@ -109,4 +109,4 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- λF-ess-surj = ?
 
     λFl : Functor (C ×C Γ) D → Functor Γ (FUNCTOR C D)
-    λFl F = λF (F ∘F (Snd Γ C ,F Fst Γ C))
+    λFl F = λFr (F ∘F (Snd Γ C ,F Fst Γ C))

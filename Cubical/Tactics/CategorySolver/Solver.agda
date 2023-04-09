@@ -1,76 +1,79 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --lossy-unification #-}
 module Cubical.Tactics.CategorySolver.Solver where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Isomorphism
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Properties
 open import Cubical.Categories.Category
+open import Cubical.Categories.Functor.Base
+open import Cubical.Categories.NaturalTransformation.Base hiding (_⟦_⟧)
+open import Cubical.Categories.Yoneda
+open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Presheaf
+
+open import Cubical.Data.Graph.Properties
+open import Cubical.Categories.Constructions.Free.General
+open import Cubical.Categories.Constructions.Free.UnderlyingGraph
+open import Cubical.Categories.Yoneda.More
 
 private
   variable
     ℓ ℓ' : Level
 open Category
-
--- | A type theoretic gloss on the free category
-module _ (C : Category ℓ ℓ') where
-  BaseTy = C .ob
-  FunSym = C .Hom[_,_]
-  data UTT (Γ : BaseTy) : BaseTy → Type (ℓ-max ℓ ℓ') where
-    var : UTT Γ Γ
-    app : ∀ {A B} → FunSym A B → UTT Γ A → UTT Γ B
-
-  data Exp : BaseTy → BaseTy → Type (ℓ-max ℓ ℓ') where
-    idₑ  : ∀ {Γ} → Exp Γ Γ
-    _⋆ₑ_ : ∀ {A B C} → Exp A B → Exp B C → Exp A C
-    ↑_   : ∀ {A B} → FunSym A B → Exp A B
+open Functor
+open NatTrans
+open NatIso
+open isIso
 
 module Eval (𝓒 : Category ℓ ℓ') where
-  open Category 𝓒
+  -- Semantics in 𝓒 itself, tautologically
+  sem𝓒 = ϵ {𝓒 = 𝓒}
+  ⟦_⟧c = sem𝓒 .F-hom
+  Y = YONEDA {C = 𝓒}
+  𝓟 = PresheafCategory 𝓒 ℓ'
 
-  ⟦_⟧ : ∀ {A B} → Exp 𝓒 A B → 𝓒 [ A , B ]
-  ⟦ idₑ ⟧ =  𝓒 .id
-  ⟦ e ⋆ₑ e' ⟧ = ⟦ e ⟧ ⋆⟨ 𝓒 ⟩ ⟦ e' ⟧
-  ⟦ ↑ f ⟧ = f
+  -- Semantics in 𝓟o 𝓒, interpreting fun symbols using Yoneda
+  semYo = Semantics.sem (Ugr 𝓒) 𝓟 (Uhom (YONEDA {C = 𝓒}))
+  ⟦_⟧yo = semYo .F-hom
+  
+  -- | Evaluate by taking the semantics in 𝓟 𝓒 and
+  -- | use the Yoneda lemma to extract a morphism in 𝓒.
+  eval : ∀ {A B} → FreeCat (Ugr 𝓒) [ A , B ] → 𝓒 [ A , B ]
+  eval {A}{B} e = Iso.fun (yonedaᴾ {C = 𝓒} (𝓒 [-, B ]) A) ⟦ e ⟧yo
 
-  NormalForm = UTT
+  weakly-unique = Semantics.semIIso (Ugr 𝓒) 𝓟 (Uhom Y) ((Y ∘F ϵ)) the-iso where
+    the-iso : InterpIso (Ugr 𝓒) 𝓟 (η (Ugr 𝓒) ⋆GrHom Uhom (Y ∘F ϵ)) (Uhom Y)
+    the-iso .fst .fst = idTrans Y .N-ob
+    the-iso .fst .snd = idTrans Y .N-hom
+    the-iso .snd = idNatIso Y .nIso
 
-  _⟨_⟩ : ∀ {A B C} → NormalForm 𝓒 B C → NormalForm 𝓒 A B → NormalForm 𝓒 A C
-  var ⟨ γ ⟩ = γ
-  app f t ⟨ γ ⟩ = app f (t ⟨ γ ⟩)
+  -- | Eval agrees with the tautological semantics
+  -- | There is a more direct proof but this one generalizes better
 
-  normalize : ∀ {A B} → Exp 𝓒 A B → NormalForm 𝓒 A B
-  normalize idₑ = var
-  normalize (e ⋆ₑ e₁) = normalize e₁ ⟨ normalize e ⟩
-  normalize (↑ f) = app f var
+  solve : ∀ {A B} → (e₁ e₂ : FreeCat (Ugr 𝓒) [ A , B ])
+        → eval e₁ ≡ eval e₂
+        → ⟦ e₁ ⟧c ≡ ⟦ e₂ ⟧c
+  solve {A}{B} e₁ e₂ p = isFaithfulYoneda _ _ _ _ yo∘c≡ where
+    yo≡ : ⟦ e₁ ⟧yo ≡ ⟦ e₂ ⟧yo
+    yo≡ = isoFunInjective ((yonedaᴾ {C = 𝓒} (𝓒 [-, _ ]) _)) _ _ p
 
-  eval : ∀ {A B} → NormalForm 𝓒 A B → 𝓒 [ A , B ]
-  eval var = 𝓒 .id 
-  eval (app f t) = eval t ⋆⟨ 𝓒 ⟩ f
+    -- commutes : ∀ (e : FreeCat (Ugr 𝓒) [ A , B ]) → ⟦ e ⟧yo ≡ YONEDA ⟪ ⟦ e ⟧c ⟫
+    -- commutes e = sym (uniq-on-morphisms (Ugr 𝓒) (YONEDA {C = 𝓒} ∘F sem𝓒) e)
 
-  evalHomomorphism : ∀ {A B C} → (t : NormalForm 𝓒 B C) → (γ : NormalForm 𝓒 A B)
-           → eval (t ⟨ γ ⟩) ≡ eval γ ⋆⟨ 𝓒 ⟩ eval t
-  evalHomomorphism var γ = sym (𝓒 .⋆IdR _)
-  evalHomomorphism (app f t) γ =
-    (λ i → f ∘⟨ 𝓒 ⟩ evalHomomorphism t γ i )
-    ∙ 𝓒 .⋆Assoc _ _ _
-
-module EqualityToNormalForm (𝓒 : Category ℓ ℓ') where
-  open Eval 𝓒
-  open Category 𝓒
-
-  isEqualToNormalForm : ∀ {A B}
-                      → (e : Exp 𝓒 A B)
-                      → eval (normalize e) ≡ ⟦ e ⟧
-  isEqualToNormalForm idₑ = refl
-  isEqualToNormalForm (e ⋆ₑ e₁) = evalHomomorphism (normalize e₁) (normalize e) ∙ λ i → isEqualToNormalForm e i ⋆⟨ 𝓒 ⟩ isEqualToNormalForm e₁ i
-  isEqualToNormalForm (↑ _) = 𝓒 .⋆IdL _
-
-  solve : ∀ {A B} → (e₁ e₂ : Exp 𝓒 A B)
-        → eval (normalize e₁) ≡ eval (normalize e₂)
-        → ⟦ e₁ ⟧ ≡ ⟦ e₂ ⟧
-  solve e₁ e₂ p = sym (isEqualToNormalForm e₁) ∙ p ∙ isEqualToNormalForm e₂
+    yo∘c≡ : Y ⟪ ⟦ e₁ ⟧c ⟫ ≡ Y ⟪ ⟦ e₂ ⟧c ⟫
+    yo∘c≡ =
+      Y ⟪ ⟦ e₁ ⟧c ⟫
+        ≡⟨ sqRL weakly-unique ⟩
+      weakly-unique .nIso _ .inv ⋆⟨ 𝓟 ⟩ ⟦ e₁ ⟧yo ⋆⟨ 𝓟 ⟩ weakly-unique .trans .N-ob _
+        ≡[ i ]⟨ weakly-unique .nIso _ .inv ⋆⟨ 𝓟 ⟩ yo≡ i ⋆⟨ 𝓟 ⟩ weakly-unique .trans .N-ob _ ⟩
+      weakly-unique .nIso _ .inv ⋆⟨ 𝓟 ⟩ ⟦ e₂ ⟧yo ⋆⟨ 𝓟 ⟩ weakly-unique .trans .N-ob _
+        ≡⟨ sym (sqRL weakly-unique) ⟩
+      Y ⟪ ⟦ e₂ ⟧c ⟫ ∎
 
 solve : (𝓒 : Category ℓ ℓ')
       → {A B : 𝓒 .ob}
-      → (e₁ e₂ : Exp 𝓒 A B)
-      → (p : Eval.eval 𝓒 (Eval.normalize 𝓒 e₁) ≡ Eval.eval 𝓒 (Eval.normalize 𝓒 e₂))
+      → (e₁ e₂ : FreeCat (Ugr 𝓒) [ A , B ])
+      → (p : Eval.eval 𝓒 e₁ ≡ Eval.eval 𝓒 e₂)
       → _
-solve = EqualityToNormalForm.solve
+solve = Eval.solve
