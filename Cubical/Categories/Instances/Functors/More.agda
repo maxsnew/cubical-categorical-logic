@@ -81,20 +81,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     λF-functor .F-hom η .N-ob γ .N-ob c = η .N-ob (γ , c)
     λF-functor .F-hom η .N-ob γ .N-hom ϕ = η .N-hom (Γ .id , ϕ)
     λF-functor .F-hom η .N-hom f = makeNatTransPath (funExt (λ (c : C .ob) → η .N-hom (f , C .id)))
-
-    -- TODO: which is better style. Longer == easier to understand when reading
-     -- ((λFr F .F-hom f) ⋆⟨ FUNCTOR C D ⟩ (λF-functor .F-hom η) .N-ob γ₂) .N-ob c
-     --  ≡⟨ refl ⟩
-     --  (λFr F .F-hom  f) .N-ob c ⋆⟨ D ⟩ (λF-functor .F-hom η) .N-ob γ₂ .N-ob c
-     --  ≡⟨ refl ⟩
-     --  (F .F-hom (f , C .id)) ⋆⟨ D ⟩ (η .N-ob (γ₂ , c))
-     --  ≡⟨  η .N-hom (f , C .id) ⟩
-     --  η .N-ob (γ₁ , c) ⋆⟨ D ⟩ G .F-hom (f , C .id)
-     --  ≡⟨ refl ⟩
-     --  (λF-functor .F-hom η) .N-ob γ₁ .N-ob c ⋆⟨ D ⟩ (λFr G .F-hom f) .N-ob c
-     --  ≡⟨ refl ⟩
-     --  ((λF-functor .F-hom η) .N-ob γ₁ ⋆⟨ FUNCTOR C D ⟩ (λFr G .F-hom f)) .N-ob c ∎))
-
     λF-functor .F-id = makeNatTransPath (funExt λ (γ : Γ .ob) → refl)
     λF-functor .F-seq η η' = makeNatTransPath (funExt λ (γ : Γ .ob) → refl)
 
@@ -103,14 +89,13 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     λF-ess-surj = {!!}
 
     λF-isFull : isFull λF-functor
-    λF-isFull = {!!}
+    λF-isFull F G λη = ?
 
     λF-isFaithful : isFaithful λF-functor
-    λF-isFaithful F G η₁ η₂ λη₁=λη₂ = makeNatTransPath (funExt (λ (γ , c) →
+    λF-isFaithful F G η₁ η₂ λη₁≡λη₂ = makeNatTransPath (funExt (λ (γ , c) →
       η₁ .N-ob (γ , c)
-        ≡⟨ {!λ (i : I) → λη₁=λη₂ i .N-ob γ .N-ob c i!} ⟩
-      η₂ .N-ob (γ , c)
-      ∎))
+        ≡⟨ (λ i → λη₁≡λη₂ i .N-ob γ .N-ob c) ⟩
+       η₂ .N-ob (γ , c) ∎))
 
     λF-isFullyFaithful : isFullyFaithful λF-functor
     λF-isFullyFaithful = isFull+Faithful→isFullyFaithful {F = λF-functor} λF-isFull λF-isFaithful
