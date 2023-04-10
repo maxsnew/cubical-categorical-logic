@@ -76,6 +76,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           ≡⟨ F .F-seq (γ , C .id) (δ , C .id) ⟩
         F .F-hom (γ , C .id) ⋆⟨ D ⟩ F .F-hom (δ , C .id) ∎))
 
+    -- TODO: come up with a better name for this
     λF-functor : Functor (FUNCTOR (Γ ×C C) D) (FUNCTOR Γ (FUNCTOR C D))
     λF-functor .F-ob = λFr
     λF-functor .F-hom η .N-ob γ .N-ob c = η .N-ob (γ , c)
@@ -89,7 +90,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     λF-ess-surj = {!!}
 
     λF-isFull : isFull λF-functor
-    λF-isFull F G λη = ?
+    λF-isFull F G λη = {!!}
 
     λF-isFaithful : isFaithful λF-functor
     λF-isFaithful F G η₁ η₂ λη₁≡λη₂ = makeNatTransPath (funExt (λ (γ , c) →
