@@ -92,18 +92,17 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     preimage {F} {G} λη .N-ob (γ , c) = λη .N-ob γ .N-ob c
     preimage {F} {G} λη .N-hom {(γ₁ , c₁)} {(γ₂ , c₂)} (ϕ₁ , ϕ₂) =
       F .F-hom (ϕ₁ , ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
-        -- TODO: this is wrong
-        ≡⟨ {!(λ i → (F .F-hom (Γ ⋆IdR ϕ₁ , C ⋆IdL ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)))!} ⟩
+        ≡⟨ (λ i → (F .F-hom ((Γ .⋆IdR ϕ₁) (~ i) , (C .⋆IdL ϕ₂) (~ i)) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂))) ⟩
       F .F-hom (ϕ₁ ⋆⟨ Γ ⟩ (Γ .id), (C .id) ⋆⟨ C ⟩ ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
         ≡⟨ refl ⟩
       F .F-hom ((ϕ₁ , (C .id)) ⋆⟨ Γ ×C C ⟩ (Γ .id , ϕ₂)) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
-        ≡⟨ {!!} ⟩
+        ≡⟨ (λ i → (F .F-seq (ϕ₁ , (C .id)) (Γ .id , ϕ₂)) (i) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)) ⟩
       F .F-hom (ϕ₁ , (C .id)) ⋆⟨ D ⟩ F .F-hom ((Γ .id) , ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
         ≡⟨ {!!} ⟩
       preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ G .F-hom (ϕ₁ , ϕ₂) ∎
 
     λF-isFull : isFull λF-functor
-    λF-isFull F G λη = {!!}
+    λF-isFull F G λη =  ∣ {!!} , {!!} ∣₁
 
     λF-ess-surj : isEssentiallySurj λF-functor
     λF-ess-surj = {!!}
