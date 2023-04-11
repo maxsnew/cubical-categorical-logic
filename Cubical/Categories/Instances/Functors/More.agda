@@ -17,6 +17,7 @@ open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.Functor.Properties
 open import Cubical.Categories.Equivalence.Base
+open import Cubical.HITs.PropositionalTruncation
 
 open import AltEquationalReasoning
 open import Cubical.Tactics.CategorySolver.Reflection
@@ -86,16 +87,31 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     λF-functor .F-seq η η' = makeNatTransPath (funExt λ (γ : Γ .ob) → refl)
 
 
-    λF-ess-surj : isEssentiallySurj λF-functor
-    λF-ess-surj = {!!}
+    -- Preimage for the fullness proof
+    preimage : {F G : Functor (Γ ×C C) D} (λη : NatTrans (λF-functor .F-ob F) (λF-functor .F-ob G)) → (NatTrans F G)
+    preimage {F} {G} λη .N-ob (γ , c) = λη .N-ob γ .N-ob c
+    preimage {F} {G} λη .N-hom {(γ₁ , c₁)} {(γ₂ , c₂)} (ϕ₁ , ϕ₂) =
+      F .F-hom (ϕ₁ , ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
+        -- TODO: this is wrong
+        ≡⟨ {!(λ i → (F .F-hom (Γ ⋆IdR ϕ₁ , C ⋆IdL ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)))!} ⟩
+      F .F-hom (ϕ₁ ⋆⟨ Γ ⟩ (Γ .id), (C .id) ⋆⟨ C ⟩ ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
+        ≡⟨ refl ⟩
+      F .F-hom ((ϕ₁ , (C .id)) ⋆⟨ Γ ×C C ⟩ (Γ .id , ϕ₂)) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
+        ≡⟨ {!!} ⟩
+      F .F-hom (ϕ₁ , (C .id)) ⋆⟨ D ⟩ F .F-hom ((Γ .id) , ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
+        ≡⟨ {!!} ⟩
+      preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ G .F-hom (ϕ₁ , ϕ₂) ∎
 
     λF-isFull : isFull λF-functor
     λF-isFull F G λη = {!!}
 
+    λF-ess-surj : isEssentiallySurj λF-functor
+    λF-ess-surj = {!!}
+
     λF-isFaithful : isFaithful λF-functor
     λF-isFaithful F G η₁ η₂ λη₁≡λη₂ = makeNatTransPath (funExt (λ (γ , c) →
       η₁ .N-ob (γ , c)
-        ≡⟨ (λ i → λη₁≡λη₂ i .N-ob γ .N-ob c) ⟩
+      ≡⟨ (λ i → λη₁≡λη₂ i .N-ob γ .N-ob c) ⟩
        η₂ .N-ob (γ , c) ∎))
 
     λF-isFullyFaithful : isFullyFaithful λF-functor
