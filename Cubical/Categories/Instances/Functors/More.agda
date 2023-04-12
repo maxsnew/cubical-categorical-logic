@@ -114,7 +114,12 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ G .F-hom (ϕ₁ , ϕ₂) ∎
 
     λF-isFull : isFull λF-functor
-    λF-isFull F G λη =  ∣ preimage λη , makeNatTransPath (funExt (λ (γ : Γ .ob) → {!!} )) ∣₁
+    λF-isFull F G λη =  (∣ preimage λη , makeNatTransPath (funExt (λ (γ : Γ .ob) →
+      makeNatTransPath (funExt (λ (c : C .ob) →
+        λF-functor .F-hom (preimage λη) .N-ob γ .N-ob c
+        ≡⟨ refl ⟩
+        λη .N-ob γ .N-ob c ∎))
+      ) ) ∣₁)
 
     λF-ess-surj : isEssentiallySurj λF-functor
     λF-ess-surj = {!!}
