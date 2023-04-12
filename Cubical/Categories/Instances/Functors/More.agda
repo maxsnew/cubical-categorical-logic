@@ -121,8 +121,15 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         λη .N-ob γ .N-ob c ∎))
       ) ) ∣₁)
 
+    -- TODO : λF is especially badly named in the context of all these other names
+    preimage-obj : (FUNCTOR Γ (FUNCTOR C D)) .ob → (FUNCTOR (Γ ×C C) D) .ob
+    preimage-obj λF .F-ob (γ , c) =  λF .F-ob γ .F-ob c
+    preimage-obj λF .F-hom {x = (γ₁ , c₁)} {y = (γ₂ , c₂)} (ϕ , ψ) =  λF .F-hom ϕ .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₂ .F-hom ψ
+    preimage-obj λF .F-seq (ϕ₁ , ψ₁) (ϕ₂ , ψ₂) = {!!}
+    preimage-obj λF .F-id = {!!}
+
     λF-ess-surj : isEssentiallySurj λF-functor
-    λF-ess-surj = {!!}
+    λF-ess-surj λF = {!!}
 
     λF-isFaithful : isFaithful λF-functor
     λF-isFaithful F G η₁ η₂ λη₁≡λη₂ = makeNatTransPath (funExt (λ (γ , c) →
