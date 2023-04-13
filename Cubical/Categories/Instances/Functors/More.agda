@@ -18,6 +18,7 @@ open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.Functor.Properties
 open import Cubical.Categories.Equivalence.Base
 open import Cubical.HITs.PropositionalTruncation
+open import Cubical.Categories.Category
 
 open import AltEquationalReasoning
 open import Cubical.Tactics.CategorySolver.Reflection
@@ -93,8 +94,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     preimage {F} {G} λη .N-hom {(γ₁ , c₁)} {(γ₂ , c₂)} (ϕ₁ , ϕ₂) =
       F .F-hom (ϕ₁ , ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
         ≡⟨ (λ i → (F .F-hom ((Γ .⋆IdR ϕ₁) (~ i) , (C .⋆IdL ϕ₂) (~ i)) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂))) ⟩
-      F .F-hom (ϕ₁ ⋆⟨ Γ ⟩ Γ .id , C .id ⋆⟨ C ⟩ ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
-        ≡⟨ refl ⟩
       F .F-hom ((ϕ₁ , C .id) ⋆⟨ Γ ×C C ⟩ (Γ .id , ϕ₂)) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
         ≡⟨ (λ i → (F .F-seq (ϕ₁ , C .id) (Γ .id , ϕ₂)) (i) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)) ⟩
       F .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ F .F-hom (Γ .id , ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
@@ -124,12 +123,88 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- TODO : λF is especially badly named in the context of all these other names
     preimage-obj : (FUNCTOR Γ (FUNCTOR C D)) .ob → (FUNCTOR (Γ ×C C) D) .ob
     preimage-obj λF .F-ob (γ , c) =  λF .F-ob γ .F-ob c
-    preimage-obj λF .F-hom {x = (γ₁ , c₁)} {y = (γ₂ , c₂)} (ϕ , ψ) =  λF .F-hom ϕ .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₂ .F-hom ψ
-    preimage-obj λF .F-seq (ϕ₁ , ψ₁) (ϕ₂ , ψ₂) = {!!}
-    preimage-obj λF .F-id = {!!}
+    preimage-obj λF .F-hom {x = (γ₁ , c₁)} {y = (γ₂ , c₂)} (ϕ , ψ) = λF .F-hom ϕ .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₂ .F-hom ψ
+    preimage-obj λF .F-seq {x = (γ₁ , c₁)} {y = (γ₂ , c₂)} {z = (γ₃ , c₃)} (ϕ₁ , ψ₁) (ϕ₂ , ψ₂) = (
+      preimage-obj λF .F-hom ((ϕ₁ , ψ₁) ⋆⟨ Γ ×C C ⟩ (ϕ₂ , ψ₂))
+        ≡⟨ ((λ i → ( (λF .F-seq ϕ₁ ϕ₂ (i) ) .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom (ψ₁ ⋆⟨ C ⟩ ψ₂)))) ⟩
+      (λF .F-hom ϕ₁ ⋆⟨ FUNCTOR C D ⟩ λF .F-hom ϕ₂) .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom (ψ₁ ⋆⟨ C ⟩ ψ₂)
+        ≡⟨ (λ i → (λF .F-hom ϕ₁ .N-ob c₁ ⋆⟨ D ⟩ λF .F-hom ϕ₂ .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₃ .F-seq ψ₁ ψ₂ i)) ⟩
+      (λF .F-hom ϕ₁ .N-ob c₁ ⋆⟨ D ⟩ λF .F-hom ϕ₂ .N-ob c₁) ⋆⟨ D ⟩ (λF .F-ob γ₃ .F-hom ψ₁ ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom ψ₂)
+        ≡⟨ solveCat! D ⟩
+      λF .F-hom ϕ₁ .N-ob c₁ ⋆⟨ D ⟩ (λF .F-hom ϕ₂ .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom ψ₁) ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom ψ₂
+        ≡⟨ ((λ i → ( λF .F-hom ϕ₁ .N-ob c₁ ⋆⟨ D ⟩ (λF .F-hom ϕ₂ .N-hom ψ₁ (~ i) ) ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom ψ₂ ))) ⟩
+      λF .F-hom ϕ₁ .N-ob c₁ ⋆⟨ D ⟩ (λF .F-ob γ₂ .F-hom ψ₁ ⋆⟨ D ⟩ λF .F-hom ϕ₂ .N-ob c₂) ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom ψ₂
+        ≡⟨ solveCat! D ⟩
+      preimage-obj λF .F-hom (ϕ₁ , ψ₁) ⋆⟨ D ⟩ preimage-obj λF .F-hom (ϕ₂ , ψ₂) ∎)
+    preimage-obj λF .F-id  {x = (γ , c)} = (
+      preimage-obj λF .F-hom (Γ .id , C .id)
+        ≡⟨ ((λ i → (λF .F-id i .N-ob c ⋆⟨ D ⟩ λF .F-ob γ .F-hom (C .id)))) ⟩
+      D .id ⋆⟨ D ⟩ λF .F-ob γ .F-hom (C .id)
+        ≡⟨ ((λ i → (D .id ⋆⟨ D ⟩ (λF .F-ob γ .F-id i)))) ⟩
+      D .id ⋆⟨ D ⟩ D .id
+        ≡⟨ D .⋆IdL (D .id) ⟩
+      D .id
+      ∎ )
+    preimage-iso : (λF : (FUNCTOR Γ (FUNCTOR C D)) .ob) → NatTrans (λF-functor .F-ob (preimage-obj λF)) λF
+    preimage-iso λF .N-ob γ .N-ob c = D .id
+    preimage-iso λF .N-ob γ .N-hom {x = c₁} {y = c₂} ψ =
+      ((λF .F-hom (Γ .id) .N-ob c₁) ⋆⟨ D ⟩ (λF .F-ob γ .F-hom ψ)) ⋆⟨ D ⟩ D .id
+        ≡⟨ (λ i → (D .⋆IdR ((λF .F-hom (Γ .id) .N-ob c₁) ⋆⟨ D ⟩ (λF .F-ob γ .F-hom ψ)) (i) )) ⟩
+      (λF .F-hom (Γ .id) .N-ob c₁) ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ
+        ≡⟨ ((λ i → ((λF .F-id i) .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ ))) ⟩
+      D .id ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ ∎
+    preimage-iso λF .N-hom {x = γ₁} {y = γ₂} ϕ = makeNatTransPath (funExt (λ (c : C .ob) →
+      λF-functor .F-ob (preimage-obj λF) .F-hom ϕ .N-ob c ⋆⟨ D ⟩ (preimage-iso λF) .N-ob γ₂ .N-ob c
+        ≡⟨ D .⋆IdR (λF-functor .F-ob (preimage-obj λF) .F-hom ϕ .N-ob c) ⟩
+      λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ λF .F-ob γ₂ .F-hom (C .id)
+        ≡⟨ ((λ i → (λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ λF .F-ob γ₂ .F-id i))) ⟩
+      λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ D .id
+        ≡⟨ D .⋆IdR (λF .F-hom ϕ .N-ob c) ⟩
+      λF .F-hom ϕ .N-ob c
+        ≡⟨ ((λ i → (D .⋆IdL (λF .F-hom ϕ .N-ob c) (~ i) ))) ⟩
+      (preimage-iso λF) .N-ob γ₁ .N-ob c ⋆⟨ D ⟩ λF .F-hom ϕ .N-ob c ∎))
+
+    open isIso
+
+    preimage-iso-isIso : (λF : (FUNCTOR Γ (FUNCTOR C D)) .ob) → isIsoC (FUNCTOR Γ (FUNCTOR C D)) (preimage-iso λF)
+    preimage-iso-isIso λF .inv .N-ob γ .N-ob c =  D .id
+    preimage-iso-isIso λF .inv .N-ob γ .N-hom {x = c₁} {y = c₂} ψ =
+      λF .F-ob γ .F-hom ψ ⋆⟨ D ⟩ D .id
+        ≡⟨ D .⋆IdR (λF .F-ob γ .F-hom ψ) ⟩
+      λF .F-ob γ .F-hom ψ
+        ≡⟨ (λ i → (D .⋆IdL (λF .F-ob γ .F-hom ψ) (~ i))) ⟩
+      D .id ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ
+        ≡⟨ ((λ i → (λF .F-id (~ i)) .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ ) ) ⟩
+     λF-functor .F-ob (preimage-obj λF) .F-ob γ .F-hom ψ
+        ≡⟨ ((λ i → (D .⋆IdL (λF-functor .F-ob (preimage-obj λF) .F-ob γ .F-hom ψ ) (~ i) ))) ⟩
+      D .id ⋆⟨ D ⟩ λF-functor .F-ob (preimage-obj λF) .F-ob γ .F-hom ψ ∎
+    preimage-iso-isIso λF .inv .N-hom {x = γ₁} {y = γ₂} ϕ = makeNatTransPath (funExt (λ (c : C .ob ) →
+      λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ preimage-iso-isIso λF .inv .N-ob γ₂ .N-ob c
+        ≡⟨ D .⋆IdR (λF .F-hom ϕ .N-ob c) ⟩
+      λF .F-hom ϕ .N-ob c
+        ≡⟨ ((λ i → (D .⋆IdR (λF .F-hom ϕ .N-ob c) (~ i)))) ⟩
+      λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ D .id
+        ≡⟨ ((λ i → ( λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ λF .F-ob γ₂ .F-id (~ i )))) ⟩
+      λFr (preimage-obj λF) .F-hom ϕ .N-ob c
+        ≡⟨ ((λ i → ((D .⋆IdL (λFr (preimage-obj λF) .F-hom ϕ .N-ob c) (~ i)) ))) ⟩
+      D .id ⋆⟨ D ⟩ λFr (preimage-obj λF) .F-hom ϕ .N-ob c ∎
+      ))
+    preimage-iso-isIso λF .sec = makeNatTransPath (funExt (λ (γ : Γ .ob) →
+      makeNatTransPath (funExt (λ (c : C .ob) →
+        preimage-iso-isIso λF .inv .N-ob γ .N-ob c ⋆⟨ D ⟩ preimage-iso λF .N-ob γ .N-ob c
+          ≡⟨ D .⋆IdR (preimage-iso-isIso λF .inv .N-ob γ .N-ob c) ⟩
+        D .id ∎
+      ))))
+    preimage-iso-isIso λF .ret = makeNatTransPath (funExt (λ (γ : Γ .ob) →
+      makeNatTransPath (funExt (λ (c : C .ob) →
+         preimage-iso λF .N-ob γ .N-ob c ⋆⟨ D ⟩ preimage-iso-isIso λF .inv .N-ob γ .N-ob c
+          ≡⟨ D .⋆IdR (preimage-iso-isIso λF .inv .N-ob γ .N-ob c) ⟩
+        D .id ∎
+      ))))
+
 
     λF-ess-surj : isEssentiallySurj λF-functor
-    λF-ess-surj λF = {!!}
+    λF-ess-surj λF = ( ∣ preimage-obj λF , (preimage-iso λF , preimage-iso-isIso λF) ∣₁ )
 
     λF-isFaithful : isFaithful λF-functor
     λF-isFaithful F G η₁ η₂ λη₁≡λη₂ = makeNatTransPath (funExt (λ (γ , c) →
