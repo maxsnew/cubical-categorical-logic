@@ -51,6 +51,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     (F ⟪ f ⟫ ⋆⟨ D ⟩ α .N-ob c') ⋆⟨ D ⟩ (F' ⟪ f' ⟫ ⋆⟨ D ⟩ α' .N-ob c'') ∎
 
   module _ {Γ : Category ℓΓ ℓΓ'} where
+    -- The action of currying out the right argument of a Functor (Γ ×C C) D
     λFr : Functor (Γ ×C C) D → Functor Γ (FUNCTOR C D)
     λFr F .F-ob a .F-ob b = F ⟅ a , b ⟆
     λFr F .F-ob a .F-hom f = F .F-hom (Γ .id , f)
@@ -78,54 +79,63 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           ≡⟨ F .F-seq (γ , C .id) (δ , C .id) ⟩
         F .F-hom (γ , C .id) ⋆⟨ D ⟩ F .F-hom (δ , C .id) ∎))
 
-    -- TODO: come up with a better name for this
-    λF-functor : Functor (FUNCTOR (Γ ×C C) D) (FUNCTOR Γ (FUNCTOR C D))
-    λF-functor .F-ob = λFr
-    λF-functor .F-hom η .N-ob γ .N-ob c = η .N-ob (γ , c)
-    λF-functor .F-hom η .N-ob γ .N-hom ϕ = η .N-hom (Γ .id , ϕ)
-    λF-functor .F-hom η .N-hom f = makeNatTransPath (funExt (λ (c : C .ob) → η .N-hom (f , C .id)))
-    λF-functor .F-id = makeNatTransPath (funExt λ (γ : Γ .ob) → refl)
-    λF-functor .F-seq η η' = makeNatTransPath (funExt λ (γ : Γ .ob) → refl)
+    -- The action of currying out the right argument of a Functor (Γ ×C C) D
+    -- To show this is also an equivalence of categories, show properties about the right handed version,
+    -- then show that swapping arguments is also an equivalence
+    λFl : Functor (C ×C Γ) D → Functor Γ (FUNCTOR C D)
+    λFl F = λFr (F ∘F (Snd Γ C ,F Fst Γ C))
 
+    -- Functorially extend the currying action from a function on objects to a functor between
+    -- the relevant functor categories
+    -- Here "currying" pulls out the right argument. We will define a similar left-sided version
+    -- under the name curryFl
+    curryF : Functor (FUNCTOR (Γ ×C C) D) (FUNCTOR Γ (FUNCTOR C D))
+    curryF .F-ob = λFr
+    curryF .F-hom η .N-ob γ .N-ob c = η .N-ob (γ , c)
+    curryF .F-hom η .N-ob γ .N-hom ϕ = η .N-hom (Γ .id , ϕ)
+    curryF .F-hom η .N-hom f = makeNatTransPath (funExt (λ (c : C .ob) → η .N-hom (f , C .id)))
+    curryF .F-id = makeNatTransPath (funExt λ (γ : Γ .ob) → refl)
+    curryF .F-seq η η' = makeNatTransPath (funExt λ (γ : Γ .ob) → refl)
 
-    -- Preimage for the fullness proof
-    preimage : {F G : Functor (Γ ×C C) D} (λη : NatTrans (λF-functor .F-ob F) (λF-functor .F-ob G)) → (NatTrans F G)
-    preimage {F} {G} λη .N-ob (γ , c) = λη .N-ob γ .N-ob c
-    preimage {F} {G} λη .N-hom {(γ₁ , c₁)} {(γ₂ , c₂)} (ϕ₁ , ϕ₂) =
-      F .F-hom (ϕ₁ , ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
-        ≡⟨ (λ i → (F .F-hom ((Γ .⋆IdR ϕ₁) (~ i) , (C .⋆IdL ϕ₂) (~ i)) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂))) ⟩
-      F .F-hom ((ϕ₁ , C .id) ⋆⟨ Γ ×C C ⟩ (Γ .id , ϕ₂)) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
-        ≡⟨ (λ i → (F .F-seq (ϕ₁ , C .id) (Γ .id , ϕ₂)) (i) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)) ⟩
-      F .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ F .F-hom (Γ .id , ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂)
-        ≡⟨ D .⋆Assoc (F .F-hom (ϕ₁ , C .id)) (F .F-hom (Γ .id , ϕ₂) ) (preimage λη .N-ob (γ₂ , c₂)) ⟩
-      F .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ (F .F-hom (Γ .id , ϕ₂) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₂))
+    -- Preimage for the fullness proof --- i.e. a morphism in FUNCTOR (Γ ×C C) D that maps to λη under curryF
+    curryF-full-preimage : {F G : Functor (Γ ×C C) D} (λη : NatTrans (curryF .F-ob F) (curryF .F-ob G)) → (NatTrans F G)
+    curryF-full-preimage {F} {G} λη .N-ob (γ , c) = λη .N-ob γ .N-ob c
+    curryF-full-preimage {F} {G} λη .N-hom {(γ₁ , c₁)} {(γ₂ , c₂)} (ϕ₁ , ϕ₂) =
+      F .F-hom (ϕ₁ , ϕ₂) ⋆⟨ D ⟩ curryF-full-preimage λη .N-ob (γ₂ , c₂)
+        ≡⟨ (λ i → (F .F-hom ((Γ .⋆IdR ϕ₁) (~ i) , (C .⋆IdL ϕ₂) (~ i)) ⋆⟨ D ⟩ curryF-full-preimage λη .N-ob (γ₂ , c₂))) ⟩
+      F .F-hom ((ϕ₁ , C .id) ⋆⟨ Γ ×C C ⟩ (Γ .id , ϕ₂)) ⋆⟨ D ⟩ curryF-full-preimage λη .N-ob (γ₂ , c₂)
+        ≡⟨ (λ i → (F .F-seq (ϕ₁ , C .id) (Γ .id , ϕ₂)) (i) ⋆⟨ D ⟩ curryF-full-preimage λη .N-ob (γ₂ , c₂)) ⟩
+      F .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ F .F-hom (Γ .id , ϕ₂) ⋆⟨ D ⟩ curryF-full-preimage λη .N-ob (γ₂ , c₂)
+        ≡⟨ D .⋆Assoc (F .F-hom (ϕ₁ , C .id)) (F .F-hom (Γ .id , ϕ₂) ) (curryF-full-preimage λη .N-ob (γ₂ , c₂)) ⟩
+      F .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ (F .F-hom (Γ .id , ϕ₂) ⋆⟨ D ⟩ curryF-full-preimage λη .N-ob (γ₂ , c₂))
         ≡⟨ ((λ i → ((F .F-hom (ϕ₁ , C .id)) ⋆⟨ D ⟩ (λη .N-ob γ₂ .N-hom ϕ₂ (i))))) ⟩
-      F .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ (preimage λη .N-ob (γ₂ , c₁) ⋆⟨ D ⟩ G .F-hom (Γ .id , ϕ₂))
-        ≡⟨  sym (D .⋆Assoc (F .F-hom (ϕ₁ , C .id)) (preimage λη .N-ob (γ₂ , c₁)) (G .F-hom (Γ .id , ϕ₂)))  ⟩
-      (F .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ preimage λη .N-ob (γ₂ , c₁)) ⋆⟨ D ⟩ G .F-hom (Γ .id , ϕ₂)
+      F .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ (curryF-full-preimage λη .N-ob (γ₂ , c₁) ⋆⟨ D ⟩ G .F-hom (Γ .id , ϕ₂))
+        ≡⟨  sym (D .⋆Assoc (F .F-hom (ϕ₁ , C .id)) (curryF-full-preimage λη .N-ob (γ₂ , c₁)) (G .F-hom (Γ .id , ϕ₂)))  ⟩
+      (F .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ curryF-full-preimage λη .N-ob (γ₂ , c₁)) ⋆⟨ D ⟩ G .F-hom (Γ .id , ϕ₂)
         ≡⟨ ((λ i → ( ((λη .N-hom ϕ₁ (i)) .N-ob c₁) ⋆⟨ D ⟩ G .F-hom (Γ .id , ϕ₂) ))) ⟩
-      (preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ G .F-hom (ϕ₁ , C .id)) ⋆⟨ D ⟩ G .F-hom (Γ .id , ϕ₂)
-        ≡⟨ D .⋆Assoc (preimage λη .N-ob (γ₁ , c₁)) (G .F-hom (ϕ₁ , C .id)) (G .F-hom (Γ .id , ϕ₂)) ⟩
-      preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ (G .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ G .F-hom (Γ .id , ϕ₂))
-        ≡⟨ ((λ i → (preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ (G .F-seq (ϕ₁ , C .id) (Γ .id , ϕ₂)) (~ i) ))) ⟩
-      preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ (G .F-hom ((ϕ₁ , C .id) ⋆⟨ Γ ×C C ⟩ (Γ .id , ϕ₂)))
-        ≡⟨ ((λ i → (preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ (G .F-hom (((Γ .⋆IdR ϕ₁) i), ((C .⋆IdL ϕ₂) i))) ))) ⟩
-      preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ G .F-hom (ϕ₁ , ϕ₂) ∎
+      (curryF-full-preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ G .F-hom (ϕ₁ , C .id)) ⋆⟨ D ⟩ G .F-hom (Γ .id , ϕ₂)
+        ≡⟨ D .⋆Assoc (curryF-full-preimage λη .N-ob (γ₁ , c₁)) (G .F-hom (ϕ₁ , C .id)) (G .F-hom (Γ .id , ϕ₂)) ⟩
+      curryF-full-preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ (G .F-hom (ϕ₁ , C .id) ⋆⟨ D ⟩ G .F-hom (Γ .id , ϕ₂))
+        ≡⟨ ((λ i → (curryF-full-preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ (G .F-seq (ϕ₁ , C .id) (Γ .id , ϕ₂)) (~ i) ))) ⟩
+      curryF-full-preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ (G .F-hom ((ϕ₁ , C .id) ⋆⟨ Γ ×C C ⟩ (Γ .id , ϕ₂)))
+        ≡⟨ ((λ i → (curryF-full-preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ (G .F-hom (((Γ .⋆IdR ϕ₁) i), ((C .⋆IdL ϕ₂) i))) ))) ⟩
+      curryF-full-preimage λη .N-ob (γ₁ , c₁) ⋆⟨ D ⟩ G .F-hom (ϕ₁ , ϕ₂) ∎
 
-    λF-isFull : isFull λF-functor
-    λF-isFull F G λη =  (∣ preimage λη , makeNatTransPath (funExt (λ (γ : Γ .ob) →
+    -- curryF is a full functor
+    curryF-isFull : isFull curryF
+    curryF-isFull F G λη =  (∣ curryF-full-preimage λη , makeNatTransPath (funExt (λ (γ : Γ .ob) →
       makeNatTransPath (funExt (λ (c : C .ob) →
-        λF-functor .F-hom (preimage λη) .N-ob γ .N-ob c
+        curryF .F-hom (curryF-full-preimage λη) .N-ob γ .N-ob c
         ≡⟨ refl ⟩
         λη .N-ob γ .N-ob c ∎))
       ) ) ∣₁)
 
-    -- TODO : λF is especially badly named in the context of all these other names
-    preimage-obj : (FUNCTOR Γ (FUNCTOR C D)) .ob → (FUNCTOR (Γ ×C C) D) .ob
-    preimage-obj λF .F-ob (γ , c) =  λF .F-ob γ .F-ob c
-    preimage-obj λF .F-hom {x = (γ₁ , c₁)} {y = (γ₂ , c₂)} (ϕ , ψ) = λF .F-hom ϕ .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₂ .F-hom ψ
-    preimage-obj λF .F-seq {x = (γ₁ , c₁)} {y = (γ₂ , c₂)} {z = (γ₃ , c₃)} (ϕ₁ , ψ₁) (ϕ₂ , ψ₂) = (
-      preimage-obj λF .F-hom ((ϕ₁ , ψ₁) ⋆⟨ Γ ×C C ⟩ (ϕ₂ , ψ₂))
+    -- Preimage for the ESO proof --- an object in (FUNCTOR Γ (FUNCTOR C D)) that maps to λF
+    curryF-ESO-object-preimage : (FUNCTOR Γ (FUNCTOR C D)) .ob → (FUNCTOR (Γ ×C C) D) .ob
+    curryF-ESO-object-preimage λF .F-ob (γ , c) =  λF .F-ob γ .F-ob c
+    curryF-ESO-object-preimage λF .F-hom {x = (γ₁ , c₁)} {y = (γ₂ , c₂)} (ϕ , ψ) = λF .F-hom ϕ .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₂ .F-hom ψ
+    curryF-ESO-object-preimage λF .F-seq {x = (γ₁ , c₁)} {y = (γ₂ , c₂)} {z = (γ₃ , c₃)} (ϕ₁ , ψ₁) (ϕ₂ , ψ₂) = (
+      curryF-ESO-object-preimage λF .F-hom ((ϕ₁ , ψ₁) ⋆⟨ Γ ×C C ⟩ (ϕ₂ , ψ₂))
         ≡⟨ ((λ i → ( (λF .F-seq ϕ₁ ϕ₂ (i) ) .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom (ψ₁ ⋆⟨ C ⟩ ψ₂)))) ⟩
       (λF .F-hom ϕ₁ ⋆⟨ FUNCTOR C D ⟩ λF .F-hom ϕ₂) .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom (ψ₁ ⋆⟨ C ⟩ ψ₂)
         ≡⟨ (λ i → (λF .F-hom ϕ₁ .N-ob c₁ ⋆⟨ D ⟩ λF .F-hom ϕ₂ .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ₃ .F-seq ψ₁ ψ₂ i)) ⟩
@@ -135,9 +145,9 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         ≡⟨ ((λ i → ( λF .F-hom ϕ₁ .N-ob c₁ ⋆⟨ D ⟩ (λF .F-hom ϕ₂ .N-hom ψ₁ (~ i) ) ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom ψ₂ ))) ⟩
       λF .F-hom ϕ₁ .N-ob c₁ ⋆⟨ D ⟩ (λF .F-ob γ₂ .F-hom ψ₁ ⋆⟨ D ⟩ λF .F-hom ϕ₂ .N-ob c₂) ⋆⟨ D ⟩ λF .F-ob γ₃ .F-hom ψ₂
         ≡⟨ solveCat! D ⟩
-      preimage-obj λF .F-hom (ϕ₁ , ψ₁) ⋆⟨ D ⟩ preimage-obj λF .F-hom (ϕ₂ , ψ₂) ∎)
-    preimage-obj λF .F-id  {x = (γ , c)} = (
-      preimage-obj λF .F-hom (Γ .id , C .id)
+      curryF-ESO-object-preimage λF .F-hom (ϕ₁ , ψ₁) ⋆⟨ D ⟩ curryF-ESO-object-preimage λF .F-hom (ϕ₂ , ψ₂) ∎)
+    curryF-ESO-object-preimage λF .F-id  {x = (γ , c)} = (
+      curryF-ESO-object-preimage λF .F-hom (Γ .id , C .id)
         ≡⟨ ((λ i → (λF .F-id i .N-ob c ⋆⟨ D ⟩ λF .F-ob γ .F-hom (C .id)))) ⟩
       D .id ⋆⟨ D ⟩ λF .F-ob γ .F-hom (C .id)
         ≡⟨ ((λ i → (D .id ⋆⟨ D ⟩ (λF .F-ob γ .F-id i)))) ⟩
@@ -145,93 +155,93 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         ≡⟨ D .⋆IdL (D .id) ⟩
       D .id
       ∎ )
-    preimage-iso : (λF : (FUNCTOR Γ (FUNCTOR C D)) .ob) → NatTrans (λF-functor .F-ob (preimage-obj λF)) λF
-    preimage-iso λF .N-ob γ .N-ob c = D .id
-    preimage-iso λF .N-ob γ .N-hom {x = c₁} {y = c₂} ψ =
+    -- Half of the isomorphism between (curryF-ESO-object-preimage λF) and λF
+    curryF-ESO-morphism-preimage : (λF : (FUNCTOR Γ (FUNCTOR C D)) .ob) → NatTrans (curryF .F-ob (curryF-ESO-object-preimage λF)) λF
+    curryF-ESO-morphism-preimage λF .N-ob γ .N-ob c = D .id
+    curryF-ESO-morphism-preimage λF .N-ob γ .N-hom {x = c₁} {y = c₂} ψ =
       ((λF .F-hom (Γ .id) .N-ob c₁) ⋆⟨ D ⟩ (λF .F-ob γ .F-hom ψ)) ⋆⟨ D ⟩ D .id
         ≡⟨ (λ i → (D .⋆IdR ((λF .F-hom (Γ .id) .N-ob c₁) ⋆⟨ D ⟩ (λF .F-ob γ .F-hom ψ)) (i) )) ⟩
       (λF .F-hom (Γ .id) .N-ob c₁) ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ
         ≡⟨ ((λ i → ((λF .F-id i) .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ ))) ⟩
       D .id ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ ∎
-    preimage-iso λF .N-hom {x = γ₁} {y = γ₂} ϕ = makeNatTransPath (funExt (λ (c : C .ob) →
-      λF-functor .F-ob (preimage-obj λF) .F-hom ϕ .N-ob c ⋆⟨ D ⟩ (preimage-iso λF) .N-ob γ₂ .N-ob c
-        ≡⟨ D .⋆IdR (λF-functor .F-ob (preimage-obj λF) .F-hom ϕ .N-ob c) ⟩
+    curryF-ESO-morphism-preimage λF .N-hom {x = γ₁} {y = γ₂} ϕ = makeNatTransPath (funExt (λ (c : C .ob) →
+      curryF .F-ob (curryF-ESO-object-preimage λF) .F-hom ϕ .N-ob c ⋆⟨ D ⟩ (curryF-ESO-morphism-preimage λF) .N-ob γ₂ .N-ob c
+        ≡⟨ D .⋆IdR (curryF .F-ob (curryF-ESO-object-preimage λF) .F-hom ϕ .N-ob c) ⟩
       λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ λF .F-ob γ₂ .F-hom (C .id)
         ≡⟨ ((λ i → (λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ λF .F-ob γ₂ .F-id i))) ⟩
       λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ D .id
         ≡⟨ D .⋆IdR (λF .F-hom ϕ .N-ob c) ⟩
       λF .F-hom ϕ .N-ob c
         ≡⟨ ((λ i → (D .⋆IdL (λF .F-hom ϕ .N-ob c) (~ i) ))) ⟩
-      (preimage-iso λF) .N-ob γ₁ .N-ob c ⋆⟨ D ⟩ λF .F-hom ϕ .N-ob c ∎))
+      (curryF-ESO-morphism-preimage λF) .N-ob γ₁ .N-ob c ⋆⟨ D ⟩ λF .F-hom ϕ .N-ob c ∎))
 
     open isIso
 
-    preimage-iso-isIso : (λF : (FUNCTOR Γ (FUNCTOR C D)) .ob) → isIsoC (FUNCTOR Γ (FUNCTOR C D)) (preimage-iso λF)
-    preimage-iso-isIso λF .inv .N-ob γ .N-ob c =  D .id
-    preimage-iso-isIso λF .inv .N-ob γ .N-hom {x = c₁} {y = c₂} ψ =
+    -- Show that curryF-ESO-morphism-preimage is indeed an isomorphism in FUNCTOR Γ (FUNCTOR C D)
+    curryF-ESO-morphism-preimage-isIso : (λF : (FUNCTOR Γ (FUNCTOR C D)) .ob) → isIsoC (FUNCTOR Γ (FUNCTOR C D)) (curryF-ESO-morphism-preimage λF)
+    curryF-ESO-morphism-preimage-isIso λF .inv .N-ob γ .N-ob c =  D .id
+    curryF-ESO-morphism-preimage-isIso λF .inv .N-ob γ .N-hom {x = c₁} {y = c₂} ψ =
       λF .F-ob γ .F-hom ψ ⋆⟨ D ⟩ D .id
         ≡⟨ D .⋆IdR (λF .F-ob γ .F-hom ψ) ⟩
       λF .F-ob γ .F-hom ψ
         ≡⟨ (λ i → (D .⋆IdL (λF .F-ob γ .F-hom ψ) (~ i))) ⟩
       D .id ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ
         ≡⟨ ((λ i → (λF .F-id (~ i)) .N-ob c₁ ⋆⟨ D ⟩ λF .F-ob γ .F-hom ψ ) ) ⟩
-     λF-functor .F-ob (preimage-obj λF) .F-ob γ .F-hom ψ
-        ≡⟨ ((λ i → (D .⋆IdL (λF-functor .F-ob (preimage-obj λF) .F-ob γ .F-hom ψ ) (~ i) ))) ⟩
-      D .id ⋆⟨ D ⟩ λF-functor .F-ob (preimage-obj λF) .F-ob γ .F-hom ψ ∎
-    preimage-iso-isIso λF .inv .N-hom {x = γ₁} {y = γ₂} ϕ = makeNatTransPath (funExt (λ (c : C .ob ) →
-      λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ preimage-iso-isIso λF .inv .N-ob γ₂ .N-ob c
+     curryF .F-ob (curryF-ESO-object-preimage λF) .F-ob γ .F-hom ψ
+        ≡⟨ ((λ i → (D .⋆IdL (curryF .F-ob (curryF-ESO-object-preimage λF) .F-ob γ .F-hom ψ ) (~ i) ))) ⟩
+      D .id ⋆⟨ D ⟩ curryF .F-ob (curryF-ESO-object-preimage λF) .F-ob γ .F-hom ψ ∎
+    curryF-ESO-morphism-preimage-isIso λF .inv .N-hom {x = γ₁} {y = γ₂} ϕ = makeNatTransPath (funExt (λ (c : C .ob ) →
+      λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ curryF-ESO-morphism-preimage-isIso λF .inv .N-ob γ₂ .N-ob c
         ≡⟨ D .⋆IdR (λF .F-hom ϕ .N-ob c) ⟩
       λF .F-hom ϕ .N-ob c
         ≡⟨ ((λ i → (D .⋆IdR (λF .F-hom ϕ .N-ob c) (~ i)))) ⟩
       λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ D .id
         ≡⟨ ((λ i → ( λF .F-hom ϕ .N-ob c ⋆⟨ D ⟩ λF .F-ob γ₂ .F-id (~ i )))) ⟩
-      λFr (preimage-obj λF) .F-hom ϕ .N-ob c
-        ≡⟨ ((λ i → ((D .⋆IdL (λFr (preimage-obj λF) .F-hom ϕ .N-ob c) (~ i)) ))) ⟩
-      D .id ⋆⟨ D ⟩ λFr (preimage-obj λF) .F-hom ϕ .N-ob c ∎
+      λFr (curryF-ESO-object-preimage λF) .F-hom ϕ .N-ob c
+        ≡⟨ ((λ i → ((D .⋆IdL (λFr (curryF-ESO-object-preimage λF) .F-hom ϕ .N-ob c) (~ i)) ))) ⟩
+      D .id ⋆⟨ D ⟩ λFr (curryF-ESO-object-preimage λF) .F-hom ϕ .N-ob c ∎
       ))
-    preimage-iso-isIso λF .sec = makeNatTransPath (funExt (λ (γ : Γ .ob) →
+    curryF-ESO-morphism-preimage-isIso λF .sec = makeNatTransPath (funExt (λ (γ : Γ .ob) →
       makeNatTransPath (funExt (λ (c : C .ob) →
-        preimage-iso-isIso λF .inv .N-ob γ .N-ob c ⋆⟨ D ⟩ preimage-iso λF .N-ob γ .N-ob c
-          ≡⟨ D .⋆IdR (preimage-iso-isIso λF .inv .N-ob γ .N-ob c) ⟩
+        curryF-ESO-morphism-preimage-isIso λF .inv .N-ob γ .N-ob c ⋆⟨ D ⟩ curryF-ESO-morphism-preimage λF .N-ob γ .N-ob c
+          ≡⟨ D .⋆IdR (curryF-ESO-morphism-preimage-isIso λF .inv .N-ob γ .N-ob c) ⟩
         D .id ∎
       ))))
-    preimage-iso-isIso λF .ret = makeNatTransPath (funExt (λ (γ : Γ .ob) →
+    curryF-ESO-morphism-preimage-isIso λF .ret = makeNatTransPath (funExt (λ (γ : Γ .ob) →
       makeNatTransPath (funExt (λ (c : C .ob) →
-         preimage-iso λF .N-ob γ .N-ob c ⋆⟨ D ⟩ preimage-iso-isIso λF .inv .N-ob γ .N-ob c
-          ≡⟨ D .⋆IdR (preimage-iso-isIso λF .inv .N-ob γ .N-ob c) ⟩
+         curryF-ESO-morphism-preimage λF .N-ob γ .N-ob c ⋆⟨ D ⟩ curryF-ESO-morphism-preimage-isIso λF .inv .N-ob γ .N-ob c
+          ≡⟨ D .⋆IdR (curryF-ESO-morphism-preimage-isIso λF .inv .N-ob γ .N-ob c) ⟩
         D .id ∎
       ))))
 
+    -- curryF is essential surjective on objects
+    curryF-ess-surj : isEssentiallySurj curryF
+    curryF-ess-surj λF = ( ∣ curryF-ESO-object-preimage λF , (curryF-ESO-morphism-preimage λF , curryF-ESO-morphism-preimage-isIso λF) ∣₁ )
 
-    λF-ess-surj : isEssentiallySurj λF-functor
-    λF-ess-surj λF = ( ∣ preimage-obj λF , (preimage-iso λF , preimage-iso-isIso λF) ∣₁ )
-
-    λF-isFaithful : isFaithful λF-functor
-    λF-isFaithful F G η₁ η₂ λη₁≡λη₂ = makeNatTransPath (funExt (λ (γ , c) →
+    -- curryF is a faithful functor
+    curryF-isFaithful : isFaithful curryF
+    curryF-isFaithful F G η₁ η₂ λη₁≡λη₂ = makeNatTransPath (funExt (λ (γ , c) →
       η₁ .N-ob (γ , c)
       ≡⟨ (λ i → λη₁≡λη₂ i .N-ob γ .N-ob c) ⟩
        η₂ .N-ob (γ , c) ∎))
 
-    λF-isFullyFaithful : isFullyFaithful λF-functor
-    λF-isFullyFaithful = isFull+Faithful→isFullyFaithful {F = λF-functor} λF-isFull λF-isFaithful
+    curryF-isFullyFaithful : isFullyFaithful curryF
+    curryF-isFullyFaithful = isFull+Faithful→isFullyFaithful {F = curryF} curryF-isFull curryF-isFaithful
 
     open isWeakEquivalence
 
-    λF-isWeakEquiv : isWeakEquivalence λF-functor
-    λF-isWeakEquiv .fullfaith = λF-isFullyFaithful
-    λF-isWeakEquiv .esssurj = λF-ess-surj
+    λF-isWeakEquiv : isWeakEquivalence curryF
+    λF-isWeakEquiv .fullfaith = curryF-isFullyFaithful
+    λF-isWeakEquiv .esssurj = curryF-ess-surj
 
     -- open isUnivalent
 
-    -- λF-isEquivalence : isEquivalence λF-functor
+    -- λF-isEquivalence : isEquivalence curryF
     -- λF-isEquivalence = isWeakEquiv→isEquiv λF-isWeakEquiv
 
     -- open _≃ᶜ_
 
     -- curryEquivalence : FUNCTOR (Γ ×C C) D ≃ᶜ FUNCTOR Γ (FUNCTOR C D)
-    -- curryEquivalence .func = λF-functor
+    -- curryEquivalence .func = curry
     -- curryEquivalence .isEquiv = λF-isEquivalence where
     --   open Cubical.Categories.Equivalence.Base.
-
-    λFl : Functor (C ×C Γ) D → Functor Γ (FUNCTOR C D)
-    λFl F = λFr (F ∘F (Snd Γ C ,F Fst Γ C))
