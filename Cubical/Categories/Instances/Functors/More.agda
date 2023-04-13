@@ -50,7 +50,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       ≡⟨ solveCat! D ⟩
     (F ⟪ f ⟫ ⋆⟨ D ⟩ α .N-ob c') ⋆⟨ D ⟩ (F' ⟪ f' ⟫ ⋆⟨ D ⟩ α' .N-ob c'') ∎
 
-  module _ {Γ : Category ℓΓ ℓΓ'} where
+  module _ {Γ : Category ℓΓ ℓΓ'}  (isUniv-Γ×C→D : isUnivalent (FUNCTOR (Γ ×C C) D)) (isUniv-Γ→C→D : isUnivalent (FUNCTOR Γ (FUNCTOR C D))) where
     -- The action of currying out the right argument of a Functor (Γ ×C C) D
     λFr : Functor (Γ ×C C) D → Functor Γ (FUNCTOR C D)
     λFr F .F-ob a .F-ob b = F ⟅ a , b ⟆
@@ -125,8 +125,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     curryF-isFull : isFull curryF
     curryF-isFull F G λη =  (∣ curryF-full-preimage λη , makeNatTransPath (funExt (λ (γ : Γ .ob) →
       makeNatTransPath (funExt (λ (c : C .ob) →
-        curryF .F-hom (curryF-full-preimage λη) .N-ob γ .N-ob c
-        ≡⟨ refl ⟩
         λη .N-ob γ .N-ob c ∎))
       ) ) ∣₁)
 
@@ -225,23 +223,25 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       ≡⟨ (λ i → λη₁≡λη₂ i .N-ob γ .N-ob c) ⟩
        η₂ .N-ob (γ , c) ∎))
 
+    -- full + faithul = fully faithful
     curryF-isFullyFaithful : isFullyFaithful curryF
     curryF-isFullyFaithful = isFull+Faithful→isFullyFaithful {F = curryF} curryF-isFull curryF-isFaithful
 
     open isWeakEquivalence
 
-    λF-isWeakEquiv : isWeakEquivalence curryF
-    λF-isWeakEquiv .fullfaith = curryF-isFullyFaithful
-    λF-isWeakEquiv .esssurj = curryF-ess-surj
+    -- fully faithful + ESO = weak equivalence
+    curryF-isWeakEquiv : isWeakEquivalence curryF
+    curryF-isWeakEquiv .fullfaith = curryF-isFullyFaithful
+    curryF-isWeakEquiv .esssurj = curryF-ess-surj
 
-    -- open isUnivalent
+    open isUnivalent
 
-    -- λF-isEquivalence : isEquivalence curryF
-    -- λF-isEquivalence = isWeakEquiv→isEquiv λF-isWeakEquiv
+    -- weak equivalence + univalent = equivalence
+    curryF-isEquivalence : isEquivalence curryF
+    curryF-isEquivalence = isWeakEquiv→isEquiv isUniv-Γ×C→D isUniv-Γ→C→D curryF-isWeakEquiv
 
-    -- open _≃ᶜ_
+    open Cubical.Categories.Equivalence.Base._≃ᶜ_
 
-    -- curryEquivalence : FUNCTOR (Γ ×C C) D ≃ᶜ FUNCTOR Γ (FUNCTOR C D)
-    -- curryEquivalence .func = curry
-    -- curryEquivalence .isEquiv = λF-isEquivalence where
-    --   open Cubical.Categories.Equivalence.Base.
+    curryEquivalence : FUNCTOR (Γ ×C C) D ≃ᶜ FUNCTOR Γ (FUNCTOR C D)
+    curryEquivalence .func = curryF
+    curryEquivalence ._≃ᶜ_.isEquiv = curryF-isEquivalence
