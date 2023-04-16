@@ -50,7 +50,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       ≡⟨ solveCat! D ⟩
     (F ⟪ f ⟫ ⋆⟨ D ⟩ α .N-ob c') ⋆⟨ D ⟩ (F' ⟪ f' ⟫ ⋆⟨ D ⟩ α' .N-ob c'') ∎
 
-  module _ {Γ : Category ℓΓ ℓΓ'}  (isUniv-Γ×C→D : isUnivalent (FUNCTOR (Γ ×C C) D)) (isUniv-Γ→C→D : isUnivalent (FUNCTOR Γ (FUNCTOR C D))) where
+  module _ {Γ : Category ℓΓ ℓΓ'} (isUnivD : isUnivalent D) where
     -- The action of currying out the right argument of a Functor (Γ ×C C) D
     λFr : Functor (Γ ×C C) D → Functor Γ (FUNCTOR C D)
     λFr F .F-ob a .F-ob b = F ⟅ a , b ⟆
@@ -229,6 +229,17 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     curryF-isWeakEquiv .esssurj = curryF-ess-surj
 
     open isUnivalent
+
+    -- D univalent implies that the functors into D are univalent
+    isUniv-Γ×C→D : isUnivalent (FUNCTOR (Γ ×C C) D)
+    isUniv-Γ×C→D = isUnivalentFUNCTOR (Γ ×C C) D isUnivD
+
+    isUniv-C→D : isUnivalent (FUNCTOR C D)
+    isUniv-C→D = isUnivalentFUNCTOR C D isUnivD
+
+    isUniv-Γ→C→D : isUnivalent (FUNCTOR Γ (FUNCTOR C D))
+    isUniv-Γ→C→D = isUnivalentFUNCTOR Γ (FUNCTOR C D) isUniv-C→D
+
 
     -- weak equivalence + univalent = equivalence
     curryF-isEquivalence : isEquivalence curryF
