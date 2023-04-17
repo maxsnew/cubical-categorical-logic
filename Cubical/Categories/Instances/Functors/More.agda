@@ -7,7 +7,7 @@ open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.NaturalTransformation.Properties
 open import Cubical.Categories.Morphism
-open import Cubical.Foundations.Prelude hiding (≡⟨⟩-syntax; _≡⟨_⟩_)
+open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Equiv.Properties
 open import Cubical.Foundations.HLevels
@@ -20,7 +20,6 @@ open import Cubical.Categories.Equivalence.Base
 open import Cubical.HITs.PropositionalTruncation
 open import Cubical.Categories.Category
 
-open import AltEquationalReasoning
 open import Cubical.Tactics.CategorySolver.Reflection
 
 private
@@ -35,8 +34,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
   appF : Functor ((FUNCTOR C D) ×C C) D
   appF .F-ob (F , c) = F ⟅ c ⟆
   appF .F-hom {x = (F , c)}{y = (F' , c')} (α , f) = F ⟪ f ⟫ ⋆⟨ D ⟩ α .N-ob c'
-  appF .F-id {x = (F , c)}=
-    (F ⟪ C .id ⟫ ⋆⟨ D ⟩ D .id) ≡⟨ (λ i → F .F-id i ⋆⟨ D ⟩ D .id) ⟩
+  appF .F-id {x = (F , c)} =
+    ((F ⟪ C .id ⟫ ⋆⟨ D ⟩ D .id)) ≡⟨ (λ i → F .F-id i ⋆⟨ D ⟩ D .id) ⟩
     (D .id ⋆⟨ D ⟩ D .id) ≡⟨ D .⋆IdR (D .id) ⟩
     (D .id) ∎
   appF .F-seq {x = (F , c)}{y = (F' , c')}{z = (F'' , c'')}(α , f) (α' , f') =
@@ -251,53 +250,61 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     curryEquivalence .func = curryF
     curryEquivalence ._≃ᶜ_.isEquiv = curryF-isEquivalence
 
-    -- -- We also want a notion of currying out the left argument. We do this by composing
-    -- -- a swapping functor with the right-sided currying functor
-    -- -- To show that this left-handed currying is also an equivalence, we will need to show that
-    -- -- the swapping functor is an equivalence
-    -- swapArgs : Functor (FUNCTOR (C ×C Γ) D) (FUNCTOR (Γ ×C C) D)
-    -- swapArgs .F-ob F .F-ob (c , γ) = F .F-ob (γ , c)
-    -- swapArgs .F-ob F .F-hom (ψ , ϕ) = F .F-hom (ϕ , ψ)
-    -- swapArgs .F-ob F .F-id = F .F-id
-    -- swapArgs .F-ob F .F-seq (ψ₁ , ϕ₁) (ψ₂ , ϕ₂) = F .F-seq (ϕ₁ , ψ₁) (ϕ₂ , ψ₂)
-    -- swapArgs .F-hom η .N-ob (γ , c) = η .N-ob (c , γ)
-    -- swapArgs .F-hom η .N-hom (ϕ , ψ) = η .N-hom (ψ , ϕ)
-    -- swapArgs .F-id = makeNatTransPath (funExt λ (γ , c) → refl)
-    -- swapArgs .F-seq η η' = makeNatTransPath (funExt λ (γ , c) → refl)
+    -- We also want a notion of currying out the left argument. We do this by composing
+    -- a swapping functor with the right-sided currying functor
+    -- To show that this left-handed currying is also an equivalence, we will need to show that
+    -- the swapping functor is an equivalence
+    swapArgs : Functor (FUNCTOR (C ×C Γ) D) (FUNCTOR (Γ ×C C) D)
+    swapArgs .F-ob F .F-ob (c , γ) = F .F-ob (γ , c)
+    swapArgs .F-ob F .F-hom (ψ , ϕ) = F .F-hom (ϕ , ψ)
+    swapArgs .F-ob F .F-id = F .F-id
+    swapArgs .F-ob F .F-seq (ψ₁ , ϕ₁) (ψ₂ , ϕ₂) = F .F-seq (ϕ₁ , ψ₁) (ϕ₂ , ψ₂)
+    swapArgs .F-hom η .N-ob (γ , c) = η .N-ob (c , γ)
+    swapArgs .F-hom η .N-hom (ϕ , ψ) = η .N-hom (ψ , ϕ)
+    swapArgs .F-id = makeNatTransPath (funExt λ (γ , c) → refl)
+    swapArgs .F-seq η η' = makeNatTransPath (funExt λ (γ , c) → refl)
 
-    -- swapArgs-inv : Functor (FUNCTOR (Γ ×C C) D) (FUNCTOR (C ×C Γ) D)
-    -- swapArgs-inv .F-ob F .F-ob (γ , c) = F .F-ob (c , γ)
-    -- swapArgs-inv .F-ob F .F-hom (ϕ , ψ) = F .F-hom (ψ , ϕ)
-    -- swapArgs-inv .F-ob F .F-id = F .F-id
-    -- swapArgs-inv .F-ob F .F-seq (ϕ₁ , ψ₁) (ϕ₂ , ψ₂) = F .F-seq (ψ₁ , ϕ₁) (ψ₂ , ϕ₂)
-    -- swapArgs-inv .F-hom η .N-ob (γ , c) = η .N-ob (c , γ)
-    -- swapArgs-inv .F-hom η .N-hom (ψ , ϕ) = η .N-hom (ϕ , ψ)
-    -- swapArgs-inv .F-id = makeNatTransPath (funExt λ (γ , c) → refl)
-    -- swapArgs-inv .F-seq η η' = makeNatTransPath (funExt λ (γ , c) → refl)
+    swapArgs-inv : Functor (FUNCTOR (Γ ×C C) D) (FUNCTOR (C ×C Γ) D)
+    swapArgs-inv .F-ob F .F-ob (γ , c) = F .F-ob (c , γ)
+    swapArgs-inv .F-ob F .F-hom (ϕ , ψ) = F .F-hom (ψ , ϕ)
+    swapArgs-inv .F-ob F .F-id = F .F-id
+    swapArgs-inv .F-ob F .F-seq (ϕ₁ , ψ₁) (ϕ₂ , ψ₂) = F .F-seq (ψ₁ , ϕ₁) (ψ₂ , ϕ₂)
+    swapArgs-inv .F-hom η .N-ob (γ , c) = η .N-ob (c , γ)
+    swapArgs-inv .F-hom η .N-hom (ψ , ϕ) = η .N-hom (ϕ , ψ)
+    swapArgs-inv .F-id = makeNatTransPath (funExt λ (γ , c) → refl)
+    swapArgs-inv .F-seq η η' = makeNatTransPath (funExt λ (γ , c) → refl)
 
-    -- open isEquivalence
-    -- open NatIso
+    open isEquivalence
+    open NatIso
 
-    -- swapArgs-isEquivalence : isEquivalence swapArgs
-    -- swapArgs-isEquivalence = {!!}
-    -- -- swapArgs-isEquivalence .invFunc = swapArgs-inv
-    -- -- swapArgs-isEquivalence .η .trans .N-ob F .N-ob γ =  D .id
-    -- -- swapArgs-isEquivalence .η .trans .N-ob F .N-hom ϕ = solveCat! D
-    -- -- swapArgs-isEquivalence .η .trans .N-hom α = makeNatTransPath (funExt (λ (c , γ) → solveCat! D))
-    -- -- swapArgs-isEquivalence .η .nIso F .inv .N-ob (c , γ) = D .id
-    -- -- swapArgs-isEquivalence .η .nIso F .inv .N-hom (ψ , ϕ) = solveCat! D
-    -- -- swapArgs-isEquivalence .η .nIso F .sec = makeNatTransPath (funExt (λ (c , γ) → solveCat! D))
-    -- -- swapArgs-isEquivalence .η .nIso F .ret = makeNatTransPath (funExt (λ (c , γ) → solveCat! D))
-    -- -- swapArgs-isEquivalence .ε .trans .N-ob F .N-ob c = D .id
-    -- -- swapArgs-isEquivalence .ε .trans .N-ob F .N-hom ψ = solveCat! D
-    -- -- swapArgs-isEquivalence .ε .trans .N-hom α = makeNatTransPath (funExt (λ (γ , c) → solveCat! D))
-    -- -- swapArgs-isEquivalence .ε .nIso F .inv .N-ob (γ , c) = D .id
-    -- -- swapArgs-isEquivalence .ε .nIso F .inv .N-hom (ϕ , ψ) = solveCat! D
-    -- -- swapArgs-isEquivalence .ε .nIso F .sec = makeNatTransPath (funExt (λ (γ , c) → solveCat! D))
-    -- -- swapArgs-isEquivalence .ε .nIso F .ret = makeNatTransPath (funExt (λ (γ , c) → solveCat! D))
+    swapArgs-isEquivalence : isEquivalence swapArgs
+    swapArgs-isEquivalence = record { invFunc = swapArgs-inv ; η = the-η ; ε = the-ε } where
+      η-morphisms : N-ob-Type 𝟙⟨ FUNCTOR (C ×C Γ) D ⟩ (funcComp swapArgs-inv swapArgs)
+      η-morphisms F .N-ob γ = D .id
+      η-morphisms F .N-hom ϕ = solveCat! D
 
-    -- curryFl : Functor (FUNCTOR (C ×C Γ) D) (FUNCTOR Γ (FUNCTOR C D))
-    -- curryFl = curryF ∘F swapArgs
+      the-η : NatIso 𝟙⟨ FUNCTOR (C ×C Γ) D ⟩ (funcComp swapArgs-inv swapArgs)
+      the-η .trans .N-ob = η-morphisms
+      the-η .trans .N-hom α = makeNatTransPath (funExt (λ (c , γ) → solveCat! D))
+      the-η .nIso F .inv .N-ob (c , γ) = D .id
+      the-η .nIso F .inv .N-hom (ψ , ϕ) = solveCat! D
+      the-η .nIso F .sec = makeNatTransPath (funExt (λ (c , γ) → solveCat! D))
+      the-η .nIso F .ret = makeNatTransPath (funExt (λ (c , γ) → solveCat! D))
+
+      ε-morphisms : N-ob-Type (funcComp swapArgs swapArgs-inv) 𝟙⟨ FUNCTOR (Γ ×C C) D ⟩
+      ε-morphisms F .N-ob c = D .id
+      ε-morphisms F .N-hom ψ = solveCat! D
+
+      the-ε : NatIso (funcComp swapArgs swapArgs-inv) 𝟙⟨ FUNCTOR (Γ ×C C) D ⟩
+      the-ε .trans .N-ob = ε-morphisms
+      the-ε .trans .N-hom α = makeNatTransPath (funExt (λ (γ , c) → solveCat! D))
+      the-ε .nIso F .inv .N-ob (γ , c) = D .id
+      the-ε .nIso F .inv .N-hom (φ , ψ) = solveCat! D
+      the-ε .nIso F .sec = makeNatTransPath (funExt (λ (γ , c) → solveCat! D))
+      the-ε .nIso F .ret = makeNatTransPath (funExt (λ (γ , c) → solveCat! D))
+
+    curryFl : Functor (FUNCTOR (C ×C Γ) D) (FUNCTOR Γ (FUNCTOR C D))
+    curryFl = curryF ∘F swapArgs
 
     -- curryFl-isEquivalence : isEquivalence curryFl
     -- curryFl-isEquivalence .invFunc = {!swapArgs-isEquivalence .invFunc ∘F curryF-isEquivalence .invFunc!}
