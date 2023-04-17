@@ -6,12 +6,14 @@ module Cubical.Categories.Constructions.Free.General where
 
 open import Cubical.Categories.Morphism
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.Path
 open import Cubical.Foundations.HLevels
 open import Cubical.Categories.Category.Base
 open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.NaturalTransformation hiding (_⟦_⟧)
 open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Data.Graph.Base
+open import Cubical.Data.Sigma
 
 open import Cubical.Data.Graph.Properties
 open import Cubical.Categories.Constructions.Free.UnderlyingGraph
@@ -52,7 +54,6 @@ module _ (G : Graph ℓg ℓg') where
     η ._<$g>_ = ↑_
 
     module Semantics {ℓc ℓc'} (𝓒 : Category ℓc ℓc') (ı : GraphHom G (Ugr 𝓒)) where
-      -- Holy automatable argument batman
       ⟦_⟧ : ∀ {A B} → Exp A B → 𝓒 [ ı $g A , ı $g B ]
       ⟦ ↑ x ⟧ = ı <$g> x
       ⟦ idₑ ⟧ = 𝓒 .id
@@ -71,118 +72,66 @@ module _ (G : Graph ℓg ℓg') where
       sem-extends-ı : (η ⋆Interp sem) ≡ ı
       sem-extends-ı = refl
 
-      module _ (F : Functor FreeCat 𝓒) (α : InterpIso G 𝓒 (η ⋆GrHom Uhom F) ı) where
-        αMorphisms = α .fst .fst
-        αNat = α .fst .snd
+      sem-uniq : ∀ {F : Functor FreeCat 𝓒} → ((Uhom F ∘GrHom η) ≡ ı) → F ≡ sem
+      sem-uniq {F} agree-on-generators = Functor≡ agree-on-objects agree-on-morphisms where
+        agree-on-objects : ∀ v → F ⟅ v ⟆ ≡ ı $g v
+        agree-on-objects v i = agree-on-generators i $g v
 
-        private
-          semITINId : ∀ {v}
-                    → F ⟪ idₑ ⟫ ⋆⟨ 𝓒 ⟩ αMorphisms v ≡ αMorphisms v ⋆⟨ 𝓒 ⟩ 𝓒 .id
-          semITINId =
-            F ⟪ idₑ ⟫ ⋆⟨ 𝓒 ⟩ αMorphisms _ ≡[ i ]⟨ F .F-id i ⋆⟨ 𝓒 ⟩ αMorphisms _ ⟩
-            𝓒 .id ⋆⟨ 𝓒 ⟩ αMorphisms _ ≡⟨ 𝓒 .⋆IdL (αMorphisms _) ∙ sym (𝓒 .⋆IdR (αMorphisms _)) ⟩
-            αMorphisms _ ⋆⟨ 𝓒 ⟩ 𝓒 .id ∎
-          semITIN⋆ : ∀ {u}{v}{w} → (e : FreeCat [ u , v ])(e' : FreeCat [ v , w ])
-                   → F ⟪ e ⟫ ⋆⟨ 𝓒 ⟩ αMorphisms _ ≡ αMorphisms _ ⋆⟨ 𝓒 ⟩ ⟦ e ⟧
-                   → F ⟪ e' ⟫ ⋆⟨ 𝓒 ⟩ αMorphisms _ ≡ αMorphisms _ ⋆⟨ 𝓒 ⟩ ⟦ e' ⟧
-                   → F ⟪ e ⋆ₑ e' ⟫ ⋆⟨ 𝓒 ⟩ αMorphisms _ ≡ αMorphisms _ ⋆⟨ 𝓒 ⟩ (⟦ e ⟧ ⋆⟨ 𝓒 ⟩ ⟦ e' ⟧)
-          semITIN⋆ e e' ih ih' =
-            F ⟪ e ⋆ₑ e' ⟫ ⋆⟨ 𝓒 ⟩ αMorphisms _ ≡[ i ]⟨ F .F-seq e e' i ⋆⟨ 𝓒 ⟩ αMorphisms _ ⟩
-            (F ⟪ e ⟫ ⋆⟨ 𝓒 ⟩ F ⟪ e' ⟫) ⋆⟨ 𝓒 ⟩ αMorphisms _ ≡⟨ (𝓒 .⋆Assoc (F ⟪ e ⟫) (F ⟪ e' ⟫) (αMorphisms _)) ⟩
-            F ⟪ e ⟫ ⋆⟨ 𝓒 ⟩ (F ⟪ e' ⟫ ⋆⟨ 𝓒 ⟩ αMorphisms _) ≡[ i ]⟨ F ⟪ e ⟫ ⋆⟨ 𝓒 ⟩ ih' i ⟩
-            F ⟪ e ⟫ ⋆⟨ 𝓒 ⟩ (αMorphisms _ ⋆⟨ 𝓒 ⟩ ⟦ e' ⟧) ≡⟨ sym (𝓒 .⋆Assoc (F ⟪ e ⟫) (αMorphisms _) ⟦ e' ⟧) ⟩
-            (F ⟪ e ⟫ ⋆⟨ 𝓒 ⟩ αMorphisms _) ⋆⟨ 𝓒 ⟩ ⟦ e' ⟧ ≡[ i ]⟨ ih i ⋆⟨ 𝓒 ⟩ ⟦ e' ⟧ ⟩
-            (αMorphisms _ ⋆⟨ 𝓒 ⟩ ⟦ e ⟧) ⋆⟨ 𝓒 ⟩ ⟦ e' ⟧ ≡⟨ 𝓒 .⋆Assoc (αMorphisms _) ⟦ e ⟧ ⟦ e' ⟧ ⟩
-            αMorphisms _ ⋆⟨ 𝓒 ⟩ (⟦ e ⟧ ⋆⟨ 𝓒 ⟩ ⟦ e' ⟧) ∎
+        aom-type : ∀ {v w} → (f : FreeCat [ v , w ]) → Type _
+        aom-type {v}{w} f = PathP (λ i → 𝓒 [ agree-on-objects v i , agree-on-objects w i ]) (F ⟪ f ⟫) ⟦ f ⟧
 
+        aom-id : ∀ {v} → aom-type {v} idₑ
+        aom-id = toPathP⁻ (F .F-id ∙ fromPathP⁻ (λ i → 𝓒 .id))
 
-        semITransIsNat : ∀ {v w} → (e : FreeCat [ v , w ])
-                       → F ⟪ e ⟫ ⋆⟨ 𝓒 ⟩ αMorphisms w ≡ αMorphisms v ⋆⟨ 𝓒 ⟩ ⟦ e ⟧
-        semITransIsNat {v} {w} (↑ f) = αNat f
-        semITransIsNat {v} {.v} idₑ = semITINId
-        semITransIsNat {v} {w} (e ⋆ₑ e') = semITIN⋆ e e' (semITransIsNat e) (semITransIsNat e')
+        aom-seq : ∀ {v w x} → (f : FreeCat [ v , w ]) (g : FreeCat [ w , x ])
+                            → aom-type f
+                            → aom-type g
+                            → aom-type (f ⋆ₑ g)
+        aom-seq f g pf pg = toPathP⁻ (F .F-seq f g ∙ fromPathP⁻ (λ i → pf i ⋆⟨ 𝓒 ⟩ pg i))
 
-        semITransIsNat {v} {w} (⋆ₑIdL e i) =
-          isSet→SquareP (λ _ _ → 𝓒 .isSetHom)
-                        (semITIN⋆ idₑ e semITINId (semITransIsNat e))
-                        (semITransIsNat e)
-                        (λ i → (F ⟪ ⋆ₑIdL e i ⟫) ⋆⟨ 𝓒 ⟩ αMorphisms _)
-                        (λ i → αMorphisms _ ⋆⟨ 𝓒 ⟩ 𝓒 .⋆IdL ⟦ e ⟧ i) i
-        semITransIsNat {v} {w} (⋆ₑIdR e i) =
-          isSet→SquareP (λ _ _ → 𝓒 .isSetHom)
-                        (semITIN⋆ e idₑ (semITransIsNat e) semITINId)
-                        (semITransIsNat e)
-                        (λ i → 𝓒 ._⋆_ (F ⟪ ⋆ₑIdR e i ⟫) (αMorphisms _))
-                        (λ i → seq' 𝓒 (αMorphisms _) (𝓒 .⋆IdR ⟦ e ⟧ i))
-                        i
-        semITransIsNat {v} {w} (⋆ₑAssoc e e' e'' i) =
-          isSet→SquareP (λ _ _ → 𝓒 .isSetHom)
-                        (semITIN⋆ (e ⋆ₑ e') e'' (semITIN⋆ e e' (semITransIsNat e) (semITransIsNat e')) (semITransIsNat e''))
-                        (semITIN⋆ e (e' ⋆ₑ e'') (semITransIsNat e) (semITIN⋆ e' e'' (semITransIsNat e') (semITransIsNat e'')))
-                        (λ i → seq' 𝓒 (F ⟪ ⋆ₑAssoc e e' e'' i ⟫) (αMorphisms w))
-                        (λ i → seq' 𝓒 (αMorphisms v) (𝓒 .⋆Assoc ⟦ e ⟧ ⟦ e' ⟧ ⟦ e'' ⟧ i))
-                        i
-        semITransIsNat {v} {w} (isSetExp e e' p q i j) =
-          isSet→SquareP (λ i j → isSet→isGroupoid (𝓒 .isSetHom)
-                                                  ((F ⟪ isSetExp e e' p q i j ⟫) ⋆⟨ 𝓒 ⟩ (αMorphisms w))
-                                                  (αMorphisms v ⋆⟨ 𝓒 ⟩ ⟦ isSetExp e e' p q i j ⟧))
-                        (λ j → semITransIsNat (p j))
-                        (λ j → semITransIsNat (q j))
-                        (λ i → semITransIsNat e)
-                        (λ i → semITransIsNat e')
-                        i
-                        j
+        agree-on-morphisms : ∀ {v w} → (f : FreeCat [ v , w ]) → aom-type f
+        agree-on-morphisms (↑ x) = λ i → agree-on-generators i <$g> x
+        agree-on-morphisms idₑ = aom-id
+        agree-on-morphisms (f ⋆ₑ g) = aom-seq f g (agree-on-morphisms f) (agree-on-morphisms g)
+        agree-on-morphisms (⋆ₑIdL f i) j = isSet→SquareP (λ i j → 𝓒 .isSetHom) (aom-seq idₑ f aom-id (agree-on-morphisms f)) (agree-on-morphisms f) (λ i → F ⟪ ⋆ₑIdL f i ⟫) (λ i → 𝓒 .⋆IdL ⟦ f ⟧ i) i j
+        agree-on-morphisms (⋆ₑIdR f i) j = isSet→SquareP (λ i j → 𝓒 .isSetHom) (aom-seq f idₑ (agree-on-morphisms f) aom-id) (agree-on-morphisms f) (λ i → F ⟪ ⋆ₑIdR f i ⟫) (𝓒 .⋆IdR ⟦ f ⟧) i j
+        agree-on-morphisms (⋆ₑAssoc f f₁ f₂ i) j = isSet→SquareP (λ i j → 𝓒 .isSetHom) (aom-seq (f ⋆ₑ f₁) f₂ (aom-seq f f₁ (agree-on-morphisms f) (agree-on-morphisms f₁)) (agree-on-morphisms f₂)) (aom-seq f (f₁ ⋆ₑ f₂) (agree-on-morphisms f) (aom-seq f₁ f₂ (agree-on-morphisms f₁) (agree-on-morphisms f₂))) (λ i → F ⟪ ⋆ₑAssoc f f₁ f₂ i ⟫) (𝓒 .⋆Assoc ⟦ f ⟧ ⟦ f₁ ⟧ ⟦ f₂ ⟧) i j
+        agree-on-morphisms (isSetExp f g p q i j) k =
+          isSet→SquareP {A = λ i j → PathP (λ k → 𝓒 [ agree-on-objects _ k , agree-on-objects _ k ]) (F ⟪ (isSetExp f g p q i j) ⟫) (⟦ (isSetExp f g p q i j) ⟧)}
+            (λ i j → isOfHLevelPathP
+                       {A = λ k → 𝓒 [ agree-on-objects _ k , agree-on-objects _ k ]}
+                       2 (𝓒 .isSetHom) (F ⟪ isSetExp f g p q i j ⟫) ⟦ isSetExp f g p q i j ⟧)
+            (λ j k → agree-on-morphisms (p j) k)
+            (λ j k → agree-on-morphisms (q j) k)
+            (λ i k → agree-on-morphisms f k)
+            (λ i k → agree-on-morphisms g k)
+            i j k
 
-        semIIso : NatIso F sem
-        semIIso .trans .N-ob = αMorphisms
-        semIIso .trans .N-hom = semITransIsNat
-        semIIso .nIso = α .snd
+      sem-contr : ∃![ F ∈ Functor FreeCat 𝓒 ] Uhom F ∘GrHom η ≡ ı
+      sem-contr .fst = sem , sem-extends-ı
+      sem-contr .snd (sem' , sem'-extends-ı) = ΣPathP paths
+        where
+          paths : Σ[ p ∈ sem ≡ sem' ] PathP (λ i → Uhom (p i) ∘GrHom η ≡ ı) sem-extends-ı sem'-extends-ı
+          paths .fst = sym (sem-uniq sem'-extends-ı)
+          paths .snd i j = sem'-extends-ı ((~ i) ∨ j)
 
-        semII-restricts-to-α : semIIso ⊙ˡInterp η ≡ α
-        semII-restricts-to-α = refl
-        -- TODO: prove semIIso is the unique such natIso
+    free-cat-functor-η-expansion : {𝓒 : Category ℓc ℓc'} (F : Functor FreeCat 𝓒)
+      → F ≡ Semantics.sem 𝓒 (F ∘Interp η)
+    free-cat-functor-η-expansion F = Semantics.sem-uniq _ (F ∘Interp η) refl
 
-    module _ {𝓒 : Category ℓc ℓc'}{𝓓 : Category ℓd ℓd'}
-             (ı : Interp G 𝓒)
-             (F : Functor 𝓒 𝓓)
-             where
-      sem-is-natural : NatIso (F ∘F Semantics.sem 𝓒 ı) (Semantics.sem 𝓓 (F ∘Interp ı))
-      sem-is-natural = Semantics.semIIso _ (F ∘Interp ı) (F ∘F Semantics.sem _ ı) (idInterpIso G _)
-
-      sem-is-natural-restricts : sem-is-natural ⊙ˡInterp η ≡ idInterpIso G 𝓓
-      sem-is-natural-restricts = Semantics.semII-restricts-to-α _ (F ∘Interp ı) (F ∘F Semantics.sem _ ı) (idInterpIso G _)
-
-    uniqueness-principle : ∀ {𝓒 : Category ℓc ℓc'} →
-                           (F : Functor FreeCat 𝓒) →
-                           (F' : Functor FreeCat 𝓒) →
-                           (agree-on-generators : InterpIso _ 𝓒 (η ⋆Interp F) (η ⋆Interp F')) →
-                           NatIso F F'
-    uniqueness-principle {𝓒 = 𝓒} F F' agree-on-generators =
-      seqNatIso (Semantics.semIIso 𝓒 (η ⋆Interp F') F agree-on-generators)
-      (symNatIso (Semantics.semIIso 𝓒 (η ⋆Interp F') F' (idInterpIso G 𝓒)))
-
-    uniqueness-principle-restricts : ∀ {𝓒 : Category ℓc ℓc'} →
-                           (F : Functor FreeCat 𝓒) →
-                           (F' : Functor FreeCat 𝓒) →
-                           (agree-on-generators : InterpIso _ 𝓒 (η ⋆Interp F) (η ⋆Interp F')) →
-                           uniqueness-principle F F' agree-on-generators ⊙ˡInterp η ≡ agree-on-generators
-    uniqueness-principle-restricts F F' agree =
-      uniqueness-principle F F' agree ⊙ˡInterp η
-        ≡⟨ ⊙ˡInterp-Seq ((Semantics.semIIso _ (η ⋆Interp F') F agree)) ((symNatIso (Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso _ _)))) η ⟩
-      seqInterpIso ((Semantics.semIIso _ (η ⋆Interp F') F agree) ⊙ˡInterp η)
-                   ((symNatIso (Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso _ _))) ⊙ˡInterp η)
-        ≡⟨ cong₂ seqInterpIso (Semantics.semII-restricts-to-α _ (η ⋆Interp F') F agree) lemma ⟩
-      seqInterpIso agree (idInterpIso _ _)
-        ≡⟨ seqInterpIsoIdR agree ⟩
-      agree ∎
-      where
-        lemma : (symNatIso (Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso G _)) ⊙ˡInterp η)
-                ≡ idInterpIso G _
-        lemma = ⊙ˡInterp-Sym ((Semantics.semIIso _ (η ⋆Interp F') F' (idInterpIso G _))) η
-                ∙ cong symInterpIso (Semantics.semII-restricts-to-α _ (η ⋆Interp F') F' ((idInterpIso G _)))
-                ∙ symInterpIsoId
-
+    free-cat-functor-ind : {𝓒 : Category ℓc ℓc'} (F F' : Functor FreeCat 𝓒)
+      → (F ∘Interp η) ≡ (F' ∘Interp η)
+      → F ≡ F'
+    free-cat-functor-ind {𝓒 = 𝓒} F F' p =
+      free-cat-functor-η-expansion F
+      ∙ (cong (Semantics.sem 𝓒) p)
+      ∙ sym (free-cat-functor-η-expansion F')
 
 -- co-unit of the 2-adjunction
-ϵ : ∀ {𝓒 : Category ℓc ℓc'} → Functor (FreeCat (Ugr 𝓒)) 𝓒
-ϵ {𝓒 = 𝓒} = Semantics.sem (Ugr 𝓒) 𝓒 (Uhom {𝓓 = 𝓒} Id)
+ε : ∀ {𝓒 : Category ℓc ℓc'} → Functor (FreeCat (Ugr 𝓒)) 𝓒
+ε {𝓒 = 𝓒} = Semantics.sem (Ugr 𝓒) 𝓒 (Uhom {𝓓 = 𝓒} Id)
+
+ε-reasoning : ∀ {𝓒 : Category ℓc ℓc'}{𝓓 : Category ℓd ℓd'}
+            → (𝓕 : Functor 𝓒 𝓓)
+            → 𝓕 ∘F ε ≡ Semantics.sem (Ugr 𝓒) 𝓓 (Uhom 𝓕)
+ε-reasoning {𝓒 = 𝓒}{𝓓 = 𝓓} 𝓕 = Semantics.sem-uniq (Ugr 𝓒) 𝓓 (Uhom 𝓕) refl
