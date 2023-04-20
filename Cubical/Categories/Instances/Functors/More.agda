@@ -233,6 +233,9 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     isUniv-Γ×C→D : isUnivalent (FUNCTOR (Γ ×C C) D)
     isUniv-Γ×C→D = isUnivalentFUNCTOR (Γ ×C C) D isUnivD
 
+    isUniv-C×Γ→D : isUnivalent (FUNCTOR (C ×C Γ) D)
+    isUniv-C×Γ→D = isUnivalentFUNCTOR (C ×C Γ) D isUnivD
+
     isUniv-C→D : isUnivalent (FUNCTOR C D)
     isUniv-C→D = isUnivalentFUNCTOR C D isUnivD
 
@@ -306,7 +309,41 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     curryFl : Functor (FUNCTOR (C ×C Γ) D) (FUNCTOR Γ (FUNCTOR C D))
     curryFl = curryF ∘F swapArgs
 
-    -- curryFl-isEquivalence : isEquivalence curryFl
-    -- curryFl-isEquivalence .invFunc = {!swapArgs-isEquivalence .invFunc ∘F curryF-isEquivalence .invFunc!}
-    -- curryFl-isEquivalence .η = {!!}
-    -- curryFl-isEquivalence .ε = {!!}
+    -- curryFl--- isWeakEquiv : isWeakEquivalence curryFl
+    -- curryFl-isWeakEquiv .fullfaith = isEssSurj+Full→isFullyFaithfulPrecomp ?
+    -- curryFl-isWeakEquiv .esssurj = isWeakEquiv→isEssSurjPrecomp ?
+
+    curryFl-isEquivalence : isEquivalence curryFl
+    -- curryFl-isEquivalence = isWeakEquiv→isEquiv isUniv-C×Γ→D isUniv-Γ→C→D curryFl-isWeakEquiv
+
+    curryFl-isEquivalence .invFunc = swapArgs-isEquivalence .invFunc ∘F curryF-isEquivalence .invFunc
+    curryFl-isEquivalence .η .trans = pathToNatTrans (
+      𝟙⟨ FUNCTOR (C ×C Γ) D ⟩
+        ≡⟨ NatIsoToPath isUniv-C×Γ→D (swapArgs-isEquivalence .η) ⟩
+      swapArgs-inv ∘F swapArgs
+        ≡⟨ (λ i → swapArgs-inv ∘F (F-rUnit {F = swapArgs} (~ i))) ⟩
+      swapArgs-inv ∘F (𝟙⟨ FUNCTOR (Γ ×C C) D ⟩ ∘F swapArgs)
+        ≡⟨ ((λ i → (swapArgs-inv ∘F (((NatIsoToPath isUniv-Γ×C→D (curryF-isEquivalence .η)) (i)) ∘F swapArgs )))) ⟩
+      swapArgs-inv ∘F (((curryF-isEquivalence .invFunc) ∘F curryF) ∘F swapArgs)
+        ≡⟨ ((λ i → ( swapArgs-inv ∘F ( F-assoc {F = swapArgs} {G = curryF} {H = curryF-isEquivalence .invFunc} (~ i) ) ))) ⟩
+      swapArgs-inv ∘F ((curryF-isEquivalence .invFunc) ∘F (curryF ∘F swapArgs))
+        ≡⟨ F-assoc ⟩
+      (swapArgs-inv ∘F curryF-isEquivalence .invFunc) ∘F (curryF ∘F swapArgs)
+        ≡⟨  refl ⟩
+      (curryFl-isEquivalence .invFunc) ∘F curryFl ∎ )
+    curryFl-isEquivalence .η .nIso = {!!}
+    curryFl-isEquivalence .ε .trans = pathToNatTrans (
+      curryFl ∘F (curryFl-isEquivalence .invFunc)
+        ≡⟨ refl ⟩
+      (curryF ∘F swapArgs) ∘F (swapArgs-inv ∘F curryF-isEquivalence .invFunc)
+        ≡⟨ sym F-assoc ⟩
+      curryF ∘F (swapArgs ∘F (swapArgs-inv ∘F curryF-isEquivalence .invFunc))
+        ≡⟨ (λ i → ( curryF ∘F (F-assoc {F = curryF-isEquivalence .invFunc} {G = swapArgs-inv} {H = swapArgs} (i) ) )) ⟩
+      curryF ∘F ((swapArgs ∘F swapArgs-inv) ∘F curryF-isEquivalence .invFunc)
+        ≡⟨ ((λ i → ( curryF ∘F ( ( NatIsoToPath isUniv-Γ×C→D (swapArgs-isEquivalence .ε) ) i ∘F curryF-isEquivalence .invFunc) ))) ⟩
+      curryF ∘F (𝟙⟨ FUNCTOR (Γ ×C C) D ⟩ ∘F curryF-isEquivalence .invFunc)
+        ≡⟨ ((λ i → ( curryF ∘F (F-rUnit {F = curryF-isEquivalence .invFunc} i) ))) ⟩
+      curryF ∘F curryF-isEquivalence .invFunc
+        ≡⟨ NatIsoToPath isUniv-Γ→C→D (curryF-isEquivalence .ε) ⟩
+      𝟙⟨ FUNCTOR Γ (FUNCTOR C D) ⟩ ∎)
+    curryFl-isEquivalence .ε .nIso = {!!}
