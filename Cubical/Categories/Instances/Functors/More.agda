@@ -309,15 +309,9 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     curryFl : Functor (FUNCTOR (C ×C Γ) D) (FUNCTOR Γ (FUNCTOR C D))
     curryFl = curryF ∘F swapArgs
 
-    -- curryFl--- isWeakEquiv : isWeakEquivalence curryFl
-    -- curryFl-isWeakEquiv .fullfaith = isEssSurj+Full→isFullyFaithfulPrecomp ?
-    -- curryFl-isWeakEquiv .esssurj = isWeakEquiv→isEssSurjPrecomp ?
-
     curryFl-isEquivalence : isEquivalence curryFl
-    -- curryFl-isEquivalence = isWeakEquiv→isEquiv isUniv-C×Γ→D isUniv-Γ→C→D curryFl-isWeakEquiv
-
     curryFl-isEquivalence .invFunc = swapArgs-isEquivalence .invFunc ∘F curryF-isEquivalence .invFunc
-    curryFl-isEquivalence .η .trans = pathToNatTrans (
+    curryFl-isEquivalence .η = pathToNatIso (
       𝟙⟨ FUNCTOR (C ×C Γ) D ⟩
         ≡⟨ NatIsoToPath isUniv-C×Γ→D (swapArgs-isEquivalence .η) ⟩
       swapArgs-inv ∘F swapArgs
@@ -328,13 +322,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         ≡⟨ ((λ i → ( swapArgs-inv ∘F ( F-assoc {F = swapArgs} {G = curryF} {H = curryF-isEquivalence .invFunc} (~ i) ) ))) ⟩
       swapArgs-inv ∘F ((curryF-isEquivalence .invFunc) ∘F (curryF ∘F swapArgs))
         ≡⟨ F-assoc ⟩
-      (swapArgs-inv ∘F curryF-isEquivalence .invFunc) ∘F (curryF ∘F swapArgs)
-        ≡⟨  refl ⟩
-      (curryFl-isEquivalence .invFunc) ∘F curryFl ∎ )
-    curryFl-isEquivalence .η .nIso = {!!}
-    curryFl-isEquivalence .ε .trans = pathToNatTrans (
-      curryFl ∘F (curryFl-isEquivalence .invFunc)
-        ≡⟨ refl ⟩
+      (swapArgs-inv ∘F curryF-isEquivalence .invFunc) ∘F (curryF ∘F swapArgs) ∎ )
+    curryFl-isEquivalence .ε = pathToNatIso (
       (curryF ∘F swapArgs) ∘F (swapArgs-inv ∘F curryF-isEquivalence .invFunc)
         ≡⟨ sym F-assoc ⟩
       curryF ∘F (swapArgs ∘F (swapArgs-inv ∘F curryF-isEquivalence .invFunc))
@@ -346,4 +335,3 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       curryF ∘F curryF-isEquivalence .invFunc
         ≡⟨ NatIsoToPath isUniv-Γ→C→D (curryF-isEquivalence .ε) ⟩
       𝟙⟨ FUNCTOR Γ (FUNCTOR C D) ⟩ ∎)
-    curryFl-isEquivalence .ε .nIso = {!!}
