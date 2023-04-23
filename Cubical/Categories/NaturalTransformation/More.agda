@@ -52,6 +52,13 @@ module _ {B : Category ℓB ℓB'}{C : Category ℓC ℓC'}{D : Category ℓD �
   _∘ʳi_ K β .trans = K ∘ʳ β .trans
   _∘ʳi_ K β .nIso x = preserveIsosF {F = K} (β .trans .N-ob _ , β .nIso x) .snd
 
+  open Functor
+  _∘ˡi_ : ∀ (K : Functor B C) → {G H : Functor C D} (β : NatIso G H)
+       → NatIso (G ∘F K) (H ∘F K)
+  _∘ˡi_ K β .trans = β .trans ∘ˡ K 
+  _∘ˡi_ K β .nIso b  = β .nIso (K ⟅ b ⟆)
+  
+
 
   CAT⋆Assoc : {E : Category ℓE ℓE'}
             (F : Functor B C)(G : Functor C D)(H : Functor D E)
