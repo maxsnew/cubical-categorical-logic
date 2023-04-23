@@ -70,6 +70,9 @@ C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
 private
   variable
     ℓs : Level
+  
+
+open Functor
 
 -- | TODO: these should be equivalences (isos?) of categories
 Functor→Prof*-o : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C *-[ ℓD' ]-o D
@@ -79,10 +82,10 @@ Functor→Profo-* : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Fun
 Functor→Profo-* C D F = HomFunctor D ∘F ((F ^opF) ×F Id {C = D})
 
 Prof*-o→Functor : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o D) → Functor C (FUNCTOR (D ^op) (SET ℓs))
-Prof*-o→Functor C D R = λFl (D ^op) (SET _) R
+Prof*-o→Functor C D R = curryFl (D ^op) (SET _) ⟅ R ⟆
 
 Profo-*→Functor : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C o-[ ℓs ]-* D) → Functor (C ^op) (FUNCTOR D (SET ℓs))
-Profo-*→Functor C D R = λF D (SET _) R
+Profo-*→Functor C D R = curryF D (SET _) ⟅ R ⟆
 
 module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
   open Category

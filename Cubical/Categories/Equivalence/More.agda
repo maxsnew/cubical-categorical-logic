@@ -22,12 +22,12 @@ open import Cubical.Categories.NaturalTransformation.More
 
 private
   variable
-    ℓC ℓC' ℓD ℓD' ℓE ℓE' ℓ ℓ' : Level
+    ℓC ℓC' ℓD ℓD' ℓE ℓE' : Level
 
 
 module _ 
   {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} {E : Category ℓE ℓE'} 
-  (F : Functor C D) (G : Functor D E)
+  {F : Functor C D} {G : Functor D E}
   where
   
   open Category
