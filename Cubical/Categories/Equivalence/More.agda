@@ -2,23 +2,14 @@
 
 module Cubical.Categories.Equivalence.More where
 
-open import Cubical.Categories.Category renaming (isIso to isIsoC)
+open import Cubical.Categories.Category
 open import Cubical.Categories.Functor.Base
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.NaturalTransformation.Properties
-open import Cubical.Categories.Morphism
-open import Cubical.Foundations.Prelude
-open import Cubical.Foundations.Equiv
-open import Cubical.Foundations.Equiv.Properties
-open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Isomorphism
-open import Cubical.Categories.Instances.Functors
-open import Cubical.Categories.Functor.Properties
-open import Cubical.Categories.Equivalence.Base
-open import Cubical.Categories.Category
-
-open import Cubical.Tactics.CategorySolver.Reflection
 open import Cubical.Categories.NaturalTransformation.More
+open import Cubical.Foundations.Prelude
+open import Cubical.Categories.Equivalence.Base
+
 
 private
   variable
@@ -58,7 +49,7 @@ module _
           -- associate the parentheses (G' G) F and G' (G F)
           (symNatIso (CAT⋆Assoc F G (Geq .invFunc)))
         )
-        -- fix final assoc F' (G' (G F) iso to (F' G') (G F)
+        -- fix final assoc F' (G' (G F)) iso to (F' G') (G F)
         (CAT⋆Assoc (G ∘F F) (Geq .invFunc) (Feq .invFunc))
       )
 

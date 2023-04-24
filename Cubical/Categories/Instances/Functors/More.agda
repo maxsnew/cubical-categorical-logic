@@ -49,7 +49,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     (F ⟪ f ⟫ ⋆⟨ D ⟩ α .N-ob c') ⋆⟨ D ⟩ (F' ⟪ f' ⟫ ⋆⟨ D ⟩ α' .N-ob c'') ∎
 
   module _ {Γ : Category ℓΓ ℓΓ'} where 
-    --(isUnivD : isUnivalent D) where
     -- The action of currying out the right argument of a Functor (Γ ×C C) D
     λFr : Functor (Γ ×C C) D → Functor Γ (FUNCTOR C D)
     λFr F .F-ob a .F-ob b = F ⟅ a , b ⟆
