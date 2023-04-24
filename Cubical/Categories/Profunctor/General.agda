@@ -44,6 +44,9 @@ open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Instances.Functors.More
 open import Cubical.Categories.Yoneda.More
 
+
+open import Cubical.Categories.NaturalTransformation.More
+
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
 -- the sets in the profunctor.
@@ -113,6 +116,29 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
              (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G))
 
     -- | TODO: equivalence between 1 and 2 (follows from the fact that λFl is an equivalence of categories)
+    ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
+    -- (curryFl (D ^op) (SET _) ∘ʳi η)
+
+    open NatIso
+    open NatTrans
+    open isIso
+    
+    PshFuncNat : ((G , η) : ProfRepresentation) →
+      NatIso (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
+             (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G))
+    PshFuncNat (G , η) = FUNCTORIso→NatIso
+                          C (FUNCTOR (D ^op) (SET (ℓ-max ℓD' ℓs)))
+                          {F = Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R)}
+                          {G = Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G)}
+                          (preserveIsosF {F = curryFl (D ^op) (SET (ℓ-max ℓD' ℓs))}
+                            (NatIso→FUNCTORIso ((D ^op) ×C C) (SET (ℓ-max ℓD' ℓs)) 
+                              {F = (LiftF {ℓs}{ℓD'} ∘F R)}
+                              {G = (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G)}
+                              η
+                            )
+                          )
+
+    ProfRepresentation→PshFunctorRepresentation (G , η) = (G , PshFuncNat (G , η))
 
     -- | Definition 3: Parameterized Universal Element
     -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
