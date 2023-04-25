@@ -44,6 +44,10 @@ open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Instances.Functors.More
 open import Cubical.Categories.Yoneda.More
 
+
+open import Cubical.Categories.Equivalence.Base
+open import Cubical.Categories.NaturalTransformation.More
+
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
 -- the sets in the profunctor.
@@ -113,6 +117,19 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
              (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G))
 
     -- | TODO: equivalence between 1 and 2 (follows from the fact that λFl is an equivalence of categories)
+    ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
+    ProfRepresentation→PshFunctorRepresentation (G , η) = (G , 
+        (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
+      )
+    
+    open isEquivalence
+    
+    -- preservesNatIsosF (curryFl-isEquivalence (D ^op) (SET _) {Γ = C} .invFunc) η
+    -- TODO: This is very close. Need to prove that the invfunc composed with forward retrieves
+    -- underly element
+    -- PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
+    -- PshFunctorRepresentation→ProfRepresentation (G , η) = (G , ?)
+    
 
     -- | Definition 3: Parameterized Universal Element
     -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
