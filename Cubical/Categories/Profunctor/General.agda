@@ -45,6 +45,7 @@ open import Cubical.Categories.Instances.Functors.More
 open import Cubical.Categories.Yoneda.More
 
 
+open import Cubical.Categories.Equivalence.Base
 open import Cubical.Categories.NaturalTransformation.More
 
 -- There are possibly 5 different levels to consider: the levels of
@@ -117,28 +118,18 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
     -- | TODO: equivalence between 1 and 2 (follows from the fact that λFl is an equivalence of categories)
     ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
-    -- (curryFl (D ^op) (SET _) ∘ʳi η)
-
-    open NatIso
-    open NatTrans
-    open isIso
+    ProfRepresentation→PshFunctorRepresentation (G , η) = (G , 
+        (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
+      )
     
-    PshFuncNat : ((G , η) : ProfRepresentation) →
-      NatIso (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
-             (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G))
-    PshFuncNat (G , η) = FUNCTORIso→NatIso
-                          C (FUNCTOR (D ^op) (SET (ℓ-max ℓD' ℓs)))
-                          {F = Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R)}
-                          {G = Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G)}
-                          (preserveIsosF {F = curryFl (D ^op) (SET (ℓ-max ℓD' ℓs))}
-                            (NatIso→FUNCTORIso ((D ^op) ×C C) (SET (ℓ-max ℓD' ℓs)) 
-                              {F = (LiftF {ℓs}{ℓD'} ∘F R)}
-                              {G = (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G)}
-                              η
-                            )
-                          )
-
-    ProfRepresentation→PshFunctorRepresentation (G , η) = (G , PshFuncNat (G , η))
+    open isEquivalence
+    
+    -- preservesNatIsosF (curryFl-isEquivalence (D ^op) (SET _) {Γ = C} .invFunc) η
+    -- TODO: This is very close. Need to prove that the invfunc composed with forward retrieves
+    -- underly element
+    -- PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
+    -- PshFunctorRepresentation→ProfRepresentation (G , η) = (G , ?)
+    
 
     -- | Definition 3: Parameterized Universal Element
     -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
