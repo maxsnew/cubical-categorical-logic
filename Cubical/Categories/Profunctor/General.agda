@@ -26,6 +26,7 @@ module Cubical.Categories.Profunctor.General where
 
 open import Cubical.Foundations.Prelude hiding (Path)
 open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Univalence
 
 open import Cubical.Data.Graph.Base
 open import Cubical.Data.Graph.Path
@@ -46,6 +47,8 @@ open import Cubical.Categories.Yoneda.More
 
 
 open import Cubical.Categories.Equivalence.Base
+open import Cubical.Categories.Equivalence.Properties
+open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.NaturalTransformation.More
 
 -- There are possibly 5 different levels to consider: the levels of
@@ -116,20 +119,31 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       NatIso (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
              (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G))
 
-    -- | TODO: equivalence between 1 and 2 (follows from the fact that λFl is an equivalence of categories)
     ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
     ProfRepresentation→PshFunctorRepresentation (G , η) = (G , 
         (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
       )
-    
+
     open isEquivalence
-    
-    -- preservesNatIsosF (curryFl-isEquivalence (D ^op) (SET _) {Γ = C} .invFunc) η
-    -- TODO: This is very close. Need to prove that the invfunc composed with forward retrieves
-    -- underly element
-    -- PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
-    -- PshFunctorRepresentation→ProfRepresentation (G , η) = (G , ?)
-    
+    open NatIso
+    open isWeakEquivalence
+
+    PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
+    PshFunctorRepresentation→ProfRepresentation (G , η) = (G ,
+      FUNCTORIso→NatIso (D ^op ×C C) (SET _)
+        (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
+        (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
+        (NatIso→FUNCTORIso C _ η)
+      ))
+
+    -- Def1=Def2 : ProfRepresentation ≡ PshFunctorRepresentation
+    -- Def1=Def2 = hPropExt {!!} {!!} {!!} {!!}
+
+    -- PshFunctorRepresentation≅ProfRepresentation : Iso PshFunctorRepresentation ProfRepresentation
+    -- PshFunctorRepresentation≅ProfRepresentation .Iso.fun = PshFunctorRepresentation→ProfRepresentation
+    -- PshFunctorRepresentation≅ProfRepresentation .Iso.inv = ProfRepresentation→PshFunctorRepresentation
+    -- PshFunctorRepresentation≅ProfRepresentation .Iso.rightInv = {!!}
+    -- PshFunctorRepresentation≅ProfRepresentation .Iso.leftInv = {!!}
 
     -- | Definition 3: Parameterized Universal Element
     -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
