@@ -51,6 +51,8 @@ open import Cubical.Categories.Equivalence.Properties
 open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.NaturalTransformation.More
 
+open import Cubical.Categories.Presheaf.Representable
+
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
 -- the sets in the profunctor.
@@ -136,6 +138,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         (NatIso→FUNCTORIso C _ η)
       ))
 
+    -- this seemingly needs univalence
     -- Def1=Def2 : ProfRepresentation ≡ PshFunctorRepresentation
     -- Def1=Def2 = hPropExt {!!} {!!} {!!} {!!}
 
@@ -149,6 +152,13 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
     ParamUniversalElement : Type _
     ParamUniversalElement = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+
+    open isIso
+    open NatTrans
+
+    PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
+    PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
+      RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ) (G .F-ob c , {!(symNatIso η .trans .N-ob c , symNatIso η .nIso c)!} ))
 
     -- | TODO: equivalence between 2 and 3 (follows from equivalence
     -- | between corresponding notions of representation of presheaves
