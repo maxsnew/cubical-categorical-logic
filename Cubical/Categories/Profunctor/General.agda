@@ -158,7 +158,34 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
     PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
     PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
-      RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ) (G .F-ob c , {!(symNatIso η .trans .N-ob c , symNatIso η .nIso c)!} ))
+      RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
+        -- (G .F-ob c , {!!} ))
+
+        -- This almost works, except that the hole fails to work because
+        -- funcComp (Functor→Prof*-o C D G) (Id ,F Constant (D ^op) C c) !=
+        -- (D [-, G .F-ob c ]) of type Functor (D ^op) (SET ℓD')
+        -- but LHS should be
+        -- (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id ,F Constant (D ^op) C c)
+        -- which is equal to
+        -- (HomFunctor D ∘F (Id {C = D ^op} ,F G .F-ob c))
+        -- which is morally equal to
+        -- D [-, G .F-ob c ]
+
+
+        (G .F-ob c ,
+        {! NatIso→FUNCTORIso _ _
+        (seqNatIso
+        (seqNatIso
+        (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
+        (
+        (Id {C = D ^op} ,F Constant (D ^op) C c) ∘ˡi
+          (FUNCTORIso→NatIso (D ^op ×C C) (SET _)
+          (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
+            (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
+            (NatIso→FUNCTORIso C _ (symNatIso η)))
+          )
+        ))
+        (symNatIso (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))!} ))
 
     -- | TODO: equivalence between 2 and 3 (follows from equivalence
     -- | between corresponding notions of representation of presheaves
