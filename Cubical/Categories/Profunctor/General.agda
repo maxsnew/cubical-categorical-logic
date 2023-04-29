@@ -171,18 +171,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
       RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
         -- (G .F-ob c , {!!} ))
-
-        -- The following almost works, except that the hole fails to work because
-        -- funcComp (Functor→Prof*-o C D G) (Id ,F Constant (D ^op) C c) !=
-        -- (D [-, G .F-ob c ]) of type Functor (D ^op) (SET ℓD')
-        -- but LHS should be
-        -- (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id ,F Constant (D ^op) C c)
-        -- which is equal to
-        -- (HomFunctor D ∘F (Id {C = D ^op} ,F G .F-ob c))
-        -- which is morally equal to
-        -- D [-, G .F-ob c ]
-        --
-        -- TODO this is a shitshow
         (G .F-ob c ,
          NatIso→FUNCTORIso _ _
         (seqNatIso
@@ -191,6 +179,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           (D [-, G .F-ob c ])
             ≡⟨ sym (HomFunctorPath (G .F-ob c)) ⟩
           HomFunctor D ∘F (Id ,F Constant (D ^op) D (G .F-ob c))
+          -- TODO prove that ,F and ×F are functors and commute as needed
             ≡⟨ {!!} ⟩
           HomFunctor D ∘F (Id ,F (G ∘F (Constant (D ^op) C c)))
             ≡⟨ {!!} ⟩
