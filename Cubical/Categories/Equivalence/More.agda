@@ -11,6 +11,14 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Equivalence.Base
 
 
+open import Cubical.Categories.Constructions.BinProduct
+open import Cubical.Categories.Instances.Sets
+
+open import Cubical.Categories.Functors.Constant
+open import Cubical.Categories.Functors.HomFunctor
+open import Cubical.Tactics.CategorySolver.Reflection
+
+
 private
   variable
     ℓC ℓC' ℓD ℓD' ℓE ℓE' : Level
@@ -74,3 +82,18 @@ module _
       )
       -- proof that G G' and 1 are iso 
       (Geq .ε)
+
+module _
+  {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}
+  (G : Functor C D)
+  where
+
+  open Category
+  open Functor
+  open NatIso
+  open NatTrans
+
+  HomViaProduct : (c : C .ob) → NatIso (D [-, G .F-ob c ]) (HomFunctor D ∘F ((Id {C = D ^op} ×F G)) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+  HomViaProduct c .trans .N-ob d = SET _ .id
+  HomViaProduct c .trans .N-hom f = {!   !}
+  HomViaProduct c .nIso = {!   !}

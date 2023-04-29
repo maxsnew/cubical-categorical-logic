@@ -170,28 +170,30 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         -- (HomFunctor D ∘F (Id {C = D ^op} ,F G .F-ob c))
         -- which is morally equal to
         -- D [-, G .F-ob c ]
+
         (G .F-ob c ,
-         NatIso→FUNCTORIso _ _
-        (seqNatIso
-        (pathToNatIso (
-          LiftF ∘F (D [-, G .F-ob c ])
-            ≡⟨ {!!} ⟩
-          LiftF ∘F (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
-            ≡⟨ refl ⟩
-          LiftF ∘F Functor→Prof*-o C D G ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ∎
-        ))
-        (seqNatIso
-        (seqNatIso
-        (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
-        (
-        (Id {C = D ^op} ,F Constant (D ^op) C c) ∘ˡi
-          (FUNCTORIso→NatIso (D ^op ×C C) (SET _)
-          (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
-            (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
-            (NatIso→FUNCTORIso C _ (symNatIso η)))
-          )
-        ))
-        (symNatIso (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
+          NatIso→FUNCTORIso _ _
+          (seqNatIso
+            (LiftF ∘ʳi {!   !})
+          -- (pathToNatIso (
+          --   LiftF ∘F (D [-, G .F-ob c ])
+          --     ≡⟨ {!!} ⟩
+          --   LiftF ∘F (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
+          --     ≡⟨ refl ⟩
+          --   LiftF ∘F Functor→Prof*-o C D G ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ∎
+          -- ))
+          (seqNatIso
+          (seqNatIso
+          (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
+          (
+          (Id {C = D ^op} ,F Constant (D ^op) C c) ∘ˡi
+            (FUNCTORIso→NatIso (D ^op ×C C) (SET _)
+            (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
+              (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
+              (NatIso→FUNCTORIso C _ (symNatIso η)))
+            )
+          ))
+          (symNatIso (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
 
     -- | TODO: equivalence between 2 and 3 (follows from equivalence
     -- | between corresponding notions of representation of presheaves
