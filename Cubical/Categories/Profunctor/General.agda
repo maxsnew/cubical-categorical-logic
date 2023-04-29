@@ -26,6 +26,7 @@ module Cubical.Categories.Profunctor.General where
 
 open import Cubical.Foundations.Prelude hiding (Path)
 open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Univalence
 
 open import Cubical.Data.Graph.Base
 open import Cubical.Data.Graph.Path
@@ -46,7 +47,11 @@ open import Cubical.Categories.Yoneda.More
 
 
 open import Cubical.Categories.Equivalence.Base
+open import Cubical.Categories.Equivalence.Properties
+open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.NaturalTransformation.More
+
+open import Cubical.Categories.Presheaf.Representable
 
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
@@ -116,25 +121,77 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       NatIso (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
              (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G))
 
-    -- | TODO: equivalence between 1 and 2 (follows from the fact that λFl is an equivalence of categories)
     ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
     ProfRepresentation→PshFunctorRepresentation (G , η) = (G , 
         (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
       )
-    
+
     open isEquivalence
-    
-    -- preservesNatIsosF (curryFl-isEquivalence (D ^op) (SET _) {Γ = C} .invFunc) η
-    -- TODO: This is very close. Need to prove that the invfunc composed with forward retrieves
-    -- underly element
-    -- PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
-    -- PshFunctorRepresentation→ProfRepresentation (G , η) = (G , ?)
-    
+    open NatIso
+    open isWeakEquivalence
+
+    PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
+    PshFunctorRepresentation→ProfRepresentation (G , η) = (G ,
+      FUNCTORIso→NatIso (D ^op ×C C) (SET _)
+        (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
+        (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
+        (NatIso→FUNCTORIso C _ η)
+      ))
+
+    -- this seemingly needs univalence
+    -- Def1=Def2 : ProfRepresentation ≡ PshFunctorRepresentation
+    -- Def1=Def2 = hPropExt {!!} {!!} {!!} {!!}
+
+    -- PshFunctorRepresentation≅ProfRepresentation : Iso PshFunctorRepresentation ProfRepresentation
+    -- PshFunctorRepresentation≅ProfRepresentation .Iso.fun = PshFunctorRepresentation→ProfRepresentation
+    -- PshFunctorRepresentation≅ProfRepresentation .Iso.inv = ProfRepresentation→PshFunctorRepresentation
+    -- PshFunctorRepresentation≅ProfRepresentation .Iso.rightInv = {!!}
+    -- PshFunctorRepresentation≅ProfRepresentation .Iso.leftInv = {!!}
 
     -- | Definition 3: Parameterized Universal Element
     -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
     ParamUniversalElement : Type _
     ParamUniversalElement = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+
+    open isIso
+    open NatTrans
+
+    PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
+    PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
+      RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
+        -- (G .F-ob c , {!!} ))
+
+        -- The following almost works, except that the hole fails to work because
+        -- funcComp (Functor→Prof*-o C D G) (Id ,F Constant (D ^op) C c) !=
+        -- (D [-, G .F-ob c ]) of type Functor (D ^op) (SET ℓD')
+        -- but LHS should be
+        -- (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id ,F Constant (D ^op) C c)
+        -- which is equal to
+        -- (HomFunctor D ∘F (Id {C = D ^op} ,F G .F-ob c))
+        -- which is morally equal to
+        -- D [-, G .F-ob c ]
+        (G .F-ob c ,
+         NatIso→FUNCTORIso _ _
+        (seqNatIso
+        (pathToNatIso (
+          LiftF ∘F (D [-, G .F-ob c ])
+            ≡⟨ {!!} ⟩
+          LiftF ∘F (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
+            ≡⟨ refl ⟩
+          LiftF ∘F Functor→Prof*-o C D G ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ∎
+        ))
+        (seqNatIso
+        (seqNatIso
+        (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
+        (
+        (Id {C = D ^op} ,F Constant (D ^op) C c) ∘ˡi
+          (FUNCTORIso→NatIso (D ^op ×C C) (SET _)
+          (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
+            (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
+            (NatIso→FUNCTORIso C _ (symNatIso η)))
+          )
+        ))
+        (symNatIso (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
 
     -- | TODO: equivalence between 2 and 3 (follows from equivalence
     -- | between corresponding notions of representation of presheaves
