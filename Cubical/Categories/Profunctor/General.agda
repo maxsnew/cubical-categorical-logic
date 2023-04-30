@@ -158,6 +158,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     open isIso
     open NatTrans
 
+    -- TODO don't know what file this belongs in. Might be able to make more general
     HomFunctorPath : (d : D .ob) → HomFunctor D ∘F (Id {C = D ^op} ,F Constant (D ^op) D d ) ≡ D [-, d ]
     HomFunctorPath d = Functor≡
       ((λ c → ( refl )))
@@ -167,10 +168,23 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         (D [-, d ]) .F-hom f ∎
       ))
 
+    -- TODO fork Functors.Constant and generalize
+    ConstantComposeFunctor :
+      (C : Category ℓC ℓC') (D : Category ℓD ℓD' ) (c : C .ob)
+      (F : Functor C D) →
+       Constant (D ^op) D (F .F-ob c) ≡ F ∘F Constant (D ^op) C c
+    ConstantComposeFunctor C D c F = Functor≡
+      (λ c → ( refl ))
+      (λ f → ( 
+        D .id
+          ≡⟨ sym (F .F-id) ⟩
+        F ⟪ Constant (D ^op) C c ⟪ f ⟫ ⟫ ∎
+        ))
+
+    -- TODO Reorganize and shorten
     PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
     PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
       RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
-        -- (G .F-ob c , {!!} ))
         (G .F-ob c ,
          NatIso→FUNCTORIso _ _
         (seqNatIso
@@ -179,14 +193,11 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           (D [-, G .F-ob c ])
             ≡⟨ sym (HomFunctorPath (G .F-ob c)) ⟩
           HomFunctor D ∘F (Id ,F Constant (D ^op) D (G .F-ob c))
-          -- TODO prove that ,F and ×F are functors and commute as needed
-            ≡⟨ {!!} ⟩
+            ≡⟨ ((λ i → ( HomFunctor D ∘F (Id ,F ConstantComposeFunctor C D c G i)  ))) ⟩
           HomFunctor D ∘F (Id ,F (G ∘F (Constant (D ^op) C c)))
-            ≡⟨ {!!} ⟩
+            ≡⟨ Functor≡ (λ c → refl) (λ f → refl) ⟩
           HomFunctor D ∘F (Id {C = D ^op} ×F G) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
             ≡⟨ F-assoc ⟩
-          (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
-            ≡⟨ refl ⟩
           Functor→Prof*-o C D G ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ∎
         )))
         (seqNatIso
@@ -203,6 +214,11 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         (symNatIso
         (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
 
+    -- TODO define a NatTrans st at each component we utilize the universal element at that object
+    -- this nat trans should then be a NatIso between the desired stuff?
+    ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
+    ParamUniversalElement→PshFunctorRepresentation ParUnivElt = ({!!} , {!!})
+
     -- | TODO: equivalence between 2 and 3 (follows from equivalence
     -- | between corresponding notions of representation of presheaves
     -- | + an "automatic" naturality proof)
@@ -210,7 +226,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- | Definition 4: Parameterized UnivElt
     -- | Same but with the unpacked UnivElt definition
     ParamUnivElt : Type _
-    ParamUnivElt = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+    ParamUnivElt = (c : C .ob) → UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
 
 --     Het[_,_] : C.ob → D.ob → Type ℓ'
 --     Het[ c , d ] = ⟨ asFunc ⟅ c , d ⟆ ⟩
