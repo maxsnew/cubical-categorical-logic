@@ -156,32 +156,31 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     open isIso
     open NatTrans
 
+    HomViaProduct : (G : Functor C D) → (c : C .ob) → NatIso 
+      (D [-, G .F-ob c ])
+      ((HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+    HomViaProduct G c .trans .N-ob d = (λ h → h)
+    HomViaProduct G c .trans .N-hom f =
+      ((D [-, G .F-ob c ]) .F-hom f)
+        ≡⟨ refl ⟩
+      (λ h → f ⋆⟨ D ⟩ h)
+        ≡⟨ (λ i → (λ h → (D .⋆IdR (f ⋆⟨ D ⟩ h)) (~ i))) ⟩
+      (λ h → (f ⋆⟨ D ⟩ h) ⋆⟨ D ⟩ (D .id))
+        ≡⟨ (λ i → HomFunctor D .F-hom (f , (G .F-id) (~ i) )) ⟩
+      (((HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) .F-hom f) ∎
+    HomViaProduct G c .nIso d .inv = (λ h → h)
+    HomViaProduct G c .nIso d .sec = refl
+    HomViaProduct G c .nIso d .ret = refl
+
+    
     PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
     PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
       RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
-        -- (G .F-ob c , {!!} ))
-
-        -- The following almost works, except that the hole fails to work because
-        -- funcComp (Functor→Prof*-o C D G) (Id ,F Constant (D ^op) C c) !=
-        -- (D [-, G .F-ob c ]) of type Functor (D ^op) (SET ℓD')
-        -- but LHS should be
-        -- (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id ,F Constant (D ^op) C c)
-        -- which is equal to
-        -- (HomFunctor D ∘F (Id {C = D ^op} ,F G .F-ob c))
-        -- which is morally equal to
-        -- D [-, G .F-ob c ]
-
         (G .F-ob c ,
           NatIso→FUNCTORIso _ _
           (seqNatIso
-            (LiftF ∘ʳi {!   !})
-          -- (pathToNatIso (
-          --   LiftF ∘F (D [-, G .F-ob c ])
-          --     ≡⟨ {!!} ⟩
-          --   LiftF ∘F (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
-          --     ≡⟨ refl ⟩
-          --   LiftF ∘F Functor→Prof*-o C D G ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ∎
-          -- ))
+            -- due diligence: check that the 2 notions of hom functor agree
+            (LiftF ∘ʳi (HomViaProduct G c))
           (seqNatIso
           (seqNatIso
           (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
