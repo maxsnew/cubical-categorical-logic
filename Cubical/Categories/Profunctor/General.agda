@@ -217,15 +217,15 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     open UnivElt
     open isUniversal
 
-    -- TODO define a NatTrans st at each component we utilize the universal element at that object
-    -- this nat trans should then be a NatIso between the desired stuff?
+    Prof*-o→FunctorR : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o D) → Functor (D ^op) (FUNCTOR C (SET ℓs))
+    Prof*-o→FunctorR C D R = curryF C (SET _) ⟅ R ⟆
+
     Functor-ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → Functor C D
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-ob c = fst (fst (ParUnivElt c))
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-hom {x} {y} ϕ =
-      {!
-      -- (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) (ParUnivElt y)) .universal .coinduction
-      (R ∘F ( (Id {C = D ^op} ,F Constant (D ^op) C y) .F-ob (fst (fst (ParUnivElt x))) ) )
-      !}
+      (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) (ParUnivElt y)) .universal .coinduction
+        ((Prof*-o→FunctorR C D R .F-ob (fst (fst (ParUnivElt x))) .F-hom ϕ) (snd (fst (ParUnivElt x))))
+
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-id = {!!}
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq ϕ ψ = {!!}
 
