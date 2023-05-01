@@ -243,10 +243,35 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     Functor-ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → Functor C D
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-ob c = fst (fst (ParUnivElt c))
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-hom {x} {y} ϕ =
-      (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) (ParUnivElt y)) .universal .coinduction
-        ((Prof*-o→FunctorR C D R .F-ob (fst (fst (ParUnivElt x))) .F-hom ϕ) (snd (fst (ParUnivElt x))))
+      (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) (ParUnivElt y)) 
+        .universal .coinduction
+        ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (ParUnivElt x))) ⟆) ⟪ ϕ ⟫) (snd (fst (ParUnivElt x))))
 
-    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-id = {!!}
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-id {x} =
+      (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) 
+          .universal .coinduction
+        ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (ParUnivElt x))) ⟆) ⟪ C .id ⟫) (snd (fst (ParUnivElt x))))
+      -- Use the fact that curryF is a functor to simplify coinduction target (F-id)
+      ≡⟨ (λ i → 
+          (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) 
+            .universal .coinduction 
+            ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (ParUnivElt x))) ⟆) .F-id (i)) (snd (fst (ParUnivElt x))))) ⟩
+      (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) 
+          .universal .coinduction
+        (snd (fst (ParUnivElt x)))
+      -- use uniqueness of universal element.
+      ≡⟨ sym ((UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x))
+          .universal .is-uniq (snd (fst (ParUnivElt x))) (D .id)
+            -- Nested proof that identity also works.
+            ( ((R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) ⟪ D .id ⟫) 
+                ((UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) .element)
+              ≡⟨ (λ i → ((R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) .F-id (i)) 
+                  ((UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) .element)) ⟩
+            (snd (fst (ParUnivElt x))) ∎
+            ) 
+      )⟩
+      D .id ∎
+
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq ϕ ψ = {!!}
 
     ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
@@ -261,6 +286,13 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     ParamUnivElt : Type _
     ParamUnivElt = (c : C .ob) → UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
 
+    
+    -- 3 ⇔ 4 follows from maps between defs of universal element
+    ParamUniversalElement→ParamUnivElt : ParamUniversalElement → ParamUnivElt
+    ParamUniversalElement→ParamUnivElt PUE c = UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) (PUE c)
+
+    ParamUnivElt→ParamUniversalElement : ParamUnivElt → ParamUniversalElement
+    ParamUnivElt→ParamUniversalElement PUE c = UnivElt→UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) (PUE c)
 --     Het[_,_] : C.ob → D.ob → Type ℓ'
 --     Het[ c , d ] = ⟨ asFunc ⟅ c , d ⟆ ⟩
 
@@ -527,3 +559,4 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 --   Repr'⇒Repr : ∀ {C D} (R : C ⊶ D) → Representable' R → Representable R
 --   Repr'⇒Repr R R-representable =
 --     (Representable'.F R-representable) , Representable'.F-represents-R R-representable
+ 
