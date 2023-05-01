@@ -52,6 +52,7 @@ open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.NaturalTransformation.More
 
 open import Cubical.Categories.Presheaf.Representable
+open import Cubical.Tactics.CategorySolver.Reflection
 
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
@@ -149,6 +150,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- PshFunctorRepresentation≅ProfRepresentation .Iso.leftInv = {!!}
 
     -- | Definition 3: Parameterized Universal Element
+    -- m
     -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
     ParamUniversalElement : Type _
     ParamUniversalElement = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
@@ -173,6 +175,30 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     HomViaProduct G c .nIso d .ret = refl
 
     
+    -- TODO don't know what file this belongs in. Might be able to make more general
+    HomFunctorPath : (d : D .ob) → HomFunctor D ∘F (Id {C = D ^op} ,F Constant (D ^op) D d ) ≡ D [-, d ]
+    HomFunctorPath d = Functor≡
+      ((λ c → ( refl )))
+      (λ f → (
+        HomFunctor D .F-hom (f , id (D ^op))
+          ≡⟨ funExt (λ θ → ( (D ∘ id D) ((D ∘ θ) f) ≡⟨ solveCat! D ⟩ seq' D f θ ∎ )) ⟩
+        (D [-, d ]) .F-hom f ∎
+      ))
+
+    -- TODO fork Functors.Constant and generalize
+    ConstantComposeFunctor :
+      (C : Category ℓC ℓC') (D : Category ℓD ℓD' ) (c : C .ob)
+      (F : Functor C D) →
+       Constant (D ^op) D (F .F-ob c) ≡ F ∘F Constant (D ^op) C c
+    ConstantComposeFunctor C D c F = Functor≡
+      (λ c → ( refl ))
+      (λ f → ( 
+        D .id
+          ≡⟨ sym (F .F-id) ⟩
+        F ⟪ Constant (D ^op) C c ⟪ f ⟫ ⟫ ∎
+        ))
+
+    -- TODO Reorganize and shorten
     PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
     PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
       RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
@@ -180,19 +206,51 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           NatIso→FUNCTORIso _ _
           (seqNatIso
             -- due diligence: check that the 2 notions of hom functor agree
-            (LiftF ∘ʳi (HomViaProduct G c))
-          (seqNatIso
-          (seqNatIso
-          (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
-          (
-          (Id {C = D ^op} ,F Constant (D ^op) C c) ∘ˡi
-            (FUNCTORIso→NatIso (D ^op ×C C) (SET _)
-            (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
-              (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
-              (NatIso→FUNCTORIso C _ (symNatIso η)))
+            -- (LiftF ∘ʳi (HomViaProduct G c))
+            (LiftF ∘ʳi
+              (pathToNatIso (
+                (D [-, G .F-ob c ])
+                  ≡⟨ sym (HomFunctorPath (G .F-ob c)) ⟩
+                HomFunctor D ∘F (Id ,F Constant (D ^op) D (G .F-ob c))
+                  ≡⟨ ((λ i → ( HomFunctor D ∘F (Id ,F ConstantComposeFunctor C D c G i)  ))) ⟩
+                HomFunctor D ∘F (Id ,F (G ∘F (Constant (D ^op) C c)))
+                  ≡⟨ Functor≡ (λ c → refl) (λ f → refl) ⟩
+                HomFunctor D ∘F (Id {C = D ^op} ×F G) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
+                  ≡⟨ F-assoc ⟩
+                Functor→Prof*-o C D G ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ∎
+              ))
             )
-          ))
-          (symNatIso (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
+        (seqNatIso
+        (seqNatIso
+        (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
+        (
+        (Id {C = D ^op} ,F Constant (D ^op) C c) ∘ˡi
+          (FUNCTORIso→NatIso (D ^op ×C C) (SET _)
+          (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
+            (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
+            (NatIso→FUNCTORIso C _ (symNatIso η)))
+          )
+        ))
+        (symNatIso
+        (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
+
+    open UnivElt
+    open isUniversal
+
+    Prof*-o→FunctorR : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o D) → Functor (D ^op) (FUNCTOR C (SET ℓs))
+    Prof*-o→FunctorR C D R = curryF C (SET _) ⟅ R ⟆
+
+    Functor-ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → Functor C D
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-ob c = fst (fst (ParUnivElt c))
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-hom {x} {y} ϕ =
+      (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) (ParUnivElt y)) .universal .coinduction
+        ((Prof*-o→FunctorR C D R .F-ob (fst (fst (ParUnivElt x))) .F-hom ϕ) (snd (fst (ParUnivElt x))))
+
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-id = {!!}
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq ϕ ψ = {!!}
+
+    ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
+    ParamUniversalElement→PshFunctorRepresentation ParUnivElt = ({!!} , {!!})
 
     -- | TODO: equivalence between 2 and 3 (follows from equivalence
     -- | between corresponding notions of representation of presheaves
@@ -201,7 +259,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- | Definition 4: Parameterized UnivElt
     -- | Same but with the unpacked UnivElt definition
     ParamUnivElt : Type _
-    ParamUnivElt = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+    ParamUnivElt = (c : C .ob) → UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
 
 --     Het[_,_] : C.ob → D.ob → Type ℓ'
 --     Het[ c , d ] = ⟨ asFunc ⟅ c , d ⟆ ⟩
