@@ -214,8 +214,21 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         (symNatIso
         (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
 
+    open UnivElt
+    open isUniversal
+
     -- TODO define a NatTrans st at each component we utilize the universal element at that object
     -- this nat trans should then be a NatIso between the desired stuff?
+    Functor-ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → Functor C D
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-ob c = fst (fst (ParUnivElt c))
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-hom {x} {y} ϕ =
+      {!
+      -- (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) (ParUnivElt y)) .universal .coinduction
+      (R ∘F ( (Id {C = D ^op} ,F Constant (D ^op) C y) .F-ob (fst (fst (ParUnivElt x))) ) )
+      !}
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-id = {!!}
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq ϕ ψ = {!!}
+
     ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
     ParamUniversalElement→PshFunctorRepresentation ParUnivElt = ({!!} , {!!})
 
