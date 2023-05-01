@@ -248,31 +248,30 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (ParUnivElt x))) ⟆) ⟪ ϕ ⟫) (snd (fst (ParUnivElt x))))
 
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-id {x} =
-      (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) 
-          .universal .coinduction
-        ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (ParUnivElt x))) ⟆) ⟪ C .id ⟫) (snd (fst (ParUnivElt x))))
-      -- Use the fact that curryF is a functor to simplify coinduction target (F-id)
-      ≡⟨ (λ i → 
-          (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) 
-            .universal .coinduction 
-            ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (ParUnivElt x))) ⟆) .F-id (i)) (snd (fst (ParUnivElt x))))) ⟩
-      (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) 
-          .universal .coinduction
-        (snd (fst (ParUnivElt x)))
-      -- use uniqueness of universal element.
-      ≡⟨ sym ((UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x))
-          .universal .is-uniq (snd (fst (ParUnivElt x))) (D .id)
-            -- Nested proof that identity also works.
-            ( ((R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) ⟪ D .id ⟫) 
-                ((UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) .element)
-              ≡⟨ (λ i → ((R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) .F-id (i)) 
-                  ((UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x)) (ParUnivElt x)) .element)) ⟩
-            (snd (fst (ParUnivElt x))) ∎
-            ) 
-      )⟩
+      let R' = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in 
+      let (dₓ , θₓ) = (fst (ParUnivElt x)) in
+        (UniversalElement→UnivElt D R' (ParUnivElt x)) 
+            .universal .coinduction
+          ((((Prof*-o→FunctorR C D R)  ⟅ dₓ ⟆) ⟪ C .id ⟫) θₓ)
+        -- Use the fact that curryF is a functor to simplify coinduction target (F-id)
+        ≡⟨ (λ i → 
+            (UniversalElement→UnivElt D R' (ParUnivElt x)) 
+              .universal .coinduction 
+              ((((Prof*-o→FunctorR C D R)  ⟅ dₓ ⟆) .F-id (i)) θₓ)) ⟩
+        (UniversalElement→UnivElt D R' (ParUnivElt x)) 
+            .universal .coinduction θₓ
+        -- use uniqueness of universal element.
+        ≡⟨ sym ((UniversalElement→UnivElt D R' (ParUnivElt x))
+            .universal .is-uniq θₓ (D .id)
+              -- Nested proof that identity also works.
+              ( (R' ⟪ D .id ⟫) ((UniversalElement→UnivElt D R' (ParUnivElt x)) .element)
+                ≡⟨ (λ i → (R' .F-id (i)) ((UniversalElement→UnivElt D R' (ParUnivElt x)) .element)) ⟩
+              θₓ ∎
+              ) 
+        )⟩
       D .id ∎
 
-    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq ϕ ψ = {!!}
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq {x} {y} {z} ϕ ψ = {!   !}
 
     ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
     ParamUniversalElement→PshFunctorRepresentation ParUnivElt = ({!!} , {!!})
