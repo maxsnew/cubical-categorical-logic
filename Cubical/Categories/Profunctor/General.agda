@@ -269,7 +269,33 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         )⟩
       D .id ∎
 
-    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq {x} {y} {z} ϕ ψ = {!   !}
+    Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq {x} {y} {z} ϕ ψ =
+      let Rx = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in
+      let Ry = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
+      let Rz = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C z) in
+      let curryR = Prof*-o→FunctorR C D R in
+      let ((dx , θx) , PUExTerminal) = ParUnivElt x in
+      let ((dy , θy) , PUEyTerminal) = ParUnivElt y in
+      let ((dz , θz) , PUEzTerminal) = ParUnivElt z in
+      let ProfϕSeqψ =  ((curryR ⟅ dx ⟆) ⟪ seq' C ϕ ψ ⟫ ) θx in
+      let start = PUEzTerminal (dx , ProfϕSeqψ ) .fst .fst in
+      let Profϕ = ((curryR ⟅ dx ⟆) ⟪ ϕ ⟫ ) θx in
+      let Profψ = ((curryR ⟅ dy ⟆) ⟪ ψ ⟫ ) θy in
+      let α = (PUEyTerminal (dx , Profϕ) .fst .fst) in
+      let β = (PUEzTerminal (dy , Profψ) .fst .fst) in
+      let end = seq' D α β in
+          sym (UniversalElement→UnivElt D Rz (ParUnivElt z) .universal .is-uniq ProfϕSeqψ end (
+            Rz .F-hom end θz
+              ≡⟨ (λ i → (Rz .F-seq β α) i θz ) ⟩
+            (Rz .F-hom α) ((Rz .F-hom β) θz)
+              ≡⟨ {!refl!} ⟩
+            (curryR .F-ob dx .F-hom ψ) ((curryR .F-ob dx .F-hom ϕ) θx)
+              ≡⟨ ((λ i → (curryR .F-ob dx .F-seq ϕ ψ) (~ i) θx)) ⟩
+            curryR .F-ob dx .F-hom (ϕ ⋆⟨ C ⟩ ψ) θx
+              ≡⟨ refl ⟩
+            ProfϕSeqψ ∎))
+
+
 
 
     RepFuncRecoversR : (U : ParamUniversalElement) → 
