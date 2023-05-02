@@ -258,11 +258,9 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
             (UniversalElement→UnivElt D R' (ParUnivElt x)) 
               .universal .coinduction 
               ((((Prof*-o→FunctorR C D R)  ⟅ dₓ ⟆) .F-id (i)) θₓ)) ⟩
-        (UniversalElement→UnivElt D R' (ParUnivElt x)) 
-            .universal .coinduction θₓ
+        (UniversalElement→UnivElt D R' (ParUnivElt x)) .universal .coinduction θₓ
         -- use uniqueness of universal element.
-        ≡⟨ sym ((UniversalElement→UnivElt D R' (ParUnivElt x))
-            .universal .is-uniq θₓ (D .id)
+        ≡⟨ sym ((UniversalElement→UnivElt D R' (ParUnivElt x)) .universal .is-uniq θₓ (D .id)
               -- Nested proof that identity also works.
               ( (R' ⟪ D .id ⟫) ((UniversalElement→UnivElt D R' (ParUnivElt x)) .element)
                 ≡⟨ (λ i → (R' .F-id (i)) ((UniversalElement→UnivElt D R' (ParUnivElt x)) .element)) ⟩
@@ -273,8 +271,33 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq {x} {y} {z} ϕ ψ = {!   !}
 
+
+    RepFuncRecoversR : (U : ParamUniversalElement) → 
+      (LiftF {ℓs} {ℓD'} ∘F R)  ≡
+      (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation U)))
+    RepFuncRecoversR U = 
+      let G = (Functor-ParamUniversalElement→PshFunctorRepresentation U) in
+      Functor≡
+        (λ (d , c) →
+          let R' = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) in
+          ((LiftF {ℓs} {ℓD'} ∘F R) ⟅ d , c ⟆)
+            ≡⟨ refl ⟩
+          (LiftF {ℓs} {ℓD'} ⟅ (R' ⟅ d ⟆) ⟆)
+            -- representability gives us exactly that R' ⟅ d ⟆ is the same as the
+            -- hom set of the universal element. from d
+            ≡⟨ {!   !} ⟩
+          ((LiftF {ℓD'} {ℓs}) ⟅ ( D [ d , (fst (fst (U c))) ] , isSetHom D ) ⟆)
+            ≡⟨ refl ⟩
+          ((LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟅ d , c ⟆) ∎)
+        {!   !}
+
     ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
-    ParamUniversalElement→PshFunctorRepresentation ParUnivElt = ({!!} , {!!})
+    ParamUniversalElement→PshFunctorRepresentation ParUnivElt =
+      ( Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt ,
+        (preservesNatIsosF (curryFl (D ^op) (SET _))
+          (pathToNatIso (RepFuncRecoversR ParUnivElt))
+        )
+      )
 
     -- | TODO: equivalence between 2 and 3 (follows from equivalence
     -- | between corresponding notions of representation of presheaves
@@ -558,4 +581,4 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 --   Repr'⇒Repr : ∀ {C D} (R : C ⊶ D) → Representable' R → Representable R
 --   Repr'⇒Repr R R-representable =
 --     (Representable'.F R-representable) , Representable'.F-represents-R R-representable
- 
+   
