@@ -54,6 +54,9 @@ open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Tactics.CategorySolver.Reflection
 
+
+open import Cubical.Foundations.HLevels
+
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
 -- the sets in the profunctor.
@@ -297,7 +300,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
 
 
-
     RepFuncRecoversR : (U : ParamUniversalElement) → 
       (LiftF {ℓs} {ℓD'} ∘F R)  ≡
       (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation U)))
@@ -308,14 +310,30 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           let R' = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) in
           ((LiftF {ℓs} {ℓD'} ∘F R) ⟅ d , c ⟆)
             ≡⟨ refl ⟩
+          (LiftF {ℓs} {ℓD'} ⟅ (fst (R' ⟅ d ⟆)) , (snd (R' ⟅ d ⟆)) ⟆)
+            ≡⟨ refl ⟩
           (LiftF {ℓs} {ℓD'} ⟅ (R' ⟅ d ⟆) ⟆)
+            ≡⟨ refl ⟩
+          ((LiftF {ℓs} {ℓD'}  ∘F R') ⟅ d ⟆)
+          -- ((Lift {ℓs} {ℓD'} (fst (R' ⟅ d ⟆))) , (isOfHLevelLift 2 (snd (R' ⟅ d ⟆))))
             -- representability gives us exactly that R' ⟅ d ⟆ is the same as the
-            -- hom set of the universal element. from d
+            -- hom set of the universal element from d. Not sure how to prove
             ≡⟨ {!   !} ⟩
+          ((LiftF {ℓD'} {ℓs} ∘F ( D [-, (fst (fst (U c))) ])) ⟅ d ⟆)
+            ≡⟨ refl ⟩
+          ((LiftF {ℓD'} {ℓs} ⟅ (( D [-, (fst (fst (U c))) ]) ⟅ d ⟆) ⟆ ) )
+            ≡⟨ refl ⟩
+          ((Lift {ℓD'} {ℓs} ( D [ d , (fst (fst (U c))) ])) , (isOfHLevelLift 2 (isSetHom D )))
+            ≡⟨ refl ⟩
+          ((LiftF {ℓD'} {ℓs}) ⟅ ( D [ d , (fst (fst (U c))) ] , isSetHom D ) ⟆)
+            ≡⟨ refl ⟩
           ((LiftF {ℓD'} {ℓs}) ⟅ ( D [ d , (fst (fst (U c))) ] , isSetHom D ) ⟆)
             ≡⟨ refl ⟩
           ((LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟅ d , c ⟆) ∎)
-        {!   !}
+        (λ (fd , fc) → {!   !})
+          -- ((LiftF {ℓs} {ℓD'} ∘F R) ⟪ fd , fc ⟫)
+          --  ≡⟨ ? ⟩
+         -- ((LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟪ fd , fc ⟫) ∎)
 
     ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
     ParamUniversalElement→PshFunctorRepresentation ParUnivElt =
