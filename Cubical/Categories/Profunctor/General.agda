@@ -397,14 +397,25 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       -- seqNatIso ? ?
     
 
-    -- the meet of the c based naturality comes from this yoneda
+    
+    -- TODO: This seems silly, but idTrans didn't work...
+    CurryInC : ∀ (c : C .ob) → NatIso
+      ((curryFl (D ^op) (SET _) {Γ = C} ⟅ (LiftF {ℓs} {ℓD'} ∘F R) ⟆) ⟅ c ⟆)
+      (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c)))
+    CurryInC c .trans .N-ob d = (λ h → h)
+    CurryInC c .trans .N-hom f = refl
+    CurryInC c .nIso d .inv = (λ h → h)
+    CurryInC c .nIso d .sec = refl
+    CurryInC c .nIso d .ret = refl
+
+    
+    -- the meat of the c based naturality comes from this yoneda
     CFixed : (U : ParamUniversalElement) →
       (∀ (c : C .ob) 
         → NatIso
           (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)))
           (LiftF {ℓD'} {ℓs} ∘F ( D [-, (fst (fst (U c))) ]))
       )
-    
     CFixed U c = let R' = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) in
       symNatIso (
         FUNCTORIso→NatIso (D ^op) (SET _) 
@@ -418,16 +429,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
             (isTerminalElement→YoIso D R' (U c) .ret)
           )
       )
-    
-    -- TODO: This seems silly, but idTrans didn't work...
-    CurryInC : ∀ (c : C .ob) → NatIso
-      ((curryFl (D ^op) (SET _) {Γ = C} ⟅ (LiftF {ℓs} {ℓD'} ∘F R) ⟆) ⟅ c ⟆)
-      (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c)))
-    CurryInC c .trans .N-ob d = (λ h → h)
-    CurryInC c .trans .N-hom f = refl
-    CurryInC c .nIso d .inv = (λ h → h)
-    CurryInC c .nIso d .sec = refl
-    CurryInC c .nIso d .ret = refl
     
 
     -- TODO: Unresolved constraints in this one. Perhaps someone with a better IDE could
@@ -459,16 +460,65 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     CurryOutC U c .nIso d .sec = refl
     CurryOutC U c .nIso d .ret = refl
 
-    -- TODO: This needs to be split in the same way as CurryInC, Cfixed, CurryOutC
-    Test : (U : ParamUniversalElement) →
-      (∀ (d : D .ob) → NatIso
+    -- TODO: This might be able to be done with some 
+    -- clever op trick
+    -- TODO: Might need to prime with Functor-ParamUniv here itself
+    -- instead of just Id on c
+    CurryInD : (∀ (d : D .ob) → NatIso
         ((curryF C (SET _) {Γ = (D ^op)} ⟅ (LiftF {ℓs} {ℓD'} ∘F R) ⟆) ⟅ d ⟆)
+        (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Constant C (D ^op) d ,F Id)))
+      )
+    CurryInD d .trans .N-ob c = (λ h → h)
+    CurryInD d .trans .N-hom f = refl
+    CurryInD d .nIso c .inv = (λ h → h)
+    CurryInD d .nIso c .sec = refl
+    CurryInD d .nIso c .ret = refl
+
+
+    -- standard yoneda, covariant edition.
+    DFixed : (U : ParamUniversalElement) →
+      (∀ (d : D .ob) → NatIso
+        (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Constant C (D ^op) d ,F Id)))
+        (LiftF {ℓD'} {ℓs} ∘F ( (D [ d ,-]) ∘F (Functor-ParamUniversalElement→PshFunctorRepresentation U) ))
+      )
+    DFixed U d = let R' = R ∘F (Constant C (D ^op) d ,F Id) in
+      symNatIso (
+        FUNCTORIso→NatIso C (SET _)
+        (catiso
+          (Iso.inv
+            {!   !} --(yoneda* {C = (D ^op)} ? d)
+            {!   !}
+          )
+          {!   !}
+          {!   !}
+          {!   !}
+        )
+      )
+
+    
+    CurryOutD : (U : ParamUniversalElement) →
+      (∀ (d : D .ob) → NatIso
+        (LiftF {ℓD'} {ℓs} ∘F ( (D [ d ,-]) ∘F (Functor-ParamUniversalElement→PshFunctorRepresentation U) ))
         ((curryF C (SET _) {Γ = (D ^op)} ⟅ LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation U)) ⟆) ⟅ d ⟆)
       )
-      -- (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c)))
-    Test U d .trans .N-ob c = {!   !}
-    Test U d .trans .N-hom f = {!   !}
-    Test U d .nIso = {!   !}
+    CurryOutD U d .trans .N-ob c = (λ h → h)
+    CurryOutD U d .trans .N-hom {x} {y} f =
+      let G = Functor-ParamUniversalElement→PshFunctorRepresentation U in
+      ((LiftF {ℓD'} {ℓs} ∘F ( (D [ d ,-]) ∘F  G)) ⟪ f ⟫)
+      --  ≡⟨ refl ⟩
+      --(LiftF {ℓD'} {ℓs} ⟪ (λ h → h ⋆⟨ D ⟩ (G ⟪ f ⟫) ) ⟫)
+        ≡⟨ (λ i → (LiftF {ℓD'} {ℓs} ⟪ (λ h → ((D .⋆IdL h) (~ i)) ⋆⟨ D ⟩ (G ⟪ f ⟫)) ⟫ )) ⟩
+      -- (LiftF {ℓD'} {ℓs} ⟪ (λ h → ((D .id) ⋆⟨ D ⟩ h ) ⋆⟨ D ⟩ (G ⟪ f ⟫)) ⟫)
+      --   ≡⟨ refl ⟩
+      -- (LiftF {ℓD'} {ℓs} ⟪ (HomFunctor D) ⟪ D .id , (G ⟪ f ⟫) ⟫ ⟫)
+      --   ≡⟨ refl ⟩
+      (((curryF C (SET _) {Γ = (D ^op)} ⟅ LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G) ⟆) ⟅ d ⟆) ⟪ f ⟫) ∎
+    CurryOutD U d .nIso c .inv = (λ h → h)
+    CurryOutD U d .nIso c .sec = refl
+    CurryOutD U d .nIso c .ret = refl
+
+
+
     
 
     ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
@@ -478,7 +528,15 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           (binaryNatIso {C = (D ^op)} {D = C} {E = (SET _)}
             (LiftF {ℓs} {ℓD'} ∘F R)
             (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt)))
-            (λ (d : D .ob) → {!   !})
+            (λ (d : D .ob) →
+              (seqNatIso
+                (CurryInD d)
+                (seqNatIso
+                  (DFixed ParUnivElt d)
+                  (CurryOutD ParUnivElt d)
+                )
+              )
+            )
             (λ (c : C .ob) → 
               (seqNatIso
                 (CurryInC c)
@@ -488,6 +546,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
                 )
               )
             )
+            -- TODO: Hopefully, this will just be a refl, but its
+            -- dependent on finishing DFixed
             (λ (c , d) → {!   !})
           )
         )
