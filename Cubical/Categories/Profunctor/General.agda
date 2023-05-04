@@ -56,6 +56,7 @@ open import Cubical.Tactics.CategorySolver.Reflection
 
 
 open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
 
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
@@ -79,6 +80,25 @@ C o-[ ℓS ]-* D = Category.ob (PROF⊶ C D ℓS)
 
 _*-[_]-o_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
+
+private
+  variable
+    ℓE ℓE' : Level
+
+open Category
+open NatIso
+open NatTrans
+
+module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}{E : Category ℓE ℓE'} where
+  -- TODO: This prob isn't strong enough... we need some meta naturality
+  -- between the 2 ways to compose
+  binaryNatIso : ∀ (F G : Functor (C ×C D) E) 
+    → ( ∀ (c : C .ob) → NatIso (((curryF D E {Γ = C}) ⟅ F ⟆) ⟅ c ⟆) (((curryF D E {Γ = C}) ⟅ G ⟆) ⟅ c ⟆))
+    → ( ∀ (d : D .ob) → NatIso (((curryFl C E {Γ = D}) ⟅ F ⟆) ⟅ d ⟆) (((curryFl C E {Γ = D}) ⟅ G ⟆) ⟅ d ⟆))
+    → NatIso F G
+  binaryNatIso F G cNat dNat .trans .N-ob (c , d) = {!   !}
+  binaryNatIso F G cNat dNat .trans .N-hom (fc , fd) = {!   !}
+  binaryNatIso F G cNat dNat .nIso  = {!   !}
 
 private
   variable
@@ -300,48 +320,144 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
 
 
-    RepFuncRecoversR : (U : ParamUniversalElement) → 
-      (LiftF {ℓs} {ℓD'} ∘F R)  ≡
-      (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation U)))
-    RepFuncRecoversR U = 
-      let G = (Functor-ParamUniversalElement→PshFunctorRepresentation U) in
-      Functor≡
-        (λ (d , c) →
-          let R' = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) in
-          ((LiftF {ℓs} {ℓD'} ∘F R) ⟅ d , c ⟆)
-            ≡⟨ refl ⟩
-          (LiftF {ℓs} {ℓD'} ⟅ (fst (R' ⟅ d ⟆)) , (snd (R' ⟅ d ⟆)) ⟆)
-            ≡⟨ refl ⟩
-          (LiftF {ℓs} {ℓD'} ⟅ (R' ⟅ d ⟆) ⟆)
-            ≡⟨ refl ⟩
-          ((LiftF {ℓs} {ℓD'}  ∘F R') ⟅ d ⟆)
-          -- ((Lift {ℓs} {ℓD'} (fst (R' ⟅ d ⟆))) , (isOfHLevelLift 2 (snd (R' ⟅ d ⟆))))
-            -- representability gives us exactly that R' ⟅ d ⟆ is the same as the
-            -- hom set of the universal element from d. Not sure how to prove
-            ≡⟨ {!   !} ⟩
-          ((LiftF {ℓD'} {ℓs} ∘F ( D [-, (fst (fst (U c))) ])) ⟅ d ⟆)
-            ≡⟨ refl ⟩
-          ((LiftF {ℓD'} {ℓs} ⟅ (( D [-, (fst (fst (U c))) ]) ⟅ d ⟆) ⟆ ) )
-            ≡⟨ refl ⟩
-          ((Lift {ℓD'} {ℓs} ( D [ d , (fst (fst (U c))) ])) , (isOfHLevelLift 2 (isSetHom D )))
-            ≡⟨ refl ⟩
-          ((LiftF {ℓD'} {ℓs}) ⟅ ( D [ d , (fst (fst (U c))) ] , isSetHom D ) ⟆)
-            ≡⟨ refl ⟩
-          ((LiftF {ℓD'} {ℓs}) ⟅ ( D [ d , (fst (fst (U c))) ] , isSetHom D ) ⟆)
-            ≡⟨ refl ⟩
-          ((LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟅ d , c ⟆) ∎)
-        (λ (fd , fc) → {!   !})
-          -- ((LiftF {ℓs} {ℓD'} ∘F R) ⟪ fd , fc ⟫)
-          --  ≡⟨ ? ⟩
-         -- ((LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟪ fd , fc ⟫) ∎)
+    --RepFuncRecoversR : (U : ParamUniversalElement) → 
+    --  (LiftF {ℓs} {ℓD'} ∘F R)  ≡
+    --  (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation U)))
+    --RepFuncRecoversR U = 
+    --  let G = (Functor-ParamUniversalElement→PshFunctorRepresentation U) in
+    --  Functor≡
+    --    (λ (d , c) →
+    --      let R' = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) in
+    --      ((LiftF {ℓs} {ℓD'} ∘F R) ⟅ d , c ⟆)
+    --        ≡⟨ refl ⟩
+    --      (LiftF {ℓs} {ℓD'} ⟅ (fst (R' ⟅ d ⟆)) , (snd (R' ⟅ d ⟆)) ⟆)
+    --        ≡⟨ refl ⟩
+    --      (LiftF {ℓs} {ℓD'} ⟅ (R' ⟅ d ⟆) ⟆)
+    --        ≡⟨ refl ⟩
+    --      ((LiftF {ℓs} {ℓD'}  ∘F R') ⟅ d ⟆)
+    --      -- ((Lift {ℓs} {ℓD'} (fst (R' ⟅ d ⟆))) , (isOfHLevelLift 2 (snd (R' ⟅ d ⟆))))
+    --        -- representability gives us exactly that R' ⟅ d ⟆ is the same as the
+    --        -- hom set of the universal element from d. Not sure how to prove
+    --        ≡⟨ {!   !} ⟩
+    --      ((LiftF {ℓD'} {ℓs} ∘F ( D [-, (fst (fst (U c))) ])) ⟅ d ⟆)
+    --        ≡⟨ refl ⟩
+    --      ((LiftF {ℓD'} {ℓs} ⟅ (( D [-, (fst (fst (U c))) ]) ⟅ d ⟆) ⟆ ) )
+    --        ≡⟨ refl ⟩
+    --      ((Lift {ℓD'} {ℓs} ( D [ d , (fst (fst (U c))) ])) , (isOfHLevelLift 2 (isSetHom D )))
+    --        ≡⟨ refl ⟩
+    --      ((LiftF {ℓD'} {ℓs}) ⟅ ( D [ d , (fst (fst (U c))) ] , isSetHom D ) ⟆)
+    --        ≡⟨ refl ⟩
+    --      ((LiftF {ℓD'} {ℓs}) ⟅ ( D [ d , (fst (fst (U c))) ] , isSetHom D ) ⟆)
+    --        ≡⟨ refl ⟩
+    --      ((LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟅ d , c ⟆) ∎)
+    --    (λ (fd , fc) → {!   !})
+    --      -- ((LiftF {ℓs} {ℓD'} ∘F R) ⟪ fd , fc ⟫)
+    --      --  ≡⟨ ? ⟩
+    --     -- ((LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟪ fd , fc ⟫) ∎)
+    
+    -- RepFuncRecoversNatIso : (U : ParamUniversalElement) → NatIso
+    --   (LiftF {ℓs} {ℓD'} ∘F R)
+    --   (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation U)))
+    -- RepFuncRecoversNatIso U = {!   !}
+      -- let R' = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) in
+      -- seqNatIso ? ?
+    
+
+    -- the meet of the c based naturality comes from this yoneda
+    CFixed : (U : ParamUniversalElement) →
+      (∀ (c : C .ob) 
+        → NatIso
+          (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)))
+          (LiftF {ℓD'} {ℓs} ∘F ( D [-, (fst (fst (U c))) ]))
+      )
+    
+    CFixed U c = let R' = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) in
+      symNatIso (
+        FUNCTORIso→NatIso (D ^op) (SET _) 
+          (catiso 
+            (Iso.inv 
+              (yonedaᴾ* R' (fst (fst (U c))))
+              (snd (fst (U c)))
+            ) 
+            (isTerminalElement→YoIso D R' (U c) .inv)
+            (isTerminalElement→YoIso D R' (U c) .sec)
+            (isTerminalElement→YoIso D R' (U c) .ret)
+          )
+      )
+    
+    -- TODO: This seems silly, but idTrans didn't work...
+    CurryInC : ∀ (c : C .ob) → NatIso
+      ((curryFl (D ^op) (SET _) {Γ = C} ⟅ (LiftF {ℓs} {ℓD'} ∘F R) ⟆) ⟅ c ⟆)
+      (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c)))
+    CurryInC c .trans .N-ob d = (λ h → h)
+    CurryInC c .trans .N-hom f = refl
+    CurryInC c .nIso d .inv = (λ h → h)
+    CurryInC c .nIso d .sec = refl
+    CurryInC c .nIso d .ret = refl
+    
+
+    -- TODO: Unresolved constraints in this one. Perhaps someone with a better IDE could
+    -- isolate these issues
+    CurryOutC : (U : ParamUniversalElement) →
+      (∀ (c : C .ob) → NatIso
+        (LiftF {ℓD'} {ℓs} ∘F ( D [-, (fst (fst (U c))) ]))
+        ((curryFl (D ^op) (SET _) {Γ = C} ⟅ (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation U))) ⟆) ⟅ c ⟆)
+      )
+    CurryOutC U c .trans .N-ob d = (λ h → h)
+    CurryOutC U c .trans .N-hom {x} {y} f =
+      let G = Functor-ParamUniversalElement→PshFunctorRepresentation U in
+      ((LiftF {ℓD'} {ℓs} ∘F ( D [-, (fst (fst (U c))) ])) ⟪ f ⟫)
+      --  ≡⟨ refl ⟩
+      --(LiftF {ℓD'} {ℓs} ⟪ (λ h → f ⋆⟨ D ⟩ h ) ⟫)
+        ≡⟨ (λ i → (LiftF {ℓD'} {ℓs} ⟪ (λ h → (D .⋆IdR (f ⋆⟨ D ⟩ h)) (~ i)) ⟫ )) ⟩
+      -- (LiftF {ℓD'} {ℓs} ⟪ (λ h → (f ⋆⟨ D ⟩ h ) ⋆⟨ D ⟩ (D .id)) ⟫)
+      --   ≡⟨ refl ⟩
+      (LiftF {ℓD'} {ℓs} ⟪ (HomFunctor {ℓD} {ℓD'} D) ⟪ f , D .id ⟫ ⟫)
+        ≡⟨ (λ i → (LiftF {ℓD'} {ℓs} ⟪ (HomFunctor {ℓD} {ℓD'} D) ⟪ f , (G .F-id (~ i)) ⟫ ⟫)) ⟩ 
+      -- (LiftF {ℓD'} {ℓs} ⟪ (HomFunctor D) ⟪ f , (G ⟪ C .id ⟫) ⟫ ⟫)
+      --   ≡⟨ refl ⟩
+      -- (LiftF {ℓD'} {ℓs} ⟪ (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ⟪ f , C .id ⟫ ⟫)
+      --   ≡⟨ refl ⟩
+      -- ((LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟪ f , C .id ⟫)
+      --   ≡⟨ refl ⟩
+      ((curryFl (D ^op) (SET (ℓ-max ℓD' ℓs)) {Γ = C} ⟅ (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o {ℓC} {ℓC'} {ℓD} {ℓD'} C D G)) ⟆) ⟅ c ⟆) ⟪ f ⟫ ∎
+    CurryOutC U c .nIso d .inv = (λ h → h)
+    CurryOutC U c .nIso d .sec = refl
+    CurryOutC U c .nIso d .ret = refl
+
+    -- TODO: This needs to be split in the same way as CurryInC, Cfixed, CurryOutC
+    Test : (U : ParamUniversalElement) →
+      (∀ (d : D .ob) → NatIso
+        ((curryF C (SET _) {Γ = (D ^op)} ⟅ (LiftF {ℓs} {ℓD'} ∘F R) ⟆) ⟅ d ⟆)
+        ((curryF C (SET _) {Γ = (D ^op)} ⟅ LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation U)) ⟆) ⟅ d ⟆)
+      )
+      -- (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c)))
+    Test U d .trans .N-ob c = {!   !}
+    Test U d .trans .N-hom f = {!   !}
+    Test U d .nIso = {!   !}
+    
 
     ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
     ParamUniversalElement→PshFunctorRepresentation ParUnivElt =
       ( Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt ,
         (preservesNatIsosF (curryFl (D ^op) (SET _))
-          (pathToNatIso (RepFuncRecoversR ParUnivElt))
+          (binaryNatIso {C = (D ^op)} {D = C} {E = (SET _)}
+            (LiftF {ℓs} {ℓD'} ∘F R)
+            (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D (Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt)))
+            (λ (d : D .ob) → {!   !})
+            (λ (c : C .ob) → 
+              (seqNatIso
+                (CurryInC c)
+                (seqNatIso 
+                  (CFixed ParUnivElt c) 
+                  (CurryOutC ParUnivElt c)
+                )
+              )
+            )
+          )
         )
       )
+    
 
     -- | TODO: equivalence between 2 and 3 (follows from equivalence
     -- | between corresponding notions of representation of presheaves
@@ -626,3 +742,4 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 --   Repr'⇒Repr R R-representable =
 --     (Representable'.F R-representable) , Representable'.F-represents-R R-representable
    
+ 
