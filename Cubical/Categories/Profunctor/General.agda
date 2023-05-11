@@ -252,22 +252,22 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (ParUnivElt x))) ⟆) ⟪ ϕ ⟫) (snd (fst (ParUnivElt x))))
 
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-id {x} =
-      let R' = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in 
+      let R⟅-,x⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in 
       let (dₓ , θₓ) = (fst (ParUnivElt x)) in
-        (UniversalElement→UnivElt D R' (ParUnivElt x)) 
+        (UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) 
             .universal .coinduction
           ((((Prof*-o→FunctorR C D R)  ⟅ dₓ ⟆) ⟪ C .id ⟫) θₓ)
         -- Use the fact that curryF is a functor to simplify coinduction target (F-id)
         ≡⟨ (λ i → 
-            (UniversalElement→UnivElt D R' (ParUnivElt x)) 
+            (UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) 
               .universal .coinduction 
               ((((Prof*-o→FunctorR C D R)  ⟅ dₓ ⟆) .F-id (i)) θₓ)) ⟩
-        (UniversalElement→UnivElt D R' (ParUnivElt x)) .universal .coinduction θₓ
+        (UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) .universal .coinduction θₓ
         -- use uniqueness of universal element.
-        ≡⟨ sym ((UniversalElement→UnivElt D R' (ParUnivElt x)) .universal .is-uniq θₓ (D .id)
+        ≡⟨ sym ((UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) .universal .is-uniq θₓ (D .id)
               -- Nested proof that identity also works.
-              ( (R' ⟪ D .id ⟫) ((UniversalElement→UnivElt D R' (ParUnivElt x)) .element)
-                ≡⟨ (λ i → (R' .F-id (i)) ((UniversalElement→UnivElt D R' (ParUnivElt x)) .element)) ⟩
+              ( (R⟅-,x⟆ ⟪ D .id ⟫) ((UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) .element)
+                ≡⟨ (λ i → (R⟅-,x⟆ .F-id (i)) ((UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) .element)) ⟩
               θₓ ∎
               ) 
         )⟩
@@ -280,36 +280,36 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       let (dx , εx) = (fst (ParUnivElt x)) in
       let (dy , εy) = (fst (ParUnivElt y)) in
       let (dz , εz) = (fst (ParUnivElt z)) in
-      let R-,y = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
-      let R-,z = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C z) in
-      let Rdx,- = ((Prof*-o→FunctorR C D R) ⟅ dx ⟆) in
-      let Rdy,- = ((Prof*-o→FunctorR C D R) ⟅ dy ⟆) in
+      let R⟅-,y⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
+      let R⟅-,z⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C z) in
+      let R⟅dx,-⟆ = ((Prof*-o→FunctorR C D R) ⟅ dx ⟆) in
+      let R⟅dy,-⟆ = ((Prof*-o→FunctorR C D R) ⟅ dy ⟆) in
         ( Gϕ⋆ψ )
-        ≡⟨ (λ i → (UniversalElement→UnivElt D R-,z (ParUnivElt z)) 
+        ≡⟨ (λ i → (UniversalElement→UnivElt D R⟅-,z⟆ (ParUnivElt z)) 
           .universal .coinduction
-          (((Rdx,- .F-seq ϕ ψ) (i)) εx)
+          (((R⟅dx,-⟆ .F-seq ϕ ψ) (i)) εx)
         ) ⟩
-        ((UniversalElement→UnivElt D R-,z (ParUnivElt z)) 
+        ((UniversalElement→UnivElt D R⟅-,z⟆ (ParUnivElt z)) 
           .universal .coinduction
-          ((Rdx,- ⟪ ψ ⟫)
-            ((Rdx,- ⟪ ϕ ⟫) εx)
+          ((R⟅dx,-⟆ ⟪ ψ ⟫)
+            ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx)
           )
         )
-        ≡⟨ sym ((UniversalElement→UnivElt D R-,z (ParUnivElt z)) .universal .is-uniq 
-          ((Rdx,- ⟪ ψ ⟫)((Rdx,- ⟪ ϕ ⟫) εx)) 
+        ≡⟨ sym ((UniversalElement→UnivElt D R⟅-,z⟆ (ParUnivElt z)) .universal .is-uniq 
+          ((R⟅dx,-⟆ ⟪ ψ ⟫)((R⟅dx,-⟆ ⟪ ϕ ⟫) εx)) 
           -- enough to show that this function also yields above result
           (Gϕ ⋆⟨ D ⟩ Gψ) 
           (
-            (D [ εz ∘ᴾ⟨ R-,z ⟩ (Gϕ ⋆⟨ D ⟩ Gψ) ])
-              ≡⟨ (λ i → ((R-,z .F-seq Gψ Gϕ) (i)) εz) ⟩
-            (D [ (D [ εz ∘ᴾ⟨ R-,z ⟩ (Gψ) ]) ∘ᴾ⟨ R-,z ⟩ Gϕ ])
+            (D [ εz ∘ᴾ⟨ R⟅-,z⟆ ⟩ (Gϕ ⋆⟨ D ⟩ Gψ) ])
+              ≡⟨ (λ i → ((R⟅-,z⟆ .F-seq Gψ Gϕ) (i)) εz) ⟩
+            (D [ (D [ εz ∘ᴾ⟨ R⟅-,z⟆ ⟩ (Gψ) ]) ∘ᴾ⟨ R⟅-,z⟆ ⟩ Gϕ ])
               ≡⟨ (λ i →
                 (D [ 
-                  (((UniversalElement→UnivElt D R-,z (ParUnivElt z)) .universal .commutes ((Rdy,- ⟪ ψ ⟫) εy)) (i))
-                  ∘ᴾ⟨ R-,z ⟩ Gϕ ]
+                  (((UniversalElement→UnivElt D R⟅-,z⟆ (ParUnivElt z)) .universal .commutes ((R⟅dy,-⟆ ⟪ ψ ⟫) εy)) (i))
+                  ∘ᴾ⟨ R⟅-,z⟆ ⟩ Gϕ ]
                 )
               ) ⟩
-            (D [ ((Rdy,- ⟪ ψ ⟫) εy) ∘ᴾ⟨ R-,z ⟩ Gϕ ])
+            (D [ ((R⟅dy,-⟆ ⟪ ψ ⟫) εy) ∘ᴾ⟨ R⟅-,z⟆ ⟩ Gϕ ])
               ≡⟨ refl ⟩
             ((R ⟪ Gϕ , C .id ⟫) ((R ⟪ D .id , ψ ⟫) (εy)))
               ≡⟨ (λ i → (
@@ -325,13 +325,13 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
               )) ⟩
             ((R ⟪ D .id , ψ ⟫) ((R ⟪ Gϕ , C .id ⟫) (εy)))
               ≡⟨ refl ⟩
-            ((Rdx,- ⟪ ψ ⟫) (D [ εy ∘ᴾ⟨ R-,y ⟩ Gϕ ]))
+            ((R⟅dx,-⟆ ⟪ ψ ⟫) (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ Gϕ ]))
               ≡⟨ (λ i → 
-                ((Rdx,- ⟪ ψ ⟫)
-                  (((UniversalElement→UnivElt D R-,y (ParUnivElt y)) .universal .commutes ((Rdx,- ⟪ ϕ ⟫) εx)) (i))
+                ((R⟅dx,-⟆ ⟪ ψ ⟫)
+                  (((UniversalElement→UnivElt D R⟅-,y⟆ (ParUnivElt y)) .universal .commutes ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx)) (i))
                 )
               ) ⟩
-            ((Rdx,- ⟪ ψ ⟫)((Rdx,- ⟪ ϕ ⟫) εx)) 
+            ((R⟅dx,-⟆ ⟪ ψ ⟫)((R⟅dx,-⟆ ⟪ ϕ ⟫) εx)) 
           ∎)
         )⟩
         (Gϕ ⋆⟨ D ⟩ Gψ) ∎
