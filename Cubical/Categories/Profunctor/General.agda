@@ -51,7 +51,7 @@ open import Cubical.Categories.Equivalence.Properties
 open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.NaturalTransformation.More
 
-open import Cubical.Categories.Presheaf.Representable
+open import Cubical.Categories.Presheaf.More
 open import Cubical.Tactics.CategorySolver.Reflection
 
 
@@ -273,30 +273,58 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       D .id ∎
 
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq {x} {y} {z} ϕ ψ =
-      let Rx = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in
-      let Ry = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
-      let Rz = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C z) in
-      let curryR = Prof*-o→FunctorR C D R in
-      let ((dx , θx) , PUExTerminal) = ParUnivElt x in
-      let ((dy , θy) , PUEyTerminal) = ParUnivElt y in
-      let ((dz , θz) , PUEzTerminal) = ParUnivElt z in
-      let ProfϕSeqψ =  ((curryR ⟅ dx ⟆) ⟪ seq' C ϕ ψ ⟫ ) θx in
-      let start = PUEzTerminal (dx , ProfϕSeqψ ) .fst .fst in
-      let Profϕ = ((curryR ⟅ dx ⟆) ⟪ ϕ ⟫ ) θx in
-      let Profψ = ((curryR ⟅ dy ⟆) ⟪ ψ ⟫ ) θy in
-      let α = (PUEyTerminal (dx , Profϕ) .fst .fst) in
-      let β = (PUEzTerminal (dy , Profψ) .fst .fst) in
-      let end = seq' D α β in
-          sym (UniversalElement→UnivElt D Rz (ParUnivElt z) .universal .is-uniq ProfϕSeqψ end (
-            Rz .F-hom end θz
-              ≡⟨ (λ i → (Rz .F-seq β α) i θz ) ⟩
-            (Rz .F-hom α) ((Rz .F-hom β) θz)
-              ≡⟨ {!refl!} ⟩
-            (curryR .F-ob dx .F-hom ψ) ((curryR .F-ob dx .F-hom ϕ) θx)
-              ≡⟨ ((λ i → (curryR .F-ob dx .F-seq ϕ ψ) (~ i) θx)) ⟩
-            curryR .F-ob dx .F-hom (ϕ ⋆⟨ C ⟩ ψ) θx
+      let Gϕ⋆ψ = (Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt) .F-hom (ϕ ⋆⟨ C ⟩ ψ) in
+      let Gϕ = (Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt) .F-hom ϕ in
+      let Gψ = (Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt) .F-hom ψ in
+      let (dx , εx) = (fst (ParUnivElt x)) in
+      let (dy , εy) = (fst (ParUnivElt y)) in
+      let (dz , εz) = (fst (ParUnivElt z)) in
+      let R-,y = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
+      let R-,z = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C z) in
+      let Rdx,- = ((Prof*-o→FunctorR C D R) ⟅ dx ⟆) in
+      let Rdy,- = ((Prof*-o→FunctorR C D R) ⟅ dy ⟆) in
+        ( Gϕ⋆ψ )
+        ≡⟨ (λ i → (UniversalElement→UnivElt D R-,z (ParUnivElt z)) 
+          .universal .coinduction
+          (((Rdx,- .F-seq ϕ ψ) (i)) εx)
+        ) ⟩
+        ((UniversalElement→UnivElt D R-,z (ParUnivElt z)) 
+          .universal .coinduction
+          ((Rdx,- ⟪ ψ ⟫)
+            ((Rdx,- ⟪ ϕ ⟫) εx)
+          )
+        )
+        ≡⟨ sym ((UniversalElement→UnivElt D R-,z (ParUnivElt z)) .universal .is-uniq 
+          ((Rdx,- ⟪ ψ ⟫)((Rdx,- ⟪ ϕ ⟫) εx)) 
+          -- enough to show that this function also yields above result
+          (Gϕ ⋆⟨ D ⟩ Gψ) 
+          (
+            (D [ εz ∘ᴾ⟨ R-,z ⟩ (Gϕ ⋆⟨ D ⟩ Gψ) ])
+              ≡⟨ (λ i → ((R-,z .F-seq Gψ Gϕ) (i)) εz) ⟩
+            (D [ (D [ εz ∘ᴾ⟨ R-,z ⟩ (Gψ) ]) ∘ᴾ⟨ R-,z ⟩ Gϕ ])
+              ≡⟨ (λ i →
+                (D [ 
+                  (((UniversalElement→UnivElt D R-,z (ParUnivElt z)) .universal .commutes ((Rdy,- ⟪ ψ ⟫) εy)) (i))
+                  ∘ᴾ⟨ R-,z ⟩ Gϕ ]
+                )
+              ) ⟩
+            (D [ ((Rdy,- ⟪ ψ ⟫) εy) ∘ᴾ⟨ R-,z ⟩ Gϕ ])
               ≡⟨ refl ⟩
-            ProfϕSeqψ ∎))
+            ((R ⟪ Gϕ , C .id ⟫) ((R ⟪ D .id , ψ ⟫) (εy)))
+              -- this is easy, can use binmorphdecomp from other branch
+              ≡⟨ {!   !} ⟩
+            ((R ⟪ D .id , ψ ⟫) ((R ⟪ Gϕ , C .id ⟫) (εy)))
+              ≡⟨ refl ⟩
+            ((Rdx,- ⟪ ψ ⟫) (D [ εy ∘ᴾ⟨ R-,y ⟩ Gϕ ]))
+              ≡⟨ (λ i → 
+                ((Rdx,- ⟪ ψ ⟫)
+                  (((UniversalElement→UnivElt D R-,y (ParUnivElt y)) .universal .commutes ((Rdx,- ⟪ ϕ ⟫) εx)) (i))
+                )
+              ) ⟩
+            ((Rdx,- ⟪ ψ ⟫)((Rdx,- ⟪ ϕ ⟫) εx)) 
+          ∎)
+        )⟩
+        (Gϕ ⋆⟨ D ⟩ Gψ) ∎
 
 
 
@@ -626,3 +654,4 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 --   Repr'⇒Repr R R-representable =
 --     (Representable'.F R-representable) , Representable'.F-represents-R R-representable
    
+ 
