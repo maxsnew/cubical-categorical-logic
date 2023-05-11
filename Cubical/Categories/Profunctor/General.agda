@@ -53,6 +53,7 @@ open import Cubical.Categories.NaturalTransformation.More
 
 open import Cubical.Categories.Presheaf.More
 open import Cubical.Tactics.CategorySolver.Reflection
+open import Cubical.Categories.Constructions.BinProduct.More
 
 
 open import Cubical.Foundations.HLevels
@@ -311,8 +312,17 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
             (D [ ((Rdy,- ⟪ ψ ⟫) εy) ∘ᴾ⟨ R-,z ⟩ Gϕ ])
               ≡⟨ refl ⟩
             ((R ⟪ Gϕ , C .id ⟫) ((R ⟪ D .id , ψ ⟫) (εy)))
-              -- this is easy, can use binmorphdecomp from other branch
-              ≡⟨ {!   !} ⟩
+              ≡⟨ (λ i → (
+                ((BinMorphDecompR {C = (D ^op)} {D = C} {E = (SET _)} 
+                  (Gϕ , ψ) R) (~ i)
+                ) (εy)
+              )) ⟩
+            ((R ⟪ Gϕ , ψ ⟫) (εy))
+              ≡⟨ (λ i → (
+                ((BinMorphDecompL {C = (D ^op)} {D = C} {E = (SET _)} 
+                  (Gϕ , ψ) R) (i)
+                ) (εy)
+              )) ⟩
             ((R ⟪ D .id , ψ ⟫) ((R ⟪ Gϕ , C .id ⟫) (εy)))
               ≡⟨ refl ⟩
             ((Rdx,- ⟪ ψ ⟫) (D [ εy ∘ᴾ⟨ R-,y ⟩ Gϕ ]))
