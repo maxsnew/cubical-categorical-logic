@@ -27,6 +27,7 @@ module Cubical.Categories.Profunctor.General where
 open import Cubical.Foundations.Prelude hiding (Path)
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Univalence
+open import Cubical.Foundations.Function renaming (_∘_ to _∘f_)
 
 open import Cubical.Data.Graph.Base
 open import Cubical.Data.Graph.Path
@@ -57,6 +58,8 @@ open import Cubical.Tactics.CategorySolver.Reflection
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
+
+open import Cubical.Categories.Presheaf.More
 
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
@@ -497,14 +500,48 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
     -- yoneda won't work here :(
     -- categories don't line up
-    -- DFixed : (U : ParamUniversalElement) →
-    --   (∀ (d : D .ob) → NatIso
-    --     (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Constant C (D ^op) d ,F Id)))
-    --     (LiftF {ℓD'} {ℓs} ∘F ( (D [ d ,-]) ∘F (Functor-ParamUniversalElement→PshFunctorRepresentation U) ))
-    --   )
-    -- DFixed U d .trans .N-ob c = {!   !}
-    -- DFixed U d .trans .N-hom f = {!   !}
-    -- DFixed U d .nIso  = {!   !}
+    DFixed : (U : ParamUniversalElement) →
+      (∀ (d : D .ob) → NatIso
+        (LiftF {ℓD'} {ℓs} ∘F ( (D [ d ,-]) ∘F (Functor-ParamUniversalElement→PshFunctorRepresentation U)))
+          (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Constant C (D ^op) d ,F Id)))
+      )
+    DFixed U d .trans .N-ob c f =
+      let R' = (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c))) in
+      D [ lift (U c .fst .snd) ∘ᴾ⟨ R' ⟩ lower f ]
+    DFixed U d .trans .N-hom {c₁} {c₂} g =
+      let R'₁ = (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c₁))) in
+      let R''₁ = (R ∘F (Id ,F Constant (D ^op) C c₁)) in
+      let R'₂ = (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c₂))) in
+      let R''₂ = (R ∘F (Id ,F Constant (D ^op) C c₂)) in
+      let R'd = (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Constant C (D ^op) d ,F Id))) in
+      let G = Functor-ParamUniversalElement→PshFunctorRepresentation U in
+      let UE₁ = UniversalElement→UnivElt D R''₁ (U c₁) in
+      let UE₂ = UniversalElement→UnivElt D R''₂ (U c₂) in
+      let ε₂ = U c₂ .fst .snd in
+      let ε₁ = U c₁ .fst .snd in
+      let coind₁ = UE₁ .universal .coinduction in
+      let coind₂ = UE₂ .universal .coinduction in
+      let g⋆ε = D [ (lift ε₂) ∘ᴾ⟨ R'₂ ⟩ (G ⟪ g ⟫) ] in
+      (λ f → DFixed U d .trans .N-ob c₂ f) ∘f ((LiftF {ℓD'} {ℓs} ∘F (D [ d ,-]) ∘F G) ⟪ g ⟫)
+         ≡⟨ refl ⟩
+      (λ f → D [ lift (ε₂) ∘ᴾ⟨ R'₂ ⟩ lower f ]) ∘f ((LiftF {ℓD'} {ℓs} ∘F (D [ d ,-]) ∘F G) ⟪ g ⟫)
+         ≡⟨ {! (D [ d  ,-]) .F-hom (UE₂ .universal .coinduction (lower g⋆ε))!} ⟩
+      (λ f → D [ lift (ε₂) ∘ᴾ⟨ R'₂ ⟩ lower f ]) ∘f (λ h → (D ^op) [ h ∘ᴾ⟨ LiftF {ℓD'} {ℓs} ∘F (D [ d ,-]) ⟩ (coind₂ (lower g⋆ε)) ])
+         ≡⟨ refl ⟩
+      (λ h → D [ lift (ε₂) ∘ᴾ⟨ R'₂ ⟩ lower ((D ^op) [ h ∘ᴾ⟨ LiftF {ℓD'} {ℓs} ∘F (D [ d ,-]) ⟩ (coind₂ (lower g⋆ε)) ]) ])
+         ≡⟨ refl ⟩
+      (λ h → D [ lift (ε₂) ∘ᴾ⟨ R'₂ ⟩ (coind₂ (lower g⋆ε)) ∘⟨ D ⟩ (lower h) ])
+         ≡⟨ {!∘ᴾAssoc D R'₂ (lift ε₂) (UE₂ .universal .coinduction (lower g⋆ε))!} ⟩
+      (λ h → D [ D [ lift (ε₂) ∘ᴾ⟨ R'₂ ⟩ (coind₂ (lower g⋆ε)) ] ∘ᴾ⟨ R'₂ ⟩ (lower h) ])
+         ≡⟨  {!!} ⟩
+         -- .commutes
+      (λ h → D [ g⋆ε ∘ᴾ⟨ R'₂ ⟩ (lower h) ])
+         ≡⟨  refl ⟩
+      (λ h → (R'₂ .F-hom (lower h) (g⋆ε)))
+         ≡⟨  {!!} ⟩
+      (R'd ⟪ g ⟫) ∘f (λ f → DFixed U d .trans .N-ob c₁ f)  ∎
+
+    DFixed U d .nIso  = {!   !}
     -- DFixed U d = let R' = R ∘F (Constant C (D ^op) d ,F Id) in
     --   symNatIso (
     --     FUNCTORIso→NatIso C (SET _)
@@ -517,7 +554,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     --       {!   !}
     --       {!   !}
     --     )
-    --   )
+      -- )
 
     
     -- CurryOutD : (U : ParamUniversalElement) →
@@ -888,5 +925,3 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 --   Repr'⇒Repr : ∀ {C D} (R : C ⊶ D) → Representable' R → Representable R
 --   Repr'⇒Repr R R-representable =
 --     (Representable'.F R-representable) , Representable'.F-represents-R R-representable
-   
- 
