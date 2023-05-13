@@ -88,7 +88,6 @@ private
   variable
     ℓE ℓE' : Level
 
-
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}{E : Category ℓE ℓE'} where
 
   open Category
@@ -116,45 +115,13 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}{E : Category ℓE �
     (F ⟪ C .id ⋆⟨ C ⟩ f , g ⋆⟨ D ⟩ D .id ⟫)
       ≡⟨ F .F-seq (C .id , g) (f , D .id) ⟩
     (F ⟪ C .id , g ⟫) ⋆⟨ E ⟩ (F ⟪ f , D .id ⟫) ∎
--- 
--- 
---   -- natural iso in each component yields naturality 
---   binaryNatIso : ∀ (F G : Functor (C ×C D) E) 
---     → ( βc : (∀ (c : C .ob) → NatIso (((curryF D E {Γ = C}) ⟅ F ⟆) ⟅ c ⟆) (((curryF D E {Γ = C}) ⟅ G ⟆) ⟅ c ⟆)))
---     → ( βd : (∀ (d : D .ob) → NatIso (((curryFl C E {Γ = D}) ⟅ F ⟆) ⟅ d ⟆) (((curryFl C E {Γ = D}) ⟅ G ⟆) ⟅ d ⟆)))
---     → ( ∀ ((c , d) : (C ×C D) .ob) → ((βc c .trans .N-ob d) ≡ (βd d .trans .N-ob c)))
---     → NatIso F G
---   binaryNatIso F G βc βd β≡ .trans .N-ob (c , d) = (βc c) .trans .N-ob d
---   binaryNatIso F G βc βd β≡ .trans .N-hom {(c₁ , d₁)} {(c₂ , d₂)} (fc , fd) =
---     ((F ⟪ fc , fd ⟫) ⋆⟨ E ⟩ ((βc c₂) .trans .N-ob d₂))
---       ≡⟨ (λ i → ((BinMorphDecomp (fc , fd) F) (i)) ⋆⟨ E ⟩ ((βc c₂) .trans .N-ob d₂)) ⟩
---     (((F ⟪ fc , D .id ⟫) ⋆⟨ E ⟩ (F ⟪ C .id , fd ⟫)) ⋆⟨ E ⟩ ((βc c₂) .trans .N-ob d₂))
---       ≡⟨ solveCat! E ⟩
---     ((F ⟪ fc , D .id ⟫) ⋆⟨ E ⟩ ((F ⟪ C .id , fd ⟫) ⋆⟨ E ⟩ ((βc c₂) .trans .N-ob d₂)))
---       ≡⟨ (λ i → (F ⟪ fc , D .id ⟫) ⋆⟨ E ⟩ ((βc c₂) .trans .N-hom fd (i))) ⟩
---     ((F ⟪ fc , D .id ⟫) ⋆⟨ E ⟩ (((βc c₂) .trans .N-ob d₁) ⋆⟨ E ⟩ (G ⟪ C .id , fd ⟫)))
---       ≡⟨ (λ i → (F ⟪ fc , D .id ⟫) ⋆⟨ E ⟩ (((β≡ (c₂ , d₁)) (i)) ⋆⟨ E ⟩ (G ⟪ C .id , fd ⟫))) ⟩
---     ((F ⟪ fc , D .id ⟫) ⋆⟨ E ⟩ (((βd d₁) .trans .N-ob c₂) ⋆⟨ E ⟩ (G ⟪ C .id , fd ⟫)))
---       ≡⟨ solveCat! E ⟩
---     (((F ⟪ fc , D .id ⟫) ⋆⟨ E ⟩ ((βd d₁) .trans .N-ob c₂)) ⋆⟨ E ⟩ (G ⟪ C .id , fd ⟫))
---       ≡⟨ (λ i → ((βd  d₁) .trans .N-hom fc (i)) ⋆⟨ E ⟩ (G ⟪ C .id , fd ⟫)) ⟩
---     ((((βd d₁) .trans .N-ob c₁) ⋆⟨ E ⟩ (G ⟪ fc , D .id ⟫)) ⋆⟨ E ⟩ (G ⟪ C .id , fd ⟫))
---       ≡⟨ solveCat! E ⟩
---     (((βd d₁) .trans .N-ob c₁) ⋆⟨ E ⟩ ((G ⟪ fc , D .id ⟫) ⋆⟨ E ⟩ (G ⟪ C .id , fd ⟫)))
---       ≡⟨ (λ i → ((βd d₁) .trans .N-ob c₁) ⋆⟨ E ⟩ ((BinMorphDecomp (fc , fd) G) (~ i))) ⟩
---     (((βd  d₁) .trans .N-ob c₁) ⋆⟨ E ⟩ (G ⟪ fc , fd ⟫))
---       ≡⟨ (λ i → (β≡ (c₁ , d₁) (~ i)) ⋆⟨ E ⟩ (G ⟪ fc , fd ⟫)) ⟩
---     (((βc c₁) .trans .N-ob d₁) ⋆⟨ E ⟩ (G ⟪ fc , fd ⟫)) ∎
---   binaryNatIso F G βc βd β≡ .nIso (c , d)  = (βc c) .nIso d
 
 private
   variable
     ℓs : Level
-  
 
 open Functor
 
--- | TODO: these should be equivalences (isos?) of categories
 Functor→Prof*-o : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C *-[ ℓD' ]-o D
 Functor→Prof*-o C D F = HomFunctor D ∘F (Id {C = D ^op} ×F F)
 
@@ -192,8 +159,23 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       NatIso (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
              (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G))
 
+    -- | Definition 3: Parameterized Universal Element
+    -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
+    ParamUniversalElement : Type _
+    ParamUniversalElement = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+
+    -- | Definition 4: Parameterized UnivElt
+    -- | Same but with the unpacked UnivElt definition
+    ParamUnivElt : Type _
+    ParamUnivElt = (c : C .ob) → UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+
+    -- Show equivalence of all four definitions.
+    -- Here we provide functions between definitions. We offload the proofs that these
+    -- are indeed equivalences to Profunctor.Equivalence to avoid loading too much at once
+
+    -- | Definition 1 → Definition 2
     ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
-    ProfRepresentation→PshFunctorRepresentation (G , η) = (G , 
+    ProfRepresentation→PshFunctorRepresentation (G , η) = (G ,
         (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
       )
 
@@ -201,6 +183,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     open NatIso
     open isWeakEquivalence
 
+    -- | Definition 2 → Definition 1
     PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
     PshFunctorRepresentation→ProfRepresentation (G , η) = (G ,
       FUNCTORIso→NatIso (D ^op ×C C) (SET _)
@@ -208,22 +191,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
         (NatIso→FUNCTORIso C _ η)
       ))
-
-    -- this seemingly needs univalence
-    -- Def1=Def2 : ProfRepresentation ≡ PshFunctorRepresentation
-    -- Def1=Def2 = hPropExt {!!} {!!} {!!} {!!}
-
-    -- PshFunctorRepresentation≅ProfRepresentation : Iso PshFunctorRepresentation ProfRepresentation
-    -- PshFunctorRepresentation≅ProfRepresentation .Iso.fun = PshFunctorRepresentation→ProfRepresentation
-    -- PshFunctorRepresentation≅ProfRepresentation .Iso.inv = ProfRepresentation→PshFunctorRepresentation
-    -- PshFunctorRepresentation≅ProfRepresentation .Iso.rightInv = {!!}
-    -- PshFunctorRepresentation≅ProfRepresentation .Iso.leftInv = {!!}
-
-    -- | Definition 3: Parameterized Universal Element
-    -- m
-    -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
-    ParamUniversalElement : Type _
-    ParamUniversalElement = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
 
     open isIso
     open NatTrans
@@ -245,7 +212,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     HomViaProduct G c .nIso d .ret = refl
 
     
-    -- TODO don't know what file this belongs in. Might be able to make more general
     HomFunctorPath : (d : D .ob) → HomFunctor D ∘F (Id {C = D ^op} ,F Constant (D ^op) D d ) ≡ D [-, d ]
     HomFunctorPath d = Functor≡
       ((λ c → ( refl )))
@@ -268,7 +234,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         F ⟪ Constant (D ^op) C c ⟪ f ⟫ ⟫ ∎
         ))
 
-    -- TODO Reorganize and shorten
+    -- | Definition 2 → Definition 3
     PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
     PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
       RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
@@ -310,13 +276,13 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     Prof*-o→FunctorR : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o D) → Functor (D ^op) (FUNCTOR C (SET ℓs))
     Prof*-o→FunctorR C D R = curryF C (SET _) ⟅ R ⟆
 
+    -- | For Definition 3 → Definition 2, we need to construct a functor
     Functor-ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → Functor C D
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-ob c = fst (fst (ParUnivElt c))
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-hom {x} {y} ϕ =
       (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) (ParUnivElt y)) 
         .universal .coinduction
         ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (ParUnivElt x))) ⟆) ⟪ ϕ ⟫) (snd (fst (ParUnivElt x))))
-
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-id {x} =
       let R' = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in 
       let (dₓ , θₓ) = (fst (ParUnivElt x)) in
@@ -338,7 +304,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
               ) 
         )⟩
       D .id ∎
-
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-seq {x} {y} {z} ϕ ψ =
       let Rx = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in
       let Ry = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
@@ -365,6 +330,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
               ≡⟨ refl ⟩
             ProfϕSeqψ ∎))
 
+    -- | Fixing the C component of R gives a natural isomorphism
     CFixed : (U : ParamUniversalElement) →
       (∀ (c : C .ob) 
         → NatIso
@@ -385,16 +351,16 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           )
       )
 
-    -- TODO: This seems silly, but idTrans didn't work...
-    CurryInC : ∀ (c : C .ob) → NatIso
-      ((curryFl (D ^op) (SET _) {Γ = C} ⟅ (LiftF {ℓs} {ℓD'} ∘F R) ⟆) ⟅ c ⟆)
-      (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c)))
-    CurryInC c .trans .N-ob d = (λ h → h)
-    CurryInC c .trans .N-hom f = refl
-    CurryInC c .nIso d .inv = (λ h → h)
-    CurryInC c .nIso d .sec = refl
-    CurryInC c .nIso d .ret = refl
+    -- CurryInC : ∀ (c : C .ob) → NatIso
+      -- ((curryFl (D ^op) (SET _) {Γ = C} ⟅ (LiftF {ℓs} {ℓD'} ∘F R) ⟆) ⟅ c ⟆)
+      -- (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c)))
+    -- CurryInC c .trans .N-ob d = (λ h → h)
+    -- CurryInC c .trans .N-hom f = refl
+    -- CurryInC c .nIso d .inv = (λ h → h)
+    -- CurryInC c .nIso d .sec = refl
+    -- CurryInC c .nIso d .ret = refl
 
+    -- | Likewise, fixing the D ^op component of R gives a natural isomorphism
     DFixed : (U : ParamUniversalElement) →
       (∀ (d : D .ob) → NatIso
         (LiftF {ℓD'} {ℓs} ∘F ( (D [ d ,-]) ∘F (Functor-ParamUniversalElement→PshFunctorRepresentation U)))
@@ -431,13 +397,11 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         (R' ⟪ D .id , g ⟫) ((R' ⟪ lower h , C .id ⟫) (lift ε₁)) ∎
       )
     DFixed U d .nIso c =
-      let R' = (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c))) in
-      let R'' = (R ∘F (Id ,F Constant (D ^op) C c)) in
-      let univ = UniversalElement→UnivElt D R'' (U c) .universal in
+      let univ = UniversalElement→UnivElt D (R ∘F (Id ,F Constant (D ^op) C c)) (U c) .universal in
       isiso
-        (λ (f : (LiftF ⟅ (R ∘F (Constant C (D ^op) d ,F Id)) ⟅ c ⟆ ⟆) .fst)  → lift (univ .coinduction (lower f)))
-        {!!}
-        {!!}
+        (λ f  → lift (univ .coinduction (lower f)))
+        (funExt (λ f → λ i → lift (univ .commutes (lower f) i)))
+        (funExt (λ f → λ i → lift (η-expansion univ (lower f) (~ i))))
 
     Test : (U : ParamUniversalElement) →
       NatIso 
@@ -504,12 +468,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- | between corresponding notions of representation of presheaves
     -- | + an "automatic" naturality proof)
 
-    -- | Definition 4: Parameterized UnivElt
-    -- | Same but with the unpacked UnivElt definition
-    ParamUnivElt : Type _
-    ParamUnivElt = (c : C .ob) → UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
-
-    
     -- 3 ⇔ 4 follows from maps between defs of universal element
     ParamUniversalElement→ParamUnivElt : ParamUniversalElement → ParamUnivElt
     ParamUniversalElement→ParamUnivElt PUE c = UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) (PUE c)
