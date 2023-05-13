@@ -420,23 +420,15 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       let coind₂ = UE₂ .universal .coinduction in
       let g⋆ε = (C ^op) [ lift ε₁ ∘ᴾ⟨ R'Gc₁ ⟩ g ] in
       funExt (λ h → 
-        ((DFixed U d .trans .N-ob c₂) ∘f ((LiftF {ℓD'} {ℓs} ∘F (D [ d ,-]) ∘F G) ⟪ g ⟫)) h
-          ≡⟨ refl ⟩
-        (DFixed U d .trans .N-ob c₂) ( ((LiftF {ℓD'} {ℓs} ∘F (D [ d ,-]) ∘F G) ⟪ g ⟫) h)
-          ≡⟨ refl ⟩
         D [ lift (ε₂) ∘ᴾ⟨ R'₂ ⟩ (coind₂ (lower g⋆ε)) ∘⟨ D ⟩ (lower h) ]
           ≡⟨ ∘ᴾAssoc D R'₂ (lift ε₂) (coind₂ (lower g⋆ε)) (lower h) ⟩
         D [ D [ lift (ε₂) ∘ᴾ⟨ R'₂ ⟩ (coind₂ (lower g⋆ε)) ] ∘ᴾ⟨ R'₂ ⟩ (lower h) ]
           ≡⟨ ((λ i → D [ lift ((UE₂ .universal .commutes (lower g⋆ε)) i) ∘ᴾ⟨ R'₂ ⟩ (lower h) ] )) ⟩
         D [ g⋆ε ∘ᴾ⟨ R'₂ ⟩ (lower h) ]
-          ≡⟨ refl ⟩
-        -- (g ⋆ ε₁) ⋆ h
-        D [ (C ^op) [ lift ε₁ ∘ᴾ⟨ R'Gc₁ ⟩ g ] ∘ᴾ⟨ R'₂ ⟩ (lower h) ]
-          ≡⟨ {!!} ⟩
-        -- g ⋆ (ε₁ ⋆ h)
-        (C ^op) [ D [ lift ε₁  ∘ᴾ⟨ R'₁ ⟩ lower h ] ∘ᴾ⟨ R'd ⟩ g ]
-          ≡⟨ refl ⟩
-        ((R'd ⟪ g ⟫) ∘f (DFixed U d .trans .N-ob c₁)) h ∎
+          ≡⟨ (λ i → (BinMorphDecompR {C = D ^op} {D = C} {E = SET _} (lower h , g) R') (~ i) (lift ε₁)) ⟩
+        (R' ⟪ lower h , g ⟫) (lift ε₁)
+          ≡⟨ (λ i → (BinMorphDecompL {C = D ^op} {D = C} {E = SET _} (lower h , g) R') i (lift ε₁)) ⟩
+        (R' ⟪ D .id , g ⟫) ((R' ⟪ lower h , C .id ⟫) (lift ε₁)) ∎
       )
     DFixed U d .nIso c =
       let R' = (LiftF {ℓs} {ℓD'} ∘F (R ∘F (Id ,F Constant (D ^op) C c))) in
@@ -447,7 +439,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         {!!}
         {!!}
 
-     Test : (U : ParamUniversalElement) →
+    Test : (U : ParamUniversalElement) →
       NatIso 
         (LiftF {ℓs} {ℓD'} ∘F R)
         (LiftF {ℓD'} {ℓs} ∘F HomFunctor D ∘F (Id {C = D ^op} ×F (Functor-ParamUniversalElement→PshFunctorRepresentation U)))
