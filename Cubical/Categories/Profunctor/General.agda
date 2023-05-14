@@ -487,21 +487,13 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     CurryOutC U c .trans .N-ob d = (λ h → h)
     CurryOutC U c .trans .N-hom {x} {y} f =
       let G = Functor-ParamUniversalElement→PshFunctorRepresentation U in
-      ((LiftF {ℓD'} {ℓs} ∘F ( D [-, (fst (fst (U c))) ])) ⟪ f ⟫)
-      --  ≡⟨ refl ⟩
-      --(LiftF {ℓD'} {ℓs} ⟪ (λ h → f ⋆⟨ D ⟩ h ) ⟫)
-        ≡⟨ (λ i → (LiftF {ℓD'} {ℓs} ⟪ (λ h → (D .⋆IdR (f ⋆⟨ D ⟩ h)) (~ i)) ⟫ )) ⟩
-      -- (LiftF {ℓD'} {ℓs} ⟪ (λ h → (f ⋆⟨ D ⟩ h ) ⋆⟨ D ⟩ (D .id)) ⟫)
-      --   ≡⟨ refl ⟩
-      (LiftF {ℓD'} {ℓs} ∘F (HomFunctor {ℓD} {ℓD'} D)) ⟪ f , D .id ⟫
-        ≡⟨ (λ i → (LiftF {ℓD'} {ℓs} ⟪ (HomFunctor {ℓD} {ℓD'} D) ⟪ f , (G .F-id (~ i)) ⟫ ⟫)) ⟩
-      -- (LiftF {ℓD'} {ℓs} ⟪ (HomFunctor D) ⟪ f , (G ⟪ C .id ⟫) ⟫ ⟫)
-      --   ≡⟨ refl ⟩
-      -- (LiftF {ℓD'} {ℓs} ⟪ (HomFunctor D ∘F (Id {C = D ^op} ×F G)) ⟪ f , C .id ⟫ ⟫)
-      --   ≡⟨ refl ⟩
-      -- ((LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟪ f , C .id ⟫)
-      --   ≡⟨ refl ⟩
-      ((curryFl (D ^op) (SET (ℓ-max ℓD' ℓs)) {Γ = C} ⟅ (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o {ℓC} {ℓC'} {ℓD} {ℓD'} C D G)) ⟆) ⟅ c ⟆) ⟪ f ⟫ ∎
+        ((LiftF {ℓD'} {ℓs} ∘F ( D [-, (fst (fst (U c))) ])) ⟪ f ⟫)
+          ≡⟨ (λ i → 
+            (λ z → lift ((λ (h : (D [ x , (fst (fst (U c))) ])) → (D .⋆IdR (f ⋆⟨ D ⟩ h)) (~ i)) (z .lower)))
+          ) ⟩
+        (λ z → lift (((HomFunctor D) ⟪ f , D .id ⟫) (z .lower)))
+          ≡⟨ (λ i → (λ z → lift (((HomFunctor D) ⟪ f , (G .F-id (~ i)) ⟫) (z .lower)))) ⟩
+        ((curryFl (D ^op) (SET _) {Γ = C} ⟅ (LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G)) ⟆) ⟅ c ⟆) ⟪ f ⟫ ∎
     CurryOutC U c .nIso d .inv = (λ h → h)
     CurryOutC U c .nIso d .sec = refl
     CurryOutC U c .nIso d .ret = refl
@@ -515,13 +507,9 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     CurryOutD U d .trans .N-hom {x} {y} f =
       let G = Functor-ParamUniversalElement→PshFunctorRepresentation U in
       ((LiftF {ℓD'} {ℓs} ∘F ( (D [ d ,-]) ∘F  G)) ⟪ f ⟫)
-      --  ≡⟨ refl ⟩
-      --(LiftF {ℓD'} {ℓs} ⟪ (λ h → h ⋆⟨ D ⟩ (G ⟪ f ⟫) ) ⟫)
-        ≡⟨ (λ i → (LiftF {ℓD'} {ℓs} ⟪ (λ h → ((D .⋆IdL h) (~ i)) ⋆⟨ D ⟩ (G ⟪ f ⟫)) ⟫ )) ⟩
-      -- (LiftF {ℓD'} {ℓs} ⟪ (λ h → ((D .id) ⋆⟨ D ⟩ h ) ⋆⟨ D ⟩ (G ⟪ f ⟫)) ⟫)
-      --   ≡⟨ refl ⟩
-      -- (LiftF {ℓD'} {ℓs} ⟪ (HomFunctor D) ⟪ D .id , (G ⟪ f ⟫) ⟫ ⟫)
-      --   ≡⟨ refl ⟩
+        ≡⟨ (λ i → 
+          (λ z → lift ((λ (h : D [ d ,  (G ⟅ x ⟆) ]) → ((D .⋆IdL h) (~ i)) ⋆⟨ D ⟩ (G ⟪ f ⟫)) (z .lower)))
+        ) ⟩
       (((curryF C (SET _) {Γ = (D ^op)} ⟅ LiftF {ℓD'} {ℓs} ∘F (Functor→Prof*-o C D G) ⟆) ⟅ d ⟆) ⟪ f ⟫) ∎
     CurryOutD U d .nIso c .inv = (λ h → h)
     CurryOutD U d .nIso c .sec = refl
@@ -563,3 +551,4 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- | Definition 4 → Definition 3
     ParamUnivElt→ParamUniversalElement : ParamUnivElt → ParamUniversalElement
     ParamUnivElt→ParamUniversalElement PUE c = UnivElt→UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) (PUE c)
+ 
