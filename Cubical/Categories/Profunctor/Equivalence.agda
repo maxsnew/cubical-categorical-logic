@@ -13,6 +13,7 @@ open import Cubical.Foundations.Function renaming (_∘_ to _∘f_)
 
 open import Cubical.Data.Graph.Base
 open import Cubical.Data.Graph.Path
+open import Cubical.Data.Sigma.Properties
 
 open import Cubical.Categories.Category
 open import Cubical.Categories.Functor
@@ -55,7 +56,10 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
   isUnivProf*-o ℓ = isUnivalentFUNCTOR (D ^op ×C C) (SET ℓ) (isUnivalentSET)
 
   isPropProfRepresents : (G : Functor C D) → isProp (ProfRepresents C D R G)
-  isPropProfRepresents G η η' = {!!}
+  isPropProfRepresents G η η' = 
+   NatIso≡ {f = η} {g = η'} (funExt (λ (d , c) → {!refl!}))
+       
+
 
   -- TODO not exactuly sure how to build this. Can get paths between
   -- (LiftF ∘F Functor→Prof*-o C D) G and
@@ -66,15 +70,17 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
   -- 1. We get G ≡ G' from properties of LiftF and Functor→Prof*-o
   -- 2. We get p ≡ p' from isPropProfRepresents
   isPropProfRepresentation : isProp (ProfRepresentation C D R)
-  isPropProfRepresentation (G , p) (G' , p') = {!
-  sym (
-    CatIsoToPath (isUnivProf*-o _)
-    (NatIso→FUNCTORIso (D ^op ×C C) (SET _) (p))
-  )
-    ∙
-  CatIsoToPath (isUnivProf*-o _)
-  (NatIso→FUNCTORIso (D ^op ×C C) (SET _) (p'))
-  !}
+  isPropProfRepresentation (G , p) (G' , p') =
+    Σ≡Prop (λ F → {!!}) {!!}
+  --
+  -- sym (
+  --   CatIsoToPath (isUnivProf*-o _)
+  --   (NatIso→FUNCTORIso (D ^op ×C C) (SET _) (p))
+  -- )
+  --   ∙
+  -- CatIsoToPath (isUnivProf*-o _)
+  -- (NatIso→FUNCTORIso (D ^op ×C C) (SET _) (p'))
+  
 
   -- this seemingly needs univalence
   ProfRepresentation≡PshFunctorRepresentation : ProfRepresentation C D R ≡ PshFunctorRepresentation C D R
