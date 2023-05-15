@@ -16,3 +16,14 @@ module _ {ℓv ℓe ℓv' ℓe' ℓv'' ℓe''} {G : Graph ℓv ℓe}{G' : Graph 
 
   _∘GrHom_ : GraphHom G' G'' → GraphHom G G' → GraphHom G G''
   ψ ∘GrHom ϕ = ϕ ⋆GrHom ψ
+
+IdHom : ∀ {ℓv ℓe} {G : Graph ℓv ℓe} → GraphHom G G
+IdHom {G} ._$g_ = λ z → z
+IdHom {G} ._<$g>_ = λ z → z
+
+GrHom≡ : ∀ {ℓg ℓg' ℓh ℓh'}{G : Graph ℓg ℓg'}{H : Graph ℓh ℓh'} {ϕ ψ : GraphHom G H}
+       → (h : ∀ v → ϕ $g v ≡ ψ $g v)
+       → (∀ {v w} (e : G .Edge v w) → PathP (λ i → H .Edge (h v i) (h w i)) (ϕ <$g> e) (ψ <$g> e))
+       → ϕ ≡ ψ
+GrHom≡ h k i $g x = h x i
+GrHom≡ h k i <$g> x = k x i
