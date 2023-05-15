@@ -86,17 +86,6 @@ C o-[ ℓS ]-* D = Category.ob (PROF⊶ C D ℓS)
 _*-[_]-o_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
 
-private
-  variable
-    ℓE ℓE' : Level
-
-module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}{E : Category ℓE ℓE'} where
-
-  open Category
-  open NatIso
-  open NatTrans
-  open Functor
-  open isIso
 
 private
   variable
@@ -283,7 +272,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
                 θₓ ∎
                 )
           )⟩
-        D .id ∎
+        D .id ∎
       representing-functor U .F-seq {x} {y} {z} ϕ ψ =
         let Gϕ⋆ψ = (representing-functor U) .F-hom (ϕ ⋆⟨ C ⟩ ψ) in
         let Gϕ = (representing-functor U) .F-hom ϕ in
