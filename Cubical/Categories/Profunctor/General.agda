@@ -86,7 +86,6 @@ C o-[ ℓS ]-* D = Category.ob (PROF⊶ C D ℓS)
 _*-[_]-o_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
 
-
 private
   variable
     ℓs : Level
