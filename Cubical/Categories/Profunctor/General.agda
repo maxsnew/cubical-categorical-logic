@@ -52,8 +52,9 @@ open import Cubical.Categories.Equivalence.Properties
 open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.NaturalTransformation.More
 
-open import Cubical.Categories.Presheaf.Representable
+open import Cubical.Categories.Presheaf.More
 open import Cubical.Tactics.CategorySolver.Reflection
+open import Cubical.Categories.Constructions.BinProduct.More
 
 
 open import Cubical.Foundations.HLevels
@@ -331,22 +332,22 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         .universal .coinduction
         ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (ParUnivElt x))) ⟆) ⟪ ϕ ⟫) (snd (fst (ParUnivElt x))))
     Functor-ParamUniversalElement→PshFunctorRepresentation ParUnivElt .F-id {x} =
-      let R' = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in 
+      let R⟅-,x⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in 
       let (dₓ , θₓ) = (fst (ParUnivElt x)) in
-        (UniversalElement→UnivElt D R' (ParUnivElt x)) 
+        (UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) 
             .universal .coinduction
           ((((Prof*-o→FunctorR C D R)  ⟅ dₓ ⟆) ⟪ C .id ⟫) θₓ)
         -- Use the fact that curryF is a functor to simplify coinduction target (F-id)
         ≡⟨ (λ i → 
-            (UniversalElement→UnivElt D R' (ParUnivElt x)) 
+            (UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) 
               .universal .coinduction 
               ((((Prof*-o→FunctorR C D R)  ⟅ dₓ ⟆) .F-id (i)) θₓ)) ⟩
-        (UniversalElement→UnivElt D R' (ParUnivElt x)) .universal .coinduction θₓ
+        (UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) .universal .coinduction θₓ
         -- use uniqueness of universal element.
-        ≡⟨ sym ((UniversalElement→UnivElt D R' (ParUnivElt x)) .universal .is-uniq θₓ (D .id)
+        ≡⟨ sym ((UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) .universal .is-uniq θₓ (D .id)
               -- Nested proof that identity also works.
-              ( (R' ⟪ D .id ⟫) ((UniversalElement→UnivElt D R' (ParUnivElt x)) .element)
-                ≡⟨ (λ i → (R' .F-id (i)) ((UniversalElement→UnivElt D R' (ParUnivElt x)) .element)) ⟩
+              ( (R⟅-,x⟆ ⟪ D .id ⟫) ((UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) .element)
+                ≡⟨ (λ i → (R⟅-,x⟆ .F-id (i)) ((UniversalElement→UnivElt D R⟅-,x⟆ (ParUnivElt x)) .element)) ⟩
               θₓ ∎
               ) 
         )⟩
