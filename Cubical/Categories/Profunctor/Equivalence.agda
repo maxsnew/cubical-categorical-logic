@@ -84,13 +84,28 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
 
   -- this seemingly needs univalence
   ProfRepresentation≡PshFunctorRepresentation : ProfRepresentation C D R ≡ PshFunctorRepresentation C D R
-  ProfRepresentation≡PshFunctorRepresentation = hPropExt {!!} {!!} {!!} {!!}
+  ProfRepresentation≡PshFunctorRepresentation = 
+    ua ({!   !})
+    -- hPropExt 
+    --   {!!} 
+    --   {!!} 
+    --   (ProfRepresentation→PshFunctorRepresentation C D R) 
+    --   (PshFunctorRepresentation→ProfRepresentation C D R)
 
+  
+  Psh→Prof→Psh : {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} {R : C *-[ ℓs ]-o D} 
+    (Psh : PshFunctorRepresentation C D R) 
+      → (ProfRepresentation→PshFunctorRepresentation C D R) 
+          ((PshFunctorRepresentation→ProfRepresentation C D R) Psh
+          ) ≡ Psh
+  Psh→Prof→Psh {C = C} {D = D} {R = R} (G , η) = 
+    let (G' , η') = (ProfRepresentation→PshFunctorRepresentation C D R) ((PshFunctorRepresentation→ProfRepresentation C D R) (G , η)) in 
+      {!  !}
 
-  -- PshFunctorRepresentation≅ProfRepresentation : Iso (PshFunctorRepresentation C D R) (ProfRepresentation C D R)
-  -- PshFunctorRepresentation≅ProfRepresentation .Iso.fun = PshFunctorRepresentation→ProfRepresentation C D R
-  -- PshFunctorRepresentation≅ProfRepresentation .Iso.inv = ProfRepresentation→PshFunctorRepresentation C D R
-  -- PshFunctorRepresentation≅ProfRepresentation .Iso.rightInv =
+  PshFunctorRepresentation≅ProfRepresentation : Iso (PshFunctorRepresentation C D R) (ProfRepresentation C D R)
+  PshFunctorRepresentation≅ProfRepresentation .Iso.fun = PshFunctorRepresentation→ProfRepresentation C D R
+  PshFunctorRepresentation≅ProfRepresentation .Iso.inv = ProfRepresentation→PshFunctorRepresentation C D R
+  PshFunctorRepresentation≅ProfRepresentation .Iso.rightInv = {!   !}
   -- TODO if I try this it hangs
     -- (λ f →
       -- {!
@@ -98,4 +113,4 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
         -- ≡⟨ ? ⟩
         -- f ∎
       -- !})
-  -- PshFunctorRepresentation≅ProfRepresentation .Iso.leftInv = {!!}
+  PshFunctorRepresentation≅ProfRepresentation .Iso.leftInv = {!!}
