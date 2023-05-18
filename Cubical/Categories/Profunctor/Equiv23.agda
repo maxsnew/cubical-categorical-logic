@@ -17,6 +17,7 @@ open import Cubical.Data.Sigma.Properties
 
 open import Cubical.Categories.Category
 open import Cubical.Categories.Functor
+open import Cubical.Categories.Limits.Terminal
 open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.Constructions.BinProduct
@@ -57,7 +58,8 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
   open NatIso
   open isIso
   open NatTrans
-  
+  open Functor
+
   PshFunctorRepresentation≅ParamUniversalElement : Iso (PshFunctorRepresentation C D R) (ParamUniversalElement C D R) 
   PshFunctorRepresentation≅ParamUniversalElement .Iso.fun = PshFunctorRepresentation→ParamUniversalElement C D R
   PshFunctorRepresentation≅ParamUniversalElement .Iso.inv = ParamUniversalElement→PshFunctorRepresentation C D R
@@ -87,11 +89,21 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
                 (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ (G ⟪ ϕ ⟫) ])
                   ≡⟨ (λ i → (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((D .⋆IdL (G ⟪ ϕ ⟫)) (~ i)) ]))⟩
                 (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) ])
-                  ≡⟨ ? ⟩
+                  ≡⟨ {!!} ⟩
+                (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((G ⟪ ϕ ⟫)) ])
+                  ≡⟨ 
+                    is-uniq-converse ((UniversalElement→UnivElt D R⟅-,y⟆ (U' y)) .universal)
+                    (lower ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) (lift  (G ⟪ ϕ ⟫))))
+                    (G ⟪ ϕ ⟫ )
+                    (λ i → (terminalArrowUnique (Elements D R⟅-,y⟆) {T = U' y} (G ⟪ ϕ ⟫ , {!!})) (~ i) .fst)
+                  ⟩
+                  -- ⟩
                 -- ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((λ f → f ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) (D .id)))
-                ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)))
+                -- ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)))
+                -- ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)))
+                lower ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) (lift (G ⟪ ϕ ⟫)))
                   -- naturality of η?
-                  ≡⟨ {!   !} ⟩
+                  ≡⟨ {!terminalArrowUnique (Elements D R⟅-,y⟆) {T = U' y} !} ⟩
                 ((((curryF C (SET _) {Γ = (D ^op)} ⟅ R ⟆)  ⟅ (G ⟅ x ⟆) ⟆) ⟪ ϕ ⟫) εx)
                   ≡⟨ refl ⟩
                 ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx) ∎
