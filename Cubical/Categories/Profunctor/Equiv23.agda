@@ -65,6 +65,7 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
   PshFunctorRepresentation≅ParamUniversalElement .Iso.inv = ParamUniversalElement→PshFunctorRepresentation C D R
   PshFunctorRepresentation≅ParamUniversalElement .Iso.rightInv U = funExt (λ c → {!   !})
   PshFunctorRepresentation≅ParamUniversalElement .Iso.leftInv (G , η) =
+    let ηinv = symNatIso η in
     let U' = ((PshFunctorRepresentation→ParamUniversalElement C D R) (G , η)) in
     let (G' , η') = ((ParamUniversalElement→PshFunctorRepresentation C D R) U') in
     -- prove equality of Gs and ηs
@@ -85,25 +86,52 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
               ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx) 
               (G ⟪ ϕ ⟫)
               -- nested proof that G ⟪ ϕ ⟫ also satisfies this coinduction
+              -- this works by the following diagram between the presheafs R⟅-,a⟆ and D[-,Ga]
+              --              ηx
+              --       R⟅-,x⟆ ==> D[-,Gx]
+              --  λR(ϕ)  ∥         ∥ (G(ϕ) ∘ -)
+              --         ⇓    ηy   ⇓
+              --       R⟅-,y⟆ ==> D[-,Gy] 
+              --
+              -- These are presheafs D ^op ⟶ SET, and we consider the slice of this diagram at G ⟅ x ⟆
+              --               ηxᴳˣ 
+              --        R⟅Gx,x⟆ --→ D[Gx,Gx]
+              -- λR(ϕ)ᴳˣ  |            |  (G(ϕ) ∘ -)
+              --          ↓            ↓
+              --        R⟅Gx,y⟆ --→ D[Gx,Gy]
+              --                ηyᴳˣ
+              -- Note that by construction, the η and G here define the coinduction and εx ⋆ maps (these are what form the NatIso)
+              -- Thus the equality of the 2 expressions below follows from the fact that η is a natural transformation
+              -- 
+              --                      εx ⋆ 
+              --            D[Gx,Gx] ---→ R⟅Gx,x⟆
+              --             |  id   ⊢→ εx  |  
+              -- (G(ϕ) ∘ -)  |   ↓       ↓  |  λR(ϕ)ᴳˣ = R⟅Gx,-⟆ ⟪ ϕ ⟫
+              --             ↓  G(ϕ) ⊢→  ∎  ↓
+              --            D[Gx,Gy] --→ R⟅Gx,y⟆
+              --                     εy ⋆
               (
                 (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ (G ⟪ ϕ ⟫) ])
-                  ≡⟨ (λ i → (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((D .⋆IdL (G ⟪ ϕ ⟫)) (~ i)) ]))⟩
-                (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) ])
-                  ≡⟨ {!!} ⟩
-                (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((G ⟪ ϕ ⟫)) ])
+                --  ≡⟨ (λ i → (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((D .⋆IdL (G ⟪ ϕ ⟫)) (~ i)) ]))⟩
+                --(D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) ])
                   ≡⟨ 
                     is-uniq-converse ((UniversalElement→UnivElt D R⟅-,y⟆ (U' y)) .universal)
-                    (lower ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) (lift  (G ⟪ ϕ ⟫))))
+                    (lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift  (G ⟪ ϕ ⟫))))
                     (G ⟪ ϕ ⟫ )
-                    (λ i → (terminalArrowUnique (Elements D R⟅-,y⟆) {T = U' y} (G ⟪ ϕ ⟫ , {!!})) (~ i) .fst)
+                    {!   !}
+                    -- (λ i → (terminalArrowUnique (Elements D R⟅-,y⟆) {T = U' y} (G ⟪ ϕ ⟫ , {!!})) (~ i) .fst)
                   ⟩
                   -- ⟩
                 -- ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((λ f → f ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) (D .id)))
                 -- ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)))
                 -- ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)))
-                lower ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) (lift (G ⟪ ϕ ⟫)))
-                  -- naturality of η?
-                  ≡⟨ {!terminalArrowUnique (Elements D R⟅-,y⟆) {T = U' y} !} ⟩
+                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift (G ⟪ ϕ ⟫)))
+                  ≡⟨ (λ i → lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift ((D .⋆IdL (G ⟪ ϕ ⟫)) (~ i)))))⟩
+                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift ((λ (f : D [ G ⟅ x ⟆ , G ⟅ x ⟆ ])  → f ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) (D .id))))
+                  -- ≡⟨ (λ i → lower ((((ηinv .trans .N-hom ϕ) (~ i)) .N-ob (G ⟅ x ⟆)) (D .id))) ⟩
+                  ≡⟨ ? ⟩
+                lower ((lift (R⟅dx,-⟆ ⟪ ϕ ⟫)) ((ηinv .trans .N-ob x .N-ob (G ⟅ x ⟆)) (lift (D .id))))
+                  ≡⟨ refl ⟩ 
                 ((((curryF C (SET _) {Γ = (D ^op)} ⟅ R ⟆)  ⟅ (G ⟅ x ⟆) ⟆) ⟪ ϕ ⟫) εx)
                   ≡⟨ refl ⟩
                 ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx) ∎

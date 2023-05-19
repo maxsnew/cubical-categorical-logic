@@ -164,52 +164,73 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
     open isIso
     open NatTrans
+    open UnivElt
+    open isUniversal
 
     -- TODO fork Functors.Constant and generalize
     -- | Definition 2 → Definition 3
     PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
     PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
-      RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
-        (G .F-ob c ,
-          NatIso→FUNCTORIso _ _
-          (seqNatIso
-            -- due diligence: check that the 2 notions of hom functor agree
-            -- (LiftF ∘ʳi (HomViaProduct G c))
-            (LiftF ∘ʳi
-              (pathToNatIso (
-                (D [-, G .F-ob c ])
-                  ≡⟨ sym (HomFunctorPath (G .F-ob c)) ⟩
-                HomFunctor D ∘F (Id ,F Constant (D ^op) D (G .F-ob c))
-                  ≡⟨ ((λ i → ( HomFunctor D ∘F (Id ,F ConstantComposeFunctor C D c G i)  ))) ⟩
-                HomFunctor D ∘F (Id ,F (G ∘F (Constant (D ^op) C c)))
-                  ≡⟨ Functor≡ (λ c → refl) (λ f → refl) ⟩
-                HomFunctor D ∘F (Id {C = D ^op} ×F G) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
-                  ≡⟨ F-assoc ⟩
-                Functor→Prof*-o C D G ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ∎
-              ))
-            )
-        (seqNatIso
-        (seqNatIso
-        (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
-        (
-        (Id {C = D ^op} ,F Constant (D ^op) C c) ∘ˡi
-          (FUNCTORIso→NatIso (D ^op ×C C) (SET _)
-          (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
-            (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
-            (NatIso→FUNCTORIso C _ (symNatIso η)))
-          )
-        ))
-        (symNatIso
-        (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
-        where
-        HomFunctorPath : (d : D .ob) → HomFunctor D ∘F (Id {C = D ^op} ,F Constant (D ^op) D d ) ≡ D [-, d ]
-        HomFunctorPath d = Functor≡
-          ((λ c → ( refl )))
-          (λ f → (
-            HomFunctor D .F-hom (f , id (D ^op))
-              ≡⟨ funExt (λ θ → ( (D ∘ id D) ((D ∘ θ) f) ≡⟨ solveCat! D ⟩ seq' D f θ ∎ )) ⟩
-            (D [-, d ]) .F-hom f ∎
-          ))
+      let R⟅-,c⟆ = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) in
+      let η⁻¹ = symNatIso η in
+        UnivElt→UniversalElement D R⟅-,c⟆ record {
+          vertex = (G ⟅ c ⟆) ;
+          element = lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))) ;
+          universal = record {
+            coinduction = λ {d} ϕ → lower ((η .trans .N-ob c .N-ob d) (lift ϕ));
+            commutes = (λ {d} ϕ →
+              D [ (lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id)))) ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) ]
+                ≡⟨ refl ⟩
+              (R⟅-,c⟆ ⟪ (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) ⟫) (lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))
+                ≡⟨ {!   !} ⟩
+              -- ((η⁻¹ .trans. N-ob c. N-ob d) (lower ((λ (f : D [ G ⟅ c ⟆ , G ⟅ c ⟆ ]) → (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) ⋆⟨ D ⟩ f) (lift (D .id)))))
+              --  ≡⟨ ? ⟩
+              ϕ ∎) ;
+            is-uniq = {!   !}
+          }
+        }
+      )
+      -- RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
+      --   (G .F-ob c ,
+      --     NatIso→FUNCTORIso _ _
+      --     (seqNatIso
+      --       -- due diligence: check that the 2 notions of hom functor agree
+      --       -- (LiftF ∘ʳi (HomViaProduct G c))
+      --       (LiftF ∘ʳi
+      --         (pathToNatIso (
+      --           (D [-, G .F-ob c ])
+      --             ≡⟨ sym (HomFunctorPath (G .F-ob c)) ⟩
+      --           HomFunctor D ∘F (Id ,F Constant (D ^op) D (G .F-ob c))
+      --             ≡⟨ ((λ i → ( HomFunctor D ∘F (Id ,F ConstantComposeFunctor C D c G i)  ))) ⟩
+      --           HomFunctor D ∘F (Id ,F (G ∘F (Constant (D ^op) C c)))
+      --             ≡⟨ Functor≡ (λ c → refl) (λ f → refl) ⟩
+      --           HomFunctor D ∘F (Id {C = D ^op} ×F G) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
+      --             ≡⟨ F-assoc ⟩
+      --           Functor→Prof*-o C D G ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ∎
+      --         ))
+      --       )
+      --   (seqNatIso
+      --   (seqNatIso
+      --   (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
+      --   (
+      --   (Id {C = D ^op} ,F Constant (D ^op) C c) ∘ˡi
+      --     (FUNCTORIso→NatIso (D ^op ×C C) (SET _)
+      --     (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
+      --       (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
+      --       (NatIso→FUNCTORIso C _ (symNatIso η)))
+      --     )
+      --   ))
+      --   (symNatIso
+      --   (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
+      --   where
+      --   HomFunctorPath : (d : D .ob) → HomFunctor D ∘F (Id {C = D ^op} ,F Constant (D ^op) D d ) ≡ D [-, d ]
+      --   HomFunctorPath d = Functor≡
+      --     ((λ c → ( refl )))
+      --     (λ f → (
+      --       HomFunctor D .F-hom (f , id (D ^op))
+      --         ≡⟨ funExt (λ θ → ( (D ∘ id D) ((D ∘ θ) f) ≡⟨ solveCat! D ⟩ seq' D f θ ∎ )) ⟩
+      --       (D [-, d ]) .F-hom f ∎
+      --     ))
 
     open UnivElt
     open isUniversal
