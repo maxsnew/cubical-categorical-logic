@@ -112,28 +112,11 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
               --                     εy ⋆
               (
                 (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ (G ⟪ ϕ ⟫) ])
-                --  ≡⟨ (λ i → (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((D .⋆IdL (G ⟪ ϕ ⟫)) (~ i)) ]))⟩
-                --(D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) ])
-                  ≡⟨ 
-                    is-uniq-converse ((UniversalElement→UnivElt D R⟅-,y⟆ (U' y)) .universal)
-                    (lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift  (G ⟪ ϕ ⟫))))
-                    (G ⟪ ϕ ⟫ )
-                    {!   !}
-                    -- (λ i → (terminalArrowUnique (Elements D R⟅-,y⟆) {T = U' y} (G ⟪ ϕ ⟫ , {!!})) (~ i) .fst)
-                  ⟩
-                  -- ⟩
-                -- ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((λ f → f ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) (D .id)))
-                -- ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)))
-                -- ((η .nIso y .inv .N-ob (G ⟅ x ⟆)) ((D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)))
-                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift (G ⟪ ϕ ⟫)))
-                  ≡⟨ (λ i → lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift ((D .⋆IdL (G ⟪ ϕ ⟫)) (~ i)))))⟩
-                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift ((λ (f : D [ G ⟅ x ⟆ , G ⟅ x ⟆ ])  → f ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) (D .id))))
-                  -- ≡⟨ (λ i → lower ((((ηinv .trans .N-hom ϕ) (~ i)) .N-ob (G ⟅ x ⟆)) (D .id))) ⟩
-                  ≡⟨ ? ⟩
-                lower ((lift (R⟅dx,-⟆ ⟪ ϕ ⟫)) ((ηinv .trans .N-ob x .N-ob (G ⟅ x ⟆)) (lift (D .id))))
-                  ≡⟨ refl ⟩ 
-                ((((curryF C (SET _) {Γ = (D ^op)} ⟅ R ⟆)  ⟅ (G ⟅ x ⟆) ⟆) ⟪ ϕ ⟫) εx)
                   ≡⟨ refl ⟩
+                (D [ lower ((ηinv .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (G ⟪ ϕ ⟫) ])
+                  ≡⟨ refl ⟩
+                (R⟅-,y⟆ ⟪ G ⟪ ϕ ⟫ ⟫) (lower ((ηinv .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
+                  ≡⟨ {!λ i → ((ηinv .trans .N-ob y .N-hom (G ⟪ ϕ ⟫ )) (~ i)) (lift (D .id)) !} ⟩
                 ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx) ∎
               )
             ) ⟩
