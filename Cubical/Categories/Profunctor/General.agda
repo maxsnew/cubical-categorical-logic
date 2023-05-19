@@ -55,6 +55,7 @@ open import Cubical.Categories.NaturalTransformation.More
 
 open import Cubical.Categories.Presheaf.More
 open import Cubical.Tactics.CategorySolver.Reflection
+open import Cubical.Tactics.FunctorSolver.Reflection
 open import Cubical.Categories.Constructions.BinProduct.More
 
 
@@ -180,61 +181,30 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
             coinduction = λ {d} ϕ → lower ((η .trans .N-ob c .N-ob d) (lift ϕ));
             commutes = (λ {d} ϕ →
               let coindϕ = (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) in
+              let p = ((coindϕ ⋆⟨ D ⟩ (D .id)) ⋆⟨ D ⟩ (G ⟪ C .id ⟫) ≡⟨ solveFunctor! C D G ⟩ coindϕ ∎) in
               lower (((LiftF ∘F R⟅-,c⟆) ⟪ coindϕ ⟫) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))
                 ≡⟨ (λ i → lower ((((η⁻¹ .trans .N-ob c .N-hom coindϕ) (~ i)) (lift (D .id))))) ⟩
               lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift ((coindϕ ⋆⟨ D ⟩ (D .id)) ⋆⟨ D ⟩ (G ⟪ C .id ⟫))))
-              --   ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (((D .⋆IdR coindϕ) (i)) ⋆⟨ D ⟩ (G ⟪ C .id ⟫))))) ⟩
-              -- lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift ((coindϕ) ⋆⟨ D ⟩ (G ⟪ C .id ⟫))))
-                -- TODO: Use functor solver here instead of doing everything manually
-                ≡⟨ {!   !} ⟩
+                ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift ((p i))) )) ⟩
               lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (coindϕ)))
                 ≡⟨ (λ i → lower ((((η .nIso c .ret) (i)) .N-ob d) (lift ϕ))) ⟩
               ϕ ∎) ;
-            is-uniq = {!   !}
+            is-uniq =
+              λ {d} ϕ f ε⋆f≡ϕ →
+              let coindϕ = (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) in
+              let p = ((f ⋆⟨ D ⟩ (D .id)) ⋆⟨ D ⟩ (G ⟪ C .id ⟫) ≡⟨ solveFunctor! C D G ⟩ f ∎) in
+                f
+                  ≡⟨ (λ i → lower(((η .nIso c .sec) (~ i) .N-ob d) (lift f))) ⟩
+                (lower ((η .trans .N-ob c .N-ob d) ((η⁻¹ .trans .N-ob c .N-ob d) (lift f))))
+                  ≡⟨ (λ i → (lower ((η .trans .N-ob c .N-ob d) ((η⁻¹ .trans .N-ob c .N-ob d) (lift (p (~ i))))))) ⟩
+                (lower ((η .trans .N-ob c .N-ob d) ((η⁻¹ .trans .N-ob c .N-ob d) (lift ((f ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ (G ⟪ C .id ⟫))))))
+                  ≡⟨ (λ i → lower ( (η .trans .N-ob c .N-ob d) (((η⁻¹ .trans .N-ob c .N-hom f) (i)) (lift (D .id))))) ⟩
+                (lower ((η .trans .N-ob c .N-ob d) (lift ((R⟅-,c⟆ ⟪ f ⟫) (lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))))))
+                  ≡⟨ (λ i →  (lower ((η .trans .N-ob c .N-ob d) (lift (ε⋆f≡ϕ i))))) ⟩
+                coindϕ ∎
           }
         }
       )
-      -- RepresentationToUniversalElement D ( R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) )
-      --   (G .F-ob c ,
-      --     NatIso→FUNCTORIso _ _
-      --     (seqNatIso
-      --       -- due diligence: check that the 2 notions of hom functor agree
-      --       -- (LiftF ∘ʳi (HomViaProduct G c))
-      --       (LiftF ∘ʳi
-      --         (pathToNatIso (
-      --           (D [-, G .F-ob c ])
-      --             ≡⟨ sym (HomFunctorPath (G .F-ob c)) ⟩
-      --           HomFunctor D ∘F (Id ,F Constant (D ^op) D (G .F-ob c))
-      --             ≡⟨ ((λ i → ( HomFunctor D ∘F (Id ,F ConstantComposeFunctor C D c G i)  ))) ⟩
-      --           HomFunctor D ∘F (Id ,F (G ∘F (Constant (D ^op) C c)))
-      --             ≡⟨ Functor≡ (λ c → refl) (λ f → refl) ⟩
-      --           HomFunctor D ∘F (Id {C = D ^op} ×F G) ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
-      --             ≡⟨ F-assoc ⟩
-      --           Functor→Prof*-o C D G ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) ∎
-      --         ))
-      --       )
-      --   (seqNatIso
-      --   (seqNatIso
-      --   (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (Functor→Prof*-o C D G) (LiftF))
-      --   (
-      --   (Id {C = D ^op} ,F Constant (D ^op) C c) ∘ˡi
-      --     (FUNCTORIso→NatIso (D ^op ×C C) (SET _)
-      --     (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
-      --       (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
-      --       (NatIso→FUNCTORIso C _ (symNatIso η)))
-      --     )
-      --   ))
-      --   (symNatIso
-      --   (CAT⋆Assoc (Id {C = D ^op} ,F Constant (D ^op) C c) (R) (LiftF))))) ))
-      --   where
-      --   HomFunctorPath : (d : D .ob) → HomFunctor D ∘F (Id {C = D ^op} ,F Constant (D ^op) D d ) ≡ D [-, d ]
-      --   HomFunctorPath d = Functor≡
-      --     ((λ c → ( refl )))
-      --     (λ f → (
-      --       HomFunctor D .F-hom (f , id (D ^op))
-      --         ≡⟨ funExt (λ θ → ( (D ∘ id D) ((D ∘ θ) f) ≡⟨ solveCat! D ⟩ seq' D f θ ∎ )) ⟩
-      --       (D [-, d ]) .F-hom f ∎
-      --     ))
 
     open UnivElt
     open isUniversal
