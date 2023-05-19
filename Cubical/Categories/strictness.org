@@ -1,0 +1,94 @@
+* Strict categories
+
+Say a category C is strictly associative and unital if its
+associativity and unit laws follow by reflexivity. We call such a
+category a strict category. Note that this is a metatheoretic
+property, it cannot be stated internally (though maybe with 2LTT?).
+
+Examples:
+1. The category Set
+2. If C is a strict cat and I a type, the power category C^I
+
+Non-examples:
+1. The free category
+2. Generally any quotient construction
+3. The functor category C^D where C is a strict cat
+
+Strict categories are much more convenient as it means that the
+*typechecker* can *unify* expressions that are equivalent modulo
+associativity and unit!
+
+Wouldn't it be nice if the typechecker could do that for all
+categories? Well we can develop a lemma that will get us there.
+
+Construction:
+Given any category 𝓒 we construct a strict category 𝓒! and a faithful functor 𝓘 : 𝓒 → 𝓒!
+
+Define 𝓒! as Set^|𝓒 .ob|, and define 𝓘 analogous to the Yoneda
+embedding. This is faithful via a similar proof as the Yoneda
+lemma.
+
+Unlike the Yoneda embedding, this functor is not generally full, but
+fullness is not needed for our purposes here.
+
+How can we take advantage of this theorem? Say we have defined two
+parallel morphisms f , g in 𝓒 and we want to prove they are equal, and
+they *would* be definitionally equal if 𝓒 were a definitional
+category. We might try to use the faihful functor 𝓘 above to map them
+into 𝓒! and then hope that it works automatically, but alas, the
+functor 𝓘 is not *definitionally functorial*, so this would amount to
+another tedious proof.
+
+Well before we were able to construct a definitional variant of the
+category 𝓒 so can we define a definitional variant of 𝓘 to? Sort of!
+What we can do is define another (non-definitional) category 𝓦 𝓒 with
+1. A *definitional* functor ε : 𝓦 𝓒 → 𝓒
+2. A *definitional* functor ε! : 𝓦 𝓒 → 𝓒!
+3. With a *propositional* equality 𝓘 ∘ ε ≡ ε!
+
+How does this help us? So far 𝓦 𝓒 could be the empty
+category. Intuitively, we need that ε is a *full* functor, so that our
+parallel morphisms f and g can be defined in 𝓦 𝓒. In fact ε is (even
+definitionally) full, but this is not as helpful as it sounds, as the
+proof of fullness is not functorial. We have to give up something, so
+what we will say is that instead of writing f and g, morphisms in 𝓒,
+you need to write instead parallel morphisms fW and gW in 𝓦 𝓒 such
+that ε (fW) = f and ε (gW) = g *definitionally* but whatever
+compositions/identities we need re-written are compositions in 𝓦
+𝓒. That way, ε! will definitionally preserve the compositions, and we
+will get that ε! (fW) is *definitionally* equal to ε! (gW), so the
+type checker can prove it for us. Then by (3) we can conclude that f
+and g are *propositionally* equal, which is what we desired.
+
+What is the 𝓦 𝓒 we want? It is the *free category* on the underlying
+graph of 𝓒. This category has the same objects as 𝓒 and its morphisms
+are quotiented "category expressions", we throw in all of the
+morphisms of 𝓒 but also new identities and new composites. Note that
+while it looks like we can define a functor 𝓒 → 𝓦 𝓒 by sending every
+morphism to its inclusion in expressions, but this does not preserve
+identity or composition, instead this is only a *graph homomorphism* U
+𝓒 → U (𝓦 𝓒). We call this homomorphism η.
+
+This free category has a universal property: given any graph
+homomorphism ı : U 𝓒 → U 𝓓, we can define a functor Ind[ı] : 𝓦 𝓒 → 𝓓 such that
+1. Ind[ı] is definitionally functorial
+2. U(Ind[ı]) ∘ η is definitionally equal to ı
+3. If U F ∘ η ≡ ı then F ≡ Ind[ı] (note these are identifications, not definitional equalities)
+
+Then we can define
+1. ε = Ind[id]
+2. ε! = Ind[𝓘]
+3. 𝓘 ∘ ε ≡ ε! means 𝓘 ∘ ε ≡ Ind[𝓘] which by (3) STS U(𝓘 ∘ ε) ∘ η ≡ 𝓘
+   which follows because
+
+   U(𝓘 ∘ ε) ∘ η = U 𝓘 ∘ (Uε o η) ≡ U 𝓘
+
+So there is one last bit of tedium here: we must take f and g and
+rewrite them as fW and gW where we replace compositions in 𝓒 with
+compositions in 𝓦𝓒. This *cannot* be done within the theory, as it
+does not respect definitional equality! So this is a meta-operation,
+and so we can either perform it manually using some convenient
+notation or automate it with a meta-program. Fortunately in this case
+the meta-program is fairly easy to write: we essentially parse an Agda
+term into a 𝓦 𝓒 morphism.
+
