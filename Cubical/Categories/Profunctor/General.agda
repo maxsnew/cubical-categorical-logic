@@ -180,14 +180,15 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
             coinduction = λ {d} ϕ → lower ((η .trans .N-ob c .N-ob d) (lift ϕ));
             commutes = (λ {d} ϕ →
               let coindϕ = (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) in
-              D [ (lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id)))) ∘ᴾ⟨ R⟅-,c⟆ ⟩ coindϕ ]
-                ≡⟨ refl ⟩
               lower (((LiftF ∘F R⟅-,c⟆) ⟪ coindϕ ⟫) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))
                 ≡⟨ (λ i → lower ((((η⁻¹ .trans .N-ob c .N-hom coindϕ) (~ i)) (lift (D .id))))) ⟩
-                -- ≡⟨ (λ i → lower  {ℓs} {ℓ-max ℓD' ℓs} (({!   !}(~ i)) (lift (D .id)))) ⟩
-              lower ((η⁻¹ .trans .N-ob c .N-ob d) (((LiftF ∘F (D [-, (G ⟅ c ⟆) ])) ⟪ coindϕ ⟫)  (lift (D .id))))
-              -- ((η⁻¹ .trans. N-ob c. N-ob d) (lower ((λ (f : D [ G ⟅ c ⟆ , G ⟅ c ⟆ ]) → (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) ⋆⟨ D ⟩ f) (lift (D .id)))))
+              lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift ((coindϕ ⋆⟨ D ⟩ (D .id)) ⋆⟨ D ⟩ (G ⟪ C .id ⟫))))
+              --   ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (((D .⋆IdR coindϕ) (i)) ⋆⟨ D ⟩ (G ⟪ C .id ⟫))))) ⟩
+              -- lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift ((coindϕ) ⋆⟨ D ⟩ (G ⟪ C .id ⟫))))
+                -- TODO: Use functor solver here instead of doing everything manually
                 ≡⟨ {!   !} ⟩
+              lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (coindϕ)))
+                ≡⟨ (λ i → lower ((((η .nIso c .ret) (i)) .N-ob d) (lift ϕ))) ⟩
               ϕ ∎) ;
             is-uniq = {!   !}
           }
