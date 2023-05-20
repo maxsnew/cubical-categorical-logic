@@ -116,7 +116,15 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
                 (D [ lower ((ηinv .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (G ⟪ ϕ ⟫) ])
                   ≡⟨ refl ⟩
                 (R⟅-,y⟆ ⟪ G ⟪ ϕ ⟫ ⟫) (lower ((ηinv .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
-                  ≡⟨ {!λ i → ((ηinv .trans .N-ob y .N-hom (G ⟪ ϕ ⟫ )) (~ i)) (lift (D .id)) !} ⟩
+                  ≡⟨  refl ⟩
+                lower (((LiftF ∘F R⟅-,y⟆) ⟪ G ⟪ ϕ ⟫ ⟫) ((ηinv .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
+                  ≡⟨ (λ i → lower (((ηinv .trans .N-ob y .N-hom (G ⟪ ϕ ⟫)) (~ i)) (lift (D .id)) ) ) ⟩
+                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) (lift ((Functor→Prof*-o C D G ⟪ G ⟪ ϕ ⟫ , id C ⟫) (D .id)) )))
+                  ≡⟨ {!UniversalElement→UnivElt (C ^op) (R⟅dx,-⟆) (U' x)!} ⟩
+                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) (lift (G ⟪ ϕ ⟫))))
+                  ≡⟨ {!U' x!} ⟩
+                (C ^op) [ εx ∘ᴾ⟨ R⟅dx,-⟆ ⟩ ϕ ]
+                  ≡⟨ refl ⟩
                 ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx) ∎
               )
             ) ⟩
