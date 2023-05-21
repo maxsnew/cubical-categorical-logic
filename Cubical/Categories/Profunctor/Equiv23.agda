@@ -38,7 +38,7 @@ open import Cubical.Categories.NaturalTransformation.More
 
 open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Tactics.CategorySolver.Reflection
-
+open import Cubical.Tactics.FunctorSolver.Reflection
 
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -80,6 +80,7 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
           let (dy , εy) = (fst (U' y)) in
           let R⟅-,y⟆ = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) in
           let R⟅dx,-⟆ = ((curryF C (SET _) {Γ = (D ^op)} ⟅ R ⟆)  ⟅ dx ⟆) in
+          let p = ((((G ⟪ ϕ ⟫) ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ G ⟪ C .id ⟫) ≡⟨ solveFunctor! C D G ⟩ ((D .id ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)) ∎) in
           (G' ⟪ ϕ ⟫)
             ≡⟨ sym((UniversalElement→UnivElt D R⟅-,y⟆ (U' y))
               .universal .is-uniq 
@@ -119,11 +120,54 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
                   ≡⟨  refl ⟩
                 lower (((LiftF ∘F R⟅-,y⟆) ⟪ G ⟪ ϕ ⟫ ⟫) ((ηinv .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
                   ≡⟨ (λ i → lower (((ηinv .trans .N-ob y .N-hom (G ⟪ ϕ ⟫)) (~ i)) (lift (D .id)) ) ) ⟩
-                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) (lift ((Functor→Prof*-o C D G ⟪ G ⟪ ϕ ⟫ , id C ⟫) (D .id)) )))
-                  ≡⟨ {!UniversalElement→UnivElt (C ^op) (R⟅dx,-⟆) (U' x)!} ⟩
-                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) (lift (G ⟪ ϕ ⟫))))
-                  ≡⟨ {!U' x!} ⟩
-                (C ^op) [ εx ∘ᴾ⟨ R⟅dx,-⟆ ⟩ ϕ ]
+                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) (lift ((Functor→Prof*-o C D G ⟪ G ⟪ ϕ ⟫ , C .id ⟫) (D .id)) )))
+                  ≡⟨ refl ⟩
+                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) (lift (((G ⟪ ϕ ⟫) ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ G ⟪ C .id ⟫))))
+                  ≡⟨ (λ i → 
+                    lower (ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) 
+                      (lift (p i))
+                    )
+                  ) ⟩
+                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) 
+                  (lift 
+                  ((D .id ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫))
+                  )
+                  ))
+                  ≡⟨ refl ⟩
+                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) 
+                  (lift 
+                  ((((HomFunctor D  ∘F (Id {C = D ^op} ×F G)) ⟪ D .id , ϕ ⟫)) (D .id))
+                  )
+                  ))
+                  ≡⟨ refl ⟩
+                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) 
+                  (lift 
+                  ((((Prof*-o→Functor C D (HomFunctor D  ∘F (Id {C = D ^op} ×F G))) ⟪ ϕ ⟫) .N-ob (G ⟅ x ⟆)) (D .id))
+                  )
+                  ))
+                  ≡⟨ refl ⟩
+                lower (ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)  
+                  ((((Prof*-o→Functor C D (LiftF ∘F (HomFunctor D  ∘F (Id {C = D ^op} ×F G)))) ⟪ ϕ ⟫) .N-ob (G ⟅ x ⟆)) (lift (D .id)))
+                  )
+                -- combine the N-obs to use next naturality
+                  ≡⟨ refl ⟩
+                lower ( 
+                  ((((Prof*-o→Functor C D (LiftF ∘F (HomFunctor D  ∘F (Id {C = D ^op} ×F G)))) ⟪ ϕ ⟫)
+                    ⋆⟨ FUNCTOR (D ^op) (SET _) ⟩ 
+                  ηinv .trans .N-ob y) .N-ob (G ⟅ x ⟆))
+                  (lift (D .id))
+                )
+                  ≡⟨ (λ i → lower (
+                    (((ηinv .trans .N-hom ϕ) (i)) .N-ob (G ⟅ x ⟆))
+                    (lift (D .id))
+                  )) ⟩
+                lower ( 
+                  ((ηinv .trans .N-ob x 
+                    ⋆⟨ FUNCTOR (D ^op) (SET _) ⟩ 
+                  ((Prof*-o→Functor C D (LiftF ∘F R)) ⟪ ϕ ⟫)
+                  ) .N-ob (G ⟅ x ⟆))
+                  (lift (D .id))
+                )
                   ≡⟨ refl ⟩
                 ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx) ∎
               )
