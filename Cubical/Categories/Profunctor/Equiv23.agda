@@ -65,7 +65,7 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
   PshFunctorRepresentation≅ParamUniversalElement .Iso.inv = ParamUniversalElement→PshFunctorRepresentation C D R
   PshFunctorRepresentation≅ParamUniversalElement .Iso.rightInv U = funExt (λ c → {!   !})
   PshFunctorRepresentation≅ParamUniversalElement .Iso.leftInv (G , η) =
-    let ηinv = symNatIso η in
+    let η⁻¹ = symNatIso η in
     let U' = ((PshFunctorRepresentation→ParamUniversalElement C D R) (G , η)) in
     let (G' , η') = ((ParamUniversalElement→PshFunctorRepresentation C D R) U') in
     -- prove equality of Gs and ηs
@@ -114,55 +114,38 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
               (
                 (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ (G ⟪ ϕ ⟫) ])
                   ≡⟨ refl ⟩
-                (D [ lower ((ηinv .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (G ⟪ ϕ ⟫) ])
-                  ≡⟨ refl ⟩
-                (R⟅-,y⟆ ⟪ G ⟪ ϕ ⟫ ⟫) (lower ((ηinv .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
-                  ≡⟨  refl ⟩
-                lower (((LiftF ∘F R⟅-,y⟆) ⟪ G ⟪ ϕ ⟫ ⟫) ((ηinv .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
-                  ≡⟨ (λ i → lower (((ηinv .trans .N-ob y .N-hom (G ⟪ ϕ ⟫)) (~ i)) (lift (D .id)) ) ) ⟩
-                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) (lift ((Functor→Prof*-o C D G ⟪ G ⟪ ϕ ⟫ , C .id ⟫) (D .id)) )))
-                  ≡⟨ refl ⟩
-                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) (lift (((G ⟪ ϕ ⟫) ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ G ⟪ C .id ⟫))))
+                lower (((LiftF ∘F R⟅-,y⟆) ⟪ G ⟪ ϕ ⟫ ⟫) ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
+                  -- since εy is defined in terms of R(Gy, y), we first use naturality 
+                  -- to consider the relevant component of the εy ⋆ map, namely the component at Gx
+                  ≡⟨ (λ i → lower (((η⁻¹ .trans .N-ob y .N-hom (G ⟪ ϕ ⟫)) (~ i)) (lift (D .id)) ) ) ⟩
+                lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆) 
+                  (lift (((G ⟪ ϕ ⟫) ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ G ⟪ C .id ⟫)))
+                )
+                  -- next, we use some recombining of G ϕ to see it as an application
+                  -- of a different Hom Functor applied to id at Gx instead of Gy:
                   ≡⟨ (λ i → 
-                    lower (ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) 
+                    lower (η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆) 
                       (lift (p i))
                     )
                   ) ⟩
-                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) 
-                  (lift 
-                  ((D .id ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫))
-                  )
-                  ))
-                  ≡⟨ refl ⟩
-                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) 
-                  (lift 
-                  ((((HomFunctor D  ∘F (Id {C = D ^op} ×F G)) ⟪ D .id , ϕ ⟫)) (D .id))
-                  )
-                  ))
-                  ≡⟨ refl ⟩
-                lower ((ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆) 
-                  (lift 
-                  ((((Prof*-o→Functor C D (HomFunctor D  ∘F (Id {C = D ^op} ×F G))) ⟪ ϕ ⟫) .N-ob (G ⟅ x ⟆)) (D .id))
-                  )
-                  ))
-                  ≡⟨ refl ⟩
-                lower (ηinv .trans .N-ob y .N-ob (G ⟅ x ⟆)  
-                  ((((Prof*-o→Functor C D (LiftF ∘F (HomFunctor D  ∘F (Id {C = D ^op} ×F G)))) ⟪ ϕ ⟫) .N-ob (G ⟅ x ⟆)) (lift (D .id)))
-                  )
-                -- combine the N-obs to use next naturality
+                lower (η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆) 
+                  (lift ((D .id ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ (G ⟪ ϕ ⟫)))
+                )
                   ≡⟨ refl ⟩
                 lower ( 
                   ((((Prof*-o→Functor C D (LiftF ∘F (HomFunctor D  ∘F (Id {C = D ^op} ×F G)))) ⟪ ϕ ⟫)
                     ⋆⟨ FUNCTOR (D ^op) (SET _) ⟩ 
-                  ηinv .trans .N-ob y) .N-ob (G ⟅ x ⟆))
+                  η⁻¹ .trans .N-ob y) .N-ob (G ⟅ x ⟆))
                   (lift (D .id))
                 )
+                  -- now, since we are operating of the section of Gx as described above, we 
+                  -- can use the above argument to port over to εx
                   ≡⟨ (λ i → lower (
-                    (((ηinv .trans .N-hom ϕ) (i)) .N-ob (G ⟅ x ⟆))
+                    (((η⁻¹ .trans .N-hom ϕ) (i)) .N-ob (G ⟅ x ⟆))
                     (lift (D .id))
                   )) ⟩
                 lower ( 
-                  ((ηinv .trans .N-ob x 
+                  ((η⁻¹ .trans .N-ob x 
                     ⋆⟨ FUNCTOR (D ^op) (SET _) ⟩ 
                   ((Prof*-o→Functor C D (LiftF ∘F R)) ⟪ ϕ ⟫)
                   ) .N-ob (G ⟅ x ⟆))
