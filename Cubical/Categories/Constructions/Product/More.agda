@@ -20,4 +20,10 @@ module _ (A : Type ℓA) (catC : A → Category ℓC ℓC') where
   Π-intro Fs .Functor.F-id = funExt (λ a → Fs a .F-id)
   Π-intro Fs .Functor.F-seq f g = funExt (λ a → Fs a .F-seq f g)
 
+  πC : (a : A) → Functor (ΠC A catC) (catC a)
+  πC a .Functor.F-ob = λ xs → xs a
+  πC a .Functor.F-hom = λ fs → fs a
+  πC a .Functor.F-id = refl
+  πC a .Functor.F-seq fs gs = refl
+
 -- TODO: if each of the catCs is univalent then so is the product
