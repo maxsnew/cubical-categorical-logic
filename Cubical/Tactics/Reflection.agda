@@ -106,4 +106,6 @@ equation-solver don't-Reduce mk-call debug hole =
       noConstraints (if debug then unify-with-goal else (unify-with-goal <|> typeError ((strErr "Could not equate the following expressions:\n  " ∷
                                                          termErr elhs ∷
                                                          strErr "\nAnd\n  " ∷
-                                                         termErr erhs ∷ []))))))
+                                                         termErr erhs ∷
+                                                         strErr "\nIn the call\n  " ∷
+                                                         termErr call ∷ []))))))

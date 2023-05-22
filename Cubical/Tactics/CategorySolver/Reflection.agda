@@ -34,17 +34,23 @@ module ReflectionSolver where
     pattern “⋆” f g =
       def (quote Category._⋆_) (category-args (_ h∷ _ h∷ _ h∷ f v∷ g v∷ []))
 
+    -- This seems really hacky tbh
+    pattern “comp” f g =
+      def (quote comp') (category-args (_ h∷ _ h∷ _ h∷ g v∷ f v∷ []))
+
     -- Parse the input into an exp
     buildExpression : Term → Term
     buildExpression “id” = con (quote FreeCategory.idₑ) []
     buildExpression (“⋆” f g) = con (quote FreeCategory._⋆ₑ_) (buildExpression f v∷ buildExpression g v∷ [])
+    buildExpression (“comp” f g) = con (quote FreeCategory._⋆ₑ_) (buildExpression f v∷ buildExpression g v∷ [])
     buildExpression f = con (quote FreeCategory.↑_) (f v∷ [])
 
-  solve-macro : Term -- ^ The term denoting the category
+  solve-macro : Bool
+              → Term -- ^ The term denoting the category
               → Term -- ^ The hole whose goal should be an equality between morphisms in the category
               → TC Unit
-  solve-macro category =
-    equation-solver (quote Category.id ∷ quote Category._⋆_ ∷ []) mk-call true where
+  solve-macro b category =
+    equation-solver (quote Category.id ∷ quote Category._⋆_ ∷ quote comp' ∷ []) mk-call b where
       mk-call : Term → Term → TC Term
       mk-call lhs rhs = returnTC (def (quote solve)
                              (category v∷
@@ -53,4 +59,7 @@ module ReflectionSolver where
                               def (quote refl) [] v∷ []))
 macro
   solveCat! : Term → Term → TC _
-  solveCat! = ReflectionSolver.solve-macro
+  solveCat! = ReflectionSolver.solve-macro false
+
+  solveCatDebug! : Term → Term → TC _
+  solveCatDebug! = ReflectionSolver.solve-macro true

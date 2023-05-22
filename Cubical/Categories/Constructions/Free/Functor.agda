@@ -138,7 +138,7 @@ module FreeFunctor (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node �
       semH .F-seq f g = refl
   
       semϕ : Id (𝓕 ∘F semG) (semH ∘F Fϕ)
-      semϕ = pathToId (FreeCatG.free-cat-functor-ind (funcComp 𝓕 semG) (funcComp semH Fϕ) (GrHom≡ aoo aoe)) where
+      semϕ = pathToId (FreeCatG.induction (funcComp 𝓕 semG) (funcComp semH Fϕ) (GrHom≡ aoo aoe)) where
         𝓕G = (𝓕 .F-ob ∘f ıG ._$g_)
         Hϕ = (ıH ._$g_ ∘f ϕ)
   
