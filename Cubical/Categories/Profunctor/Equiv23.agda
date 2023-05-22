@@ -86,31 +86,33 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
               .universal .is-uniq 
               ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx) 
               (G ⟪ ϕ ⟫)
-              -- nested proof that G ⟪ ϕ ⟫ also satisfies this coinduction
-              -- this works by the following diagram between the presheafs R⟅-,a⟆ and D[-,Ga]
-              --              ηx
-              --       R⟅-,x⟆ ==> D[-,Gx]
-              --  λR(ϕ)  ∥         ∥ (G(ϕ) ∘ -)
-              --         ⇓    ηy   ⇓
-              --       R⟅-,y⟆ ==> D[-,Gy] 
-              --
-              -- These are presheafs D ^op ⟶ SET, and we consider the slice of this diagram at G ⟅ x ⟆
-              --               ηxᴳˣ 
-              --        R⟅Gx,x⟆ --→ D[Gx,Gx]
-              -- λR(ϕ)ᴳˣ  |            |  (G(ϕ) ∘ -)
-              --          ↓            ↓
-              --        R⟅Gx,y⟆ --→ D[Gx,Gy]
-              --                ηyᴳˣ
-              -- Note that by construction, the η and G here define the coinduction and εx ⋆ maps (these are what form the NatIso)
-              -- Thus the equality of the 2 expressions below follows from the fact that η is a natural transformation
-              -- 
-              --                      εx ⋆ 
-              --            D[Gx,Gx] ---→ R⟅Gx,x⟆
-              --             |  id   ⊢→ εx  |  
-              -- (G(ϕ) ∘ -)  |   ↓       ↓  |  λR(ϕ)ᴳˣ = R⟅Gx,-⟆ ⟪ ϕ ⟫
-              --             ↓  G(ϕ) ⊢→  ∎  ↓
-              --            D[Gx,Gy] --→ R⟅Gx,y⟆
-              --                     εy ⋆
+              {-
+                nested proof that G ⟪ ϕ ⟫ also satisfies this coinduction
+                this works by the following diagram between the presheafs R⟅-,a⟆ and D[-,Ga]
+                             ηx
+                      R⟅-,x⟆ ==> D[-,Gx]
+                 λR(ϕ)  ∥         ∥ (G(ϕ) ∘ -)
+                        ⇓    ηy   ⇓
+                      R⟅-,y⟆ ==> D[-,Gy] 
+                
+                These are presheafs D ^op ⟶ SET, and we consider the slice of this diagram at G ⟅ x ⟆
+                              ηxᴳˣ 
+                       R⟅Gx,x⟆ --→ D[Gx,Gx]
+                λR(ϕ)ᴳˣ  |            |  (G(ϕ) ∘ -)
+                         ↓            ↓
+                       R⟅Gx,y⟆ --→ D[Gx,Gy]
+                               ηyᴳˣ
+                Note that by construction, the η and G here define the coinduction and εx ⋆ maps (these are what form the NatIso)
+                Thus the equality of the 2 expressions below follows from the fact that η is a natural transformation
+                
+                                     εx ⋆ 
+                           D[Gx,Gx] ---→ R⟅Gx,x⟆
+                            |  id   ⊢→ εx  |  
+                (G(ϕ) ∘ -)  |   ↓       ↓  |  λR(ϕ)ᴳˣ = R⟅Gx,-⟆ ⟪ ϕ ⟫
+                            ↓  G(ϕ) ⊢→  ∎  ↓
+                           D[Gx,Gy] --→ R⟅Gx,y⟆
+                                    εy ⋆
+              -}
               (
                 (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ (G ⟪ ϕ ⟫) ])
                   ≡⟨ refl ⟩
@@ -159,5 +161,23 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
         )
       ),
       -- prove equality of ηs
-      {!   !}
+      (makeNatIsoPathP 
+        {C = (D ^op ×C C)}
+        {D = (SET _)}
+        {F = (LiftF ∘F R)}
+        {F' = (LiftF  ∘F R)}
+        {G = (LiftF ∘F Functor→Prof*-o C D G)}
+        {G' =(LiftF ∘F Functor→Prof*-o C D G')}
+        {α = η}
+        {β = η'}
+        {!   !} {!   !} {!   !})
+      -- won't work as Y ∘ G and Y ∘ G' are not definitionally equal
+      -- need a nattranspathp
+      -- (NatIso≡ {f = η} {g = η'}
+      --   (
+      --     η .trans .N-ob
+      --       ≡⟨ ? ⟩
+      --     η' .trans .N-ob
+      --   )
+      -- )
     )
