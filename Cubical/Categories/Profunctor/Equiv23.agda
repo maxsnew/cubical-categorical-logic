@@ -70,73 +70,48 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
     -- prove equality of Gs and ηs
     ΣPathP (
       -- prove equality of Gs
-      G≡G' ,
+      G'≡G ,
       -- prove equality of ηs
       (makeNatIsoPathP 
-        -- {F = Prof*-o→Functor C D (LiftF ∘F R)}
-        -- {F' = Prof*-o→Functor C D (LiftF  ∘F R)}
-        -- {G = Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G)}
-        -- {G' = Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G')}
-        -- {α = η}
-        -- {β = η'}
         refl
-        (cong′ (λ X → Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D X)) G≡G')
-        (λ i → λ (c : C .ob) →
-          (makeNatTransPathP
-            refl
-            (cong′ (λ X → (Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D X)) .F-ob c ) G≡G')
-            (λ j → λ (d : D .ob) → (pathToIso-Square
-              -- {x = Prof*-o→Functor C D (LiftF ∘F R) .F-ob c .F-ob d}
-              -- {y = Prof*-o→Functor C D (LiftF ∘F R) .F-ob c .F-ob d}
-              -- {z = Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G') .F-ob c .F-ob d}
-              -- {w = Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G) .F-ob c .F-ob d}
-              ? ? ? ? ? ) j)
-              -- refl
-              --
-              -- (cong′ (λ X → (Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D X)) .F-ob c .F-ob d ) G≡G')
-              -- (η .trans .N-ob c .N-ob d)
-              -- (η' .trans .N-ob c .N-ob d)
-              -- refl) (j))
-            -- ! 
-            -- {!
-            -- λ j → λ (d : D .ob) → (pathToIso-Square
-              -- {x = Prof*-o→Functor C D (LiftF ∘F R) .F-ob c .F-ob d}
-              -- {y = Prof*-o→Functor C D (LiftF ∘F R) .F-ob c .F-ob d}
-              -- {z = Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G') .F-ob c .F-ob d}
-              -- {w = Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G) .F-ob c .F-ob d}
-              -- refl
-              -- (cong′ (λ X → (Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D X)) .F-ob c .F-ob d ) G≡G')
-              -- (η .trans .N-ob c .N-ob d)
-              -- (η' .trans .N-ob c .N-ob d)
-              -- refl) (j)
-            -- !}
-            --() pathToIso-Square
-            --   {x = Prof*-o→Functor C D (LiftF ∘F R) .F-ob c}
-            --   {y = Prof*-o→Functor C D (LiftF ∘F R) .F-ob c}
-            --   {w = Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G) .F-ob c}
-            --   {z = Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G') .F-ob c}
-            -- refl {!!} (η .trans .N-ob c) (η' .trans .N-ob c) {!!})
-            -- )
+        (cong′ (λ X → Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D X)) G'≡G)
+        (funExt (λ (c : C .ob) →
+          (makeNatTransPathP 
+            refl 
+            (cong′ (λ X → (Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D X)) .F-ob c) G'≡G)
+            (funExt (λ (d : D .ob) →
+              (pathToIso-Square {C = (SET _)}
+                {x = (Prof*-o→Functor C D (LiftF ∘F R)) .F-ob c .F-ob d}
+                {y = (Prof*-o→Functor C D (LiftF ∘F R)) .F-ob c .F-ob d}
+                {z = (Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G')) .F-ob c .F-ob d}
+                {w = (Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D G)) .F-ob c .F-ob d}
+                refl 
+                (cong′ (λ X → (Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D X)) .F-ob c .F-ob d) G'≡G)
+                (η' .trans .N-ob c .N-ob d)
+                (η .trans .N-ob c .N-ob d)
+                {!   !}
+              )
+            ))
           )
-        i)
+          {-
+          (pathToIso-Square {C = (FUNCTOR (D ^op) (SET _))}
+            refl 
+            (cong′ (λ X → (Prof*-o→Functor C D (LiftF ∘F Functor→Prof*-o C D X)) .F-ob c) G'≡G)
+            (η' .trans .N-ob c)
+            (η .trans .N-ob c)
+            ?
+          )
+          -}
+        ))
       )
-      -- won't work as Y ∘ G and Y ∘ G' are not definitionally equal
-      -- need a nattranspathp
-      -- (NatIso≡ {f = η} {g = η'}
-      --   (
-      --     η .trans .N-ob
-      --       ≡⟨ ? ⟩
-      --     η' .trans .N-ob
-      --   )
-      -- )
     )
     where
     η⁻¹ = symNatIso η
     U' = ((PshFunctorRepresentation→ParamUniversalElement C D R) (G , η))
-    pairG'η' = ((ParamUniversalElement→PshFunctorRepresentation C D R) U')
-    G' = fst pairG'η'
-    η' = snd pairG'η'
-    G≡G' = (Functor≡
+    G',η' = ((ParamUniversalElement→PshFunctorRepresentation C D R) U')
+    η' = snd G',η'
+    G' = fst G',η'
+    G'≡G = (Functor≡
         -- object map is same
         (λ c → refl)
         -- morphisms are the same due to the uniqueness of coinduction
