@@ -2,12 +2,13 @@
   Show equivalence of definitions from Profunctor.General
 -}
 
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --lossy-unification #-}
 module Cubical.Categories.Profunctor.Equivalence where
 
 open import Cubical.Categories.Profunctor.General
 open import Cubical.Foundations.Prelude hiding (Path)
 open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Path
 open import Cubical.Foundations.Univalence
 open import Cubical.Foundations.Function renaming (_∘_ to _∘f_)
 
@@ -17,6 +18,7 @@ open import Cubical.Data.Sigma.Properties
 
 open import Cubical.Categories.Category
 open import Cubical.Categories.Functor
+open import Cubical.Categories.Isomorphism
 open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.Constructions.BinProduct
@@ -92,6 +94,10 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
     --   (ProfRepresentation→PshFunctorRepresentation C D R) 
     --   (PshFunctorRepresentation→ProfRepresentation C D R)
 
+  open Category
+  open NatIso
+  open NatTrans
+  open Functor
   
   Psh→Prof→Psh : {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} {R : C *-[ ℓs ]-o D} 
     (Psh : PshFunctorRepresentation C D R) 
@@ -99,8 +105,26 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
           ((PshFunctorRepresentation→ProfRepresentation C D R) Psh
           ) ≡ Psh
   Psh→Prof→Psh {C = C} {D = D} {R = R} (G , η) = 
-    let (G' , η') = (ProfRepresentation→PshFunctorRepresentation C D R) ((PshFunctorRepresentation→ProfRepresentation C D R) (G , η)) in 
-      {!  !}
+    let (G' , η') = (ProfRepresentation→PshFunctorRepresentation C D R) ((PshFunctorRepresentation→ProfRepresentation C D R) (G , η)) in
+    let G≡G' = Functor≡ (λ _ → refl) (λ _ → refl) in
+        ΣPathP (G≡G' ,
+          makeNatIsoPathP refl (cong′ (λ X → (Prof*-o→Functor C D) (LiftF ∘F (Functor→Prof*-o C D X))) G≡G')
+          (λ i → λ (c : C .ob) → ((
+            pathToIso-Square
+            {x = (Prof*-o→Functor C D (LiftF ∘F R)) .F-ob c }
+            {y = Prof*-o→Functor C D (funcComp LiftF R) .F-ob c }
+            {z = Prof*-o→Functor C D (funcComp LiftF (Functor→Prof*-o C D G)) .F-ob c }
+            {w = Prof*-o→Functor C D
+                   (funcComp LiftF
+                    (Functor→Prof*-o C D
+                     G'))
+                   .F-ob c }
+            refl
+            (cong′ (λ X → ((Prof*-o→Functor C D) (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D X))) .F-ob c ) G≡G')
+            (η .trans .N-ob c) (η' .trans .N-ob c) ?) i))
+        )
+
+      
 
   PshFunctorRepresentation≅ProfRepresentation : Iso (PshFunctorRepresentation C D R) (ProfRepresentation C D R)
   PshFunctorRepresentation≅ProfRepresentation .Iso.fun = PshFunctorRepresentation→ProfRepresentation C D R
