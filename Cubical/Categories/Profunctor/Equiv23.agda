@@ -80,33 +80,7 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
             refl 
             (cong′ (λ X → (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D X)) .F-ob c) G'≡G)
             (funExt (λ (d : D .ob) →
-              (pathToIso-Square {C = (SET _)}
-                {x = (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R)) .F-ob c .F-ob d}
-                {y = (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R)) .F-ob c .F-ob d}
-                {z = (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G')) .F-ob c .F-ob d}
-                {w = (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G)) .F-ob c .F-ob d}
-                refl 
-                (cong′ (λ X → (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D X)) .F-ob c .F-ob d) G'≡G)
-                (η' .trans .N-ob c .N-ob d)
-                (η .trans .N-ob c .N-ob d)
-                (funExt (λ ϕ →
-                  {-
-                    final piece of the puzzle. show the that these paths behave.
-                    refl should reduce to id, but still need to work through some details
-                    here
-                                  η'ᶜᵈ
-                      ϕ ∈ R(d,c) ---→ D[d,G'c]
-                            |              |
-                    (refl)  |              | G'≡G lifted via cong′
-                            ↓              ↓
-                          R(d,c) ---→ D[d,Gc]
-                                  ηᶜᵈ
-                  -}
-                  ((pathToIso {C = (SET _)} (λ i → (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D (G'≡G i)))) .F-ob c .F-ob d) .fst) ((η' .trans .N-ob c .N-ob d) ϕ))
-                    ≡⟨ {!   !} ⟩
-                  ((η .trans .N-ob c .N-ob d) ((pathToIso {C = (SET _)} (λ _ → (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R)) .F-ob c .F-ob d) .fst) ϕ)) ∎
-                ))
-              )
+            funExt λ _ → refl
             ))
           )
         ))
