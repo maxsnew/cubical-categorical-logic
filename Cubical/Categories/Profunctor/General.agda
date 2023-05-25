@@ -323,25 +323,67 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
             (Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c) .F-hom f g ∎
           ))
 
-      representing-nat-iso  : NatIso
-          (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
-          (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D representing-functor)))
-      representing-nat-iso  .trans .N-ob c .N-ob d =
+      rep-nat-iso-trans : (c : C .ob) →
+        NatTrans (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R) .F-ob c)
+                 (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D representing-functor)) .F-ob c)
+      rep-nat-iso-trans c .N-ob d  =
         let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
-        (λ f → lift (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal .coinduction {b = d} (lower f)))
-      representing-nat-iso .trans .N-ob c .N-hom {d}{d'} ϕ =
+        (λ f → lift {ℓD'}{ℓs} (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal .coinduction {b = d} (lower {ℓs}{ℓD'} f)))
+      rep-nat-iso-trans c .N-hom {d}{d'} ϕ =
         let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
         let εc = U c .fst .snd in
         let coind = UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal .coinduction in
-        funExt λ x → 
+        funExt λ x →
           lift (U c .snd (d' , lower ((Prof*-o→Functor C D (funcComp LiftF R) .F-ob c .F-hom ϕ)(x)) ) .fst .fst)
            ≡⟨ (λ i → lift(((coinduction-natural (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal) (lower x) ϕ)) (~ i))) ⟩
           lift (D [ coind (lower x) ∘ᴾ⟨ D [-, representing-functor .F-ob c ] ⟩ ϕ ])
           ≡⟨ ((λ i → lift (((HomFunctor≡Functor→Prof*-o→Functor c) i .F-hom ϕ ) (coind (lower x))))  ) ⟩
           lift ((Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c .F-hom ϕ) (coind (lower x)))∎
-      -- TODO should only need to show one of .trans .N-hom ψ and .nIso c .inv .N-hom ϕ? Or something like this
+
+      representing-nat-iso  : NatIso
+          (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
+          (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D representing-functor)))
+      representing-nat-iso .trans .N-ob c = rep-nat-iso-trans c
+     -- TODO should only need to show one of .trans .N-hom ψ and .nIso c .inv .N-hom ϕ? Or something like this
       -- naturality of one + inverse = the inverse is natural
-      representing-nat-iso .trans .N-hom ψ = {!!}
+      representing-nat-iso .trans .N-hom {x}{y} ψ =
+        let R⟅-,x⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in
+        let R⟅-,y⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
+        let εy = U y .fst .snd in
+        let εx = U x .fst .snd in
+        let Ux = UniversalElement→UnivElt D R⟅-,x⟆ (U x) .universal in
+        let Uy = UniversalElement→UnivElt D R⟅-,y⟆ (U y) .universal in
+        makeNatTransPath (funExt (λ d → funExt (λ 🍎 →
+        let coindx = Ux .coinduction in
+        let coindy = Uy .coinduction in
+        lift (coindy ((R ⟪ D .id , ψ ⟫) (lower 🍎)))
+        ≡⟨ ( λ i → lift (Uy .is-uniq
+          ((R ⟪ D .id , ψ ⟫) (lower 🍎))
+          (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (coindx (lower 🍎)))
+          (
+          D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ((R ⟪ D .id , ψ ⟫) εx) ∘⟨ D ⟩ (coindx (lower 🍎)) ]
+             ≡⟨ (λ i → D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((coinduction-natural Uy
+                     ((R ⟪ D .id , ψ ⟫) εx) (coindx (lower 🍎))) i)]  ) ⟩
+          D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ( D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]) ]
+            ≡⟨ Uy .commutes (D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]) ⟩
+          D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]
+            ≡⟨ ((λ i → ((BinMorphDecompR ((coindx (lower 🍎)) , ψ) R) (~ i)) εx)) ⟩
+          (R ⟪ (coindx (lower 🍎)) , ψ ⟫) εx
+            ≡⟨ ((λ i → ((BinMorphDecompL ((coindx (lower 🍎)) , ψ) R) (i)) εx)) ⟩
+          ((R ⟪ D .id , ψ ⟫) (D [ εx ∘ᴾ⟨ R⟅-,x⟆ ⟩ (coindx (lower 🍎)) ]))
+            ≡⟨ ((λ i → (R ⟪ D .id , ψ ⟫) (Ux .commutes (lower 🍎) (i))))⟩
+          ((R ⟪ D .id , ψ ⟫) (lower 🍎)) ∎
+          )
+          (~ i)))
+        ⟩
+        -- lift (coindy ((R ⟪ D .id , ψ ⟫) (lower 🍎)))
+          -- ≡⟨ {!!} ⟩
+        -- lift ((representing-functor ⟪ ψ ⟫) ∘⟨ D ⟩ (coindx (lower 🍎)))
+        lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (coindx (lower 🍎)))
+          ≡⟨ ((λ i → lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (D .⋆IdL (coindx (lower 🍎))) (~ i)))) ⟩
+        lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ ( (coindx (lower 🍎)) ∘⟨ D ⟩ D .id ))
+        ∎
+        )))
       representing-nat-iso .nIso c .inv .N-ob d = 
         let εc = U c .fst .snd in
         let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
