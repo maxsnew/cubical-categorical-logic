@@ -339,14 +339,20 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           lift (D [ coind (lower x) ∘ᴾ⟨ D [-, representing-functor .F-ob c ] ⟩ ϕ ])
           ≡⟨ ((λ i → lift (((HomFunctor≡Functor→Prof*-o→Functor c) i .F-hom ϕ ) (coind (lower x))))  ) ⟩
           lift ((Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c .F-hom ϕ) (coind (lower x)))∎
+      -- TODO should only need to show one of .trans .N-hom ψ and .nIso c .inv .N-hom ϕ? Or something like this
+      -- naturality of one + inverse = the inverse is natural
       representing-nat-iso .trans .N-hom ψ = {!!}
       representing-nat-iso .nIso c .inv .N-ob d = 
         let εc = U c .fst .snd in
         let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
         λ f → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower f) ]) 
       representing-nat-iso .nIso c .inv .N-hom ϕ = {!!}
-      representing-nat-iso .nIso c .sec = {!!}
-      representing-nat-iso .nIso c .ret = {!!}
+      representing-nat-iso .nIso c .sec =
+        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
+        makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift ((η-expansion (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal) (lower x)) (~ i))) )
+      representing-nat-iso .nIso c .ret =
+        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
+        makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift ((UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal .commutes (lower x)) i)))
 
     -- | Definition 3 → Definition 4
     ParamUniversalElement→ParamUnivElt : ParamUniversalElement → ParamUnivElt
