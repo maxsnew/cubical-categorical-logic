@@ -46,13 +46,13 @@ open import Cubical.Categories.Functors.HomFunctor
 open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Instances.Functors.More
-open import Cubical.Categories.Yoneda.More
 
 
 open import Cubical.Categories.Equivalence.Base
 open import Cubical.Categories.Equivalence.Properties
 open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.NaturalTransformation.More
+open import Cubical.Categories.Yoneda.More
 
 open import Cubical.Categories.Presheaf.More
 open import Cubical.Tactics.CategorySolver.Reflection
@@ -307,6 +307,22 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
             ∎)
           )⟩
           (Gϕ ⋆⟨ D ⟩ Gψ) ∎
+
+      HomFunctor≡Functor→Prof*-o→Functor : (c : C .ob) →
+        D [-, representing-functor .F-ob c ]
+        ≡
+        (Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c)
+      HomFunctor≡Functor→Prof*-o→Functor c = 
+        Functor≡
+          (λ d → refl)
+          (λ f → funExt (λ g →
+            f ⋆⟨ D ⟩ g
+              ≡⟨ solveCat! D ⟩
+            HomFunctor D .F-hom (f , D .id) g
+              ≡⟨ ((λ i → (HomFunctor D .F-hom (f , representing-functor .F-id (~ i))) g)) ⟩
+            (Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c) .F-hom f g ∎
+          ))
+
       representing-nat-iso  : NatIso
           (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
           (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D representing-functor)))
@@ -316,12 +332,21 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
       representing-nat-iso .trans .N-ob c .N-hom {d}{d'} ϕ =
         let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
         let εc = U c .fst .snd in
-        funExt λ x → {!
-          sym ((coinduction-natural (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal) {a = d'}{b = d} (lower x) ϕ))
-        !}
-
+        let coind = UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal .coinduction in
+        funExt λ x → 
+          lift (U c .snd (d' , lower ((Prof*-o→Functor C D (funcComp LiftF R) .F-ob c .F-hom ϕ)(x)) ) .fst .fst)
+           ≡⟨ (λ i → lift(((coinduction-natural (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal) (lower x) ϕ)) (~ i))) ⟩
+          lift (D [ coind (lower x) ∘ᴾ⟨ D [-, representing-functor .F-ob c ] ⟩ ϕ ])
+          ≡⟨ ((λ i → lift (((HomFunctor≡Functor→Prof*-o→Functor c) i .F-hom ϕ ) (coind (lower x))))  ) ⟩
+          lift ((Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c .F-hom ϕ) (coind (lower x)))∎
       representing-nat-iso .trans .N-hom ψ = {!!}
-      representing-nat-iso .nIso = {!!}
+      representing-nat-iso .nIso c .inv .N-ob d = 
+        let εc = U c .fst .snd in
+        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
+        λ f → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower f) ]) 
+      representing-nat-iso .nIso c .inv .N-hom ϕ = {!!}
+      representing-nat-iso .nIso c .sec = {!!}
+      representing-nat-iso .nIso c .ret = {!!}
 
     -- | Definition 3 → Definition 4
     ParamUniversalElement→ParamUnivElt : ParamUniversalElement → ParamUnivElt
