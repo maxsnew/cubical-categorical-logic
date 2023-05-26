@@ -169,7 +169,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     open UnivElt
     open isUniversal
 
-    -- TODO fork Functors.Constant and generalize
     -- | Definition 2 → Definition 3
     PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
     PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
@@ -214,27 +213,25 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     ParamUniversalElement→PshFunctorRepresentation U =
       (representing-functor , representing-nat-iso)
       where
-      Prof*-o→FunctorR : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o D) → Functor (D ^op) (FUNCTOR C (SET ℓs))
-      Prof*-o→FunctorR C D R = curryF C (SET _) ⟅ R ⟆
-
+      λR = curryF C (SET _) {Γ = (D ^op)} ⟅ R ⟆
       -- | For Definition 3 → Definition 2, we need to construct a functor
       representing-functor : Functor C D
       representing-functor .F-ob c = fst (fst (U c))
       representing-functor .F-hom {x} {y} ϕ =
         (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) (U y))
           .universal .coinduction
-          ((((Prof*-o→FunctorR C D R)  ⟅ (fst (fst (U x))) ⟆) ⟪ ϕ ⟫) (snd (fst (U x))))
+          (((λR ⟅ (fst (fst (U x))) ⟆) ⟪ ϕ ⟫) (snd (fst (U x))))
       representing-functor .F-id {x} =
         let R⟅-,x⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in
         let (dₓ , θₓ) = (fst (U x)) in
           (UniversalElement→UnivElt D R⟅-,x⟆ (U x))
               .universal .coinduction
-            ((((Prof*-o→FunctorR C D R)  ⟅ dₓ ⟆) ⟪ C .id ⟫) θₓ)
+            (((λR ⟅ dₓ ⟆) ⟪ C .id ⟫) θₓ)
           -- Use the fact that curryF is a functor to simplify coinduction target (F-id)
           ≡⟨ (λ i →
               (UniversalElement→UnivElt D R⟅-,x⟆ (U x))
                 .universal .coinduction
-                ((((Prof*-o→FunctorR C D R)  ⟅ dₓ ⟆) .F-id (i)) θₓ)) ⟩
+                (((λR ⟅ dₓ ⟆) .F-id (i)) θₓ)) ⟩
           (UniversalElement→UnivElt D R⟅-,x⟆ (U x)) .universal .coinduction θₓ
           -- use uniqueness of universal element.
           ≡⟨ sym ((UniversalElement→UnivElt D R⟅-,x⟆ (U x)) .universal .is-uniq θₓ (D .id)
@@ -254,8 +251,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         let (dz , εz) = (fst (U z)) in
         let R⟅-,y⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
         let R⟅-,z⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C z) in
-        let R⟅dx,-⟆ = ((Prof*-o→FunctorR C D R) ⟅ dx ⟆) in
-        let R⟅dy,-⟆ = ((Prof*-o→FunctorR C D R) ⟅ dy ⟆) in
+        let R⟅dx,-⟆ = (λR ⟅ dx ⟆) in
+        let R⟅dy,-⟆ = (λR ⟅ dy ⟆) in
           ( Gϕ⋆ψ )
           ≡⟨ (λ i → (UniversalElement→UnivElt D R⟅-,z⟆ (U z))
             .universal .coinduction
@@ -323,6 +320,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
             (Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c) .F-hom f g ∎
           ))
 
+      -- separate definition for termination reasons
       rep-nat-iso-trans : (c : C .ob) →
         NatTrans (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R) .F-ob c)
                  (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D representing-functor)) .F-ob c)
@@ -344,8 +342,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
           (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D representing-functor)))
       representing-nat-iso .trans .N-ob c = rep-nat-iso-trans c
-     -- TODO should only need to show one of .trans .N-hom ψ and .nIso c .inv .N-hom ϕ? Or something like this
-      -- naturality of one + inverse = the inverse is natural
       representing-nat-iso .trans .N-hom {x}{y} ψ =
         let R⟅-,x⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in
         let R⟅-,y⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
