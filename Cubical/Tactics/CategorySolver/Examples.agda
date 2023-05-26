@@ -1,9 +1,8 @@
 {-# OPTIONS --safe #-}
 module Cubical.Tactics.CategorySolver.Examples where
 
-open import Cubical.Foundations.Prelude
-
 open import Cubical.Categories.Category
+open import Cubical.Foundations.Prelude
 open import Cubical.Tactics.CategorySolver.Reflection
 
 private
