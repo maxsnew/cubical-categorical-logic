@@ -48,6 +48,17 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} where
   CAT⋆IdR {F} .trans .N-hom = idTrans F .N-hom
   CAT⋆IdR {F} .nIso = idNatIso F .nIso
 
+  module _  {F F' G G' : Functor C D} {α : NatIso F G} {β : NatIso F' G'} where
+    open Functor
+    makeNatIsoPathP : ∀ (p : F ≡ F') (q : G ≡ G')
+                      → PathP (λ i → (x : C .ob) → D [ (p i) .F-ob x , (q i) .F-ob x ])
+                              (α .trans .N-ob) (β .trans .N-ob)
+                      → PathP (λ i → NatIso (p i) (q i)) α β
+    
+    makeNatIsoPathP p q P i .trans = makeNatTransPathP {α = α .trans} {β = β .trans} p q P i
+    makeNatIsoPathP p q P i .nIso x =
+      isProp→PathP (λ i → isPropIsIso (makeNatIsoPathP p q P i .trans .N-ob x)) (α .nIso _) (β .nIso _) i
+
 module _ {B : Category ℓB ℓB'}{C : Category ℓC ℓC'}{D : Category ℓD ℓD'} where
   _∘ʳi_ : ∀ (K : Functor C D) → {G H : Functor B C} (β : NatIso G H)
        → NatIso (K ∘F G) (K ∘F H)
