@@ -247,3 +247,15 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
                 ))
               )
             )
+
+
+  ParamUniversalElement≅ParamUnivElt : Iso (ParamUniversalElement C D R) (ParamUnivElt C D R)
+  ParamUniversalElement≅ParamUnivElt =
+    record {
+      fun = ParamUniversalElement→ParamUnivElt C D R ;
+      inv = ParamUnivElt→ParamUniversalElement C D R ;
+      rightInv =  λ U → refl ;
+      leftInv = λ U → funExt (λ c →
+        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
+        Σ≡Prop ({!(isPropIsTerminal (∫ᴾ_ {C = D} R⟅-,c⟆))!}) refl)
+    }
