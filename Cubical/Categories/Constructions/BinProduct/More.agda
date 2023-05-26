@@ -23,6 +23,9 @@ private
 -- helpful decomposition of morphisms used in several proofs
 -- about product category
 
+Δ : ∀ (C : Category ℓC ℓC') → Functor C (C ×C C)
+Δ C = Id ,F Id
+
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}{E : Category ℓE ℓE'} where
 
   open Category
