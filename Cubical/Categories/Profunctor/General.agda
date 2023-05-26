@@ -367,18 +367,19 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ( D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]) ]
             ≡⟨ Uy .commutes (D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]) ⟩
           D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]
-            ≡⟨ ((λ i → ((BinMorphDecompR ((coindx (lower 🍎)) , ψ) R) (~ i)) εx)) ⟩
+            ≡⟨ (λ i → ((R .F-seq ( D .id , ψ ) ((coindx (lower 🍎)) , C .id)) (~ i)) εx) ⟩
+          ((R ⟪ ( D .id ⋆⟨ (D ^op) ⟩ (coindx (lower 🍎)) , ψ ⋆⟨ C ⟩ C .id )  ⟫) εx)
+            ≡⟨ ((λ i → (R ⟪ (D ^op) .⋆IdL (coindx (lower 🍎))(i) , C .⋆IdR ψ (i) ⟫) εx))⟩
           (R ⟪ (coindx (lower 🍎)) , ψ ⟫) εx
-            ≡⟨ ((λ i → ((BinMorphDecompL ((coindx (lower 🍎)) , ψ) R) (i)) εx)) ⟩
+            ≡⟨ ((λ i → (R ⟪ (D ^op) .⋆IdR (coindx (lower 🍎))(~ i) , C .⋆IdL ψ (~ i) ⟫) εx))⟩
+          ((R ⟪ ( (coindx (lower 🍎)) ⋆⟨ (D ^op) ⟩ D .id , C .id ⋆⟨ C ⟩ ψ )  ⟫) εx)
+            ≡⟨ (λ i → ((R .F-seq ( (coindx (lower 🍎)) , C .id ) (D .id , ψ)) (i)) εx) ⟩
           ((R ⟪ D .id , ψ ⟫) (D [ εx ∘ᴾ⟨ R⟅-,x⟆ ⟩ (coindx (lower 🍎)) ]))
             ≡⟨ ((λ i → (R ⟪ D .id , ψ ⟫) (Ux .commutes (lower 🍎) (i))))⟩
           ((R ⟪ D .id , ψ ⟫) (lower 🍎)) ∎
           )
           (~ i)))
         ⟩
-        -- lift (coindy ((R ⟪ D .id , ψ ⟫) (lower 🍎)))
-          -- ≡⟨ {!!} ⟩
-        -- lift ((representing-functor ⟪ ψ ⟫) ∘⟨ D ⟩ (coindx (lower 🍎)))
         lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (coindx (lower 🍎)))
           ≡⟨ ((λ i → lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (D .⋆IdL (coindx (lower 🍎))) (~ i)))) ⟩
         lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ ( (coindx (lower 🍎)) ∘⟨ D ⟩ D .id ))
@@ -388,7 +389,17 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         let εc = U c .fst .snd in
         let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
         λ f → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower f) ]) 
-      representing-nat-iso .nIso c .inv .N-hom ϕ = {!!}
+      representing-nat-iso .nIso c .inv .N-hom {d}{d'} ϕ =
+        let εc = U c .fst .snd in
+        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
+        funExt λ x →
+          lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower (((LiftF ∘F (HomFunctor D)) ⟪ ϕ , representing-functor ⟪ C .id ⟫  ⟫) x)) ])
+            ≡⟨ (λ i → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower (((LiftF ∘F (HomFunctor D)) ⟪ ϕ , (representing-functor .F-id) (i) ⟫) x)) ])) ⟩
+          lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (D .id ∘⟨ D ⟩ ((lower x) ∘⟨ D ⟩ ϕ)) ])
+            ≡⟨ (λ i → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((D .⋆IdR ((lower x) ∘⟨ D ⟩ ϕ)) (i)) ])) ⟩
+          lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((lower x) ∘⟨ D ⟩ ϕ) ])
+            ≡⟨ ((λ i → lift (((R⟅-,c⟆ .F-seq (lower x) ϕ) (i)) εc))) ⟩
+          lift ((R⟅-,c⟆ ⟪ ϕ ⟫) (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower x) ])) ∎
       representing-nat-iso .nIso c .sec =
         let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
         makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift ((η-expansion (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal) (lower x)) (~ i))) )
