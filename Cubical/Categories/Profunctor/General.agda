@@ -367,13 +367,9 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
           D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ( D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]) ]
             ≡⟨ Uy .commutes (D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]) ⟩
           D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]
-            ≡⟨ (λ i → ((R .F-seq ( D .id , ψ ) ((coindx (lower 🍎)) , C .id)) (~ i)) εx) ⟩
-          ((R ⟪ ( D .id ⋆⟨ (D ^op) ⟩ (coindx (lower 🍎)) , ψ ⋆⟨ C ⟩ C .id )  ⟫) εx)
-            ≡⟨ ((λ i → (R ⟪ (D ^op) .⋆IdL (coindx (lower 🍎))(i) , C .⋆IdR ψ (i) ⟫) εx))⟩
+            ≡⟨ (λ i → ((BinMorphDecompR {C = (D ^op)} {D = C} {E = (SET _)} ((coindx (lower 🍎)) , ψ) R) (~ i)) εx) ⟩
           (R ⟪ (coindx (lower 🍎)) , ψ ⟫) εx
-            ≡⟨ ((λ i → (R ⟪ (D ^op) .⋆IdR (coindx (lower 🍎))(~ i) , C .⋆IdL ψ (~ i) ⟫) εx))⟩
-          ((R ⟪ ( (coindx (lower 🍎)) ⋆⟨ (D ^op) ⟩ D .id , C .id ⋆⟨ C ⟩ ψ )  ⟫) εx)
-            ≡⟨ (λ i → ((R .F-seq ( (coindx (lower 🍎)) , C .id ) (D .id , ψ)) (i)) εx) ⟩
+            ≡⟨ (λ i → ((BinMorphDecompL {C = (D ^op)} {D = C} {E = (SET _)} ((coindx (lower 🍎)) , ψ) R) (i)) εx) ⟩
           ((R ⟪ D .id , ψ ⟫) (D [ εx ∘ᴾ⟨ R⟅-,x⟆ ⟩ (coindx (lower 🍎)) ]))
             ≡⟨ ((λ i → (R ⟪ D .id , ψ ⟫) (Ux .commutes (lower 🍎) (i))))⟩
           ((R ⟪ D .id , ψ ⟫) (lower 🍎)) ∎
