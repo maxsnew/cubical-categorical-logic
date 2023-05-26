@@ -50,30 +50,15 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
   open NatTrans
   open Functor
 
-  PshFunctorRepresentation≅ProfRepresentation : Iso (PshFunctorRepresentation C D R) (ProfRepresentation C D R)
-  PshFunctorRepresentation≅ProfRepresentation =
+  ProfRepresentation≅PshFunctorRepresentation : Iso (ProfRepresentation C D R) (PshFunctorRepresentation C D R)
+  ProfRepresentation≅PshFunctorRepresentation =
     record {
-      fun = PshFunctorRepresentation→ProfRepresentation C D R;
-      inv = ProfRepresentation→PshFunctorRepresentation C D R;
-      rightInv = Prof→Psh→Prof;
-      leftInv = Psh→Prof→Psh
+      fun = ProfRepresentation→PshFunctorRepresentation C D R;
+      inv = PshFunctorRepresentation→ProfRepresentation C D R;
+      rightInv = Psh→Prof→Psh;
+      leftInv = Prof→Psh→Prof
     }
     where
-    Prof→Psh→Prof : (Prof : ProfRepresentation C D R)
-        → (PshFunctorRepresentation→ProfRepresentation C D R)
-          ((ProfRepresentation→PshFunctorRepresentation C D R) Prof
-          ) ≡ Prof
-    Prof→Psh→Prof (G , η) =
-      let (G' , η') = (PshFunctorRepresentation→ProfRepresentation C D R) ((ProfRepresentation→PshFunctorRepresentation C D R) (G , η)) in
-      let G≡G' = Functor≡ (λ _ → refl) (λ _ → refl) in
-        ΣPathP (G≡G' ,
-          makeNatIsoPathP
-            refl
-            (cong′ (λ X → (LiftF ∘F (Functor→Prof*-o C D X))) G≡G')
-            (funExt λ (d , c) →
-              funExt λ _ → refl
-            )
-        )
     Psh→Prof→Psh : (Psh : PshFunctorRepresentation C D R)
       → (ProfRepresentation→PshFunctorRepresentation C D R)
         ((PshFunctorRepresentation→ProfRepresentation C D R) Psh
@@ -92,6 +77,21 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
                 ))
               ))
           )
+    Prof→Psh→Prof : (Prof : ProfRepresentation C D R)
+        → (PshFunctorRepresentation→ProfRepresentation C D R)
+          ((ProfRepresentation→PshFunctorRepresentation C D R) Prof
+          ) ≡ Prof
+    Prof→Psh→Prof (G , η) =
+      let (G' , η') = (PshFunctorRepresentation→ProfRepresentation C D R) ((ProfRepresentation→PshFunctorRepresentation C D R) (G , η)) in
+      let G≡G' = Functor≡ (λ _ → refl) (λ _ → refl) in
+        ΣPathP (G≡G' ,
+          makeNatIsoPathP
+            refl
+            (cong′ (λ X → (LiftF ∘F (Functor→Prof*-o C D X))) G≡G')
+            (funExt λ (d , c) →
+              funExt λ _ → refl
+            )
+        )
 
   open Contravariant
   open UnivElt
@@ -259,3 +259,13 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
         let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
         Σ≡Prop ((isPropIsTerminal (∫ᴾ_ {C = D} R⟅-,c⟆))) refl)
     }
+
+
+  ProfRepresentation≅ParamUniversalElement : Iso (ProfRepresentation C D R) (ParamUniversalElement C D R)
+  ProfRepresentation≅ParamUniversalElement = compIso ProfRepresentation≅PshFunctorRepresentation PshFunctorRepresentation≅ParamUniversalElement
+
+  ProfRepresentation≅ParamUnivElt : Iso (ProfRepresentation C D R) (ParamUnivElt C D R)
+  ProfRepresentation≅ParamUnivElt = compIso ProfRepresentation≅ParamUniversalElement ParamUniversalElement≅ParamUnivElt
+
+  PshFunctorRepresentation≅ParamUnivElt : Iso (PshFunctorRepresentation C D R) (ParamUnivElt C D R)
+  PshFunctorRepresentation≅ParamUnivElt = compIso PshFunctorRepresentation≅ParamUniversalElement ParamUniversalElement≅ParamUnivElt
