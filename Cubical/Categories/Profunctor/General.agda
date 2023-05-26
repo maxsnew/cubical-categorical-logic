@@ -133,8 +133,11 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
     -- | Definition 3: Parameterized Universal Element
     -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
+    RepresentableAt : (c : C .ob) → Type _
+    RepresentableAt c = UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+
     ParamUniversalElement : Type _
-    ParamUniversalElement = (c : C .ob) → UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+    ParamUniversalElement = (c : C .ob) → RepresentableAt c
 
     -- | Definition 4: Parameterized UnivElt
     -- | Same but with the unpacked UnivElt definition
