@@ -11,6 +11,7 @@ open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Equivalence.Base
 
 
+
 private
   variable
     ℓC ℓC' ℓD ℓD' ℓE ℓE' : Level
@@ -29,10 +30,10 @@ module _
   open isIso
 
   isEquivalenceComp : isEquivalence F → isEquivalence G → isEquivalence (G ∘F F)
-  isEquivalenceComp Feq Geq = record { invFunc = F'G' ; η = η-iso ; ε = ε-iso } where
-    F'G' : Functor E C
-    F'G' = Feq .invFunc ∘F  Geq .invFunc
-    η-iso : NatIso 𝟙⟨ C ⟩ (F'G' ∘F (G ∘F F))
+  isEquivalenceComp Feq Geq = record { invFunc = F'∘G' ; η = η-iso ; ε = ε-iso } where
+    F'∘G' : Functor E C
+    F'∘G' = Feq .invFunc ∘F  Geq .invFunc
+    η-iso : NatIso 𝟙⟨ C ⟩ (F'∘G' ∘F (G ∘F F))
     η-iso = seqNatIso 
       -- proof that 1 and (F' F) are iso
       (Feq .η)
@@ -53,12 +54,12 @@ module _
         (CAT⋆Assoc (G ∘F F) (Geq .invFunc) (Feq .invFunc))
       )
 
-    ε-iso : NatIso ((G ∘F F) ∘F F'G') 𝟙⟨ E ⟩
+    ε-iso : NatIso ((G ∘F F) ∘F F'∘G') 𝟙⟨ E ⟩
     ε-iso = seqNatIso
       -- proof that (G F) (F' G') and G G' are iso
       (seqNatIso
         -- proof that (G F) (F' G') and G (F (F' G')) are iso
-        (symNatIso (CAT⋆Assoc (F'G') F G))
+        (symNatIso (CAT⋆Assoc (F'∘G') F G))
         -- post compose nested proof with G
         (G ∘ʳi seqNatIso
           -- proof that F (F' G') and 1 G' are iso

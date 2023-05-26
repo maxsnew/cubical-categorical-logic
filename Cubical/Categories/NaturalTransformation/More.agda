@@ -14,6 +14,8 @@ open import Cubical.Categories.Morphism
 open import Cubical.Categories.Isomorphism
 open import Cubical.Categories.NaturalTransformation.Base
 
+open import Cubical.Categories.Instances.Functors
+
 private
   variable
     ℓA ℓA' ℓB ℓB' ℓC ℓC' ℓD ℓD' ℓE ℓE' : Level
@@ -66,3 +68,14 @@ module _ {B : Category ℓB ℓB'}{C : Category ℓC ℓC'}{D : Category ℓD �
   CAT⋆Assoc F G H .trans .N-ob = idTrans ((H ∘F G) ∘F F) .N-ob
   CAT⋆Assoc F G H .trans .N-hom = idTrans ((H ∘F G) ∘F F) .N-hom
   CAT⋆Assoc F G H .nIso = idNatIso ((H ∘F G) ∘F F) .nIso
+
+
+
+module _ {A : Category ℓA ℓA'}{B : Category ℓB ℓB'}{C : Category ℓC ℓC'}{D : Category ℓD ℓD'} where
+  preservesNatIsosF : ∀ (𝔽 : Functor (FUNCTOR A B) (FUNCTOR C D)) → {F G : Functor A B} → (β : NatIso F G) 
+      → NatIso (𝔽 ⟅ F ⟆) (𝔽 ⟅ G ⟆)
+  preservesNatIsosF 𝔽 β =
+    FUNCTORIso→NatIso C D 
+      (preserveIsosF {F = 𝔽} 
+        (NatIso→FUNCTORIso A B β)
+      )
