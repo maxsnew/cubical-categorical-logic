@@ -23,6 +23,7 @@ open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.Isomorphism
 open import Cubical.Categories.Constructions.BinProduct
+open import Cubical.Categories.Constructions.Elements
 open import Cubical.Categories.Instances.Sets
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functors.HomFunctor
@@ -61,11 +62,29 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
   open isIso
   open NatTrans
   open Functor
+  open Contravariant
 
   PshFunctorRepresentation≅ParamUniversalElement : Iso (PshFunctorRepresentation C D R) (ParamUniversalElement C D R) 
   PshFunctorRepresentation≅ParamUniversalElement .Iso.fun = PshFunctorRepresentation→ParamUniversalElement C D R
   PshFunctorRepresentation≅ParamUniversalElement .Iso.inv = ParamUniversalElement→PshFunctorRepresentation C D R
-  PshFunctorRepresentation≅ParamUniversalElement .Iso.rightInv U = funExt (λ c → {!  pathToIso-Square !})
+  PshFunctorRepresentation≅ParamUniversalElement .Iso.rightInv U =
+    let (G , η) = (ParamUniversalElement→PshFunctorRepresentation C D R) U in
+    let η⁻¹ = symNatIso η in
+    let U' = PshFunctorRepresentation→ParamUniversalElement C D R (G , η) in
+    funExt (λ c →
+      let εc = (U c) .fst .snd in
+      let ε'c = (U' c) .fst .snd in
+      let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
+      ΣPathP (
+        ΣPathP (
+          -- same object
+          refl ,
+          -- paths equal as εc ⋆ id = εc
+          (ε'c ≡⟨ (λ i → (R⟅-,c⟆ .F-id (i)) εc) ⟩ εc ∎)
+        ) ,
+        {!((isPropIsTerminal (∫ᴾ_ {C = D} R⟅-,c⟆)) (U c .fst)) (U c .snd) (U' c .snd)!}
+      )
+    )
   PshFunctorRepresentation≅ParamUniversalElement .Iso.leftInv (G , η) =
     -- prove equality of Gs and ηs
     ΣPathP (
