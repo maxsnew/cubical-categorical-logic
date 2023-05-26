@@ -75,15 +75,14 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (R : C *-[ ℓs ]-o
       let εc = (U c) .fst .snd in
       let ε'c = (U' c) .fst .snd in
       let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
-      ΣPathP (
-        ΣPathP (
+      ΣPathPProp
+        (isPropIsTerminal (∫ᴾ_ {C = D} R⟅-,c⟆))
+        (ΣPathP (
           -- same object
           refl ,
           -- paths equal as εc ⋆ id = εc
           (ε'c ≡⟨ (λ i → (R⟅-,c⟆ .F-id (i)) εc) ⟩ εc ∎)
-        ) ,
-        {!((isPropIsTerminal (∫ᴾ_ {C = D} R⟅-,c⟆)) (U c .fst)) (U c .snd) (U' c .snd)!}
-      )
+        ))
     )
   PshFunctorRepresentation≅ParamUniversalElement .Iso.leftInv (G , η) =
     -- prove equality of Gs and ηs
