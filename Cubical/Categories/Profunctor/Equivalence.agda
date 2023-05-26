@@ -2,7 +2,7 @@
   Show equivalence of definitions from Profunctor.General
 -}
 
-{-# OPTIONS --safe --lossy-unification #-}
+{-# OPTIONS --safe #-}
 module Cubical.Categories.Profunctor.Equivalence where
 
 open import Cubical.Categories.Profunctor.General
