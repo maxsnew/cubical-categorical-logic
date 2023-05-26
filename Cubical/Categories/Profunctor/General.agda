@@ -353,36 +353,36 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
         let εx = U x .fst .snd in
         let Ux = UniversalElement→UnivElt D R⟅-,x⟆ (U x) .universal in
         let Uy = UniversalElement→UnivElt D R⟅-,y⟆ (U y) .universal in
-        makeNatTransPath (funExt (λ d → funExt (λ 🍎 →
+        makeNatTransPath (funExt (λ d → funExt (λ α →
         let coindx = Ux .coinduction in
         let coindy = Uy .coinduction in
-        lift (coindy ((R ⟪ D .id , ψ ⟫) (lower 🍎)))
+        lift (coindy ((R ⟪ D .id , ψ ⟫) (lower α)))
         ≡⟨ ( λ i → lift (Uy .is-uniq
-          ((R ⟪ D .id , ψ ⟫) (lower 🍎))
-          (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (coindx (lower 🍎)))
+          ((R ⟪ D .id , ψ ⟫) (lower α))
+          (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (coindx (lower α)))
           (
-          D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ((R ⟪ D .id , ψ ⟫) εx) ∘⟨ D ⟩ (coindx (lower 🍎)) ]
+          D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ((R ⟪ D .id , ψ ⟫) εx) ∘⟨ D ⟩ (coindx (lower α)) ]
              ≡⟨ (λ i → D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((coinduction-natural Uy
-                     ((R ⟪ D .id , ψ ⟫) εx) (coindx (lower 🍎))) i)]  ) ⟩
-          D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ( D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]) ]
-            ≡⟨ Uy .commutes (D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]) ⟩
-          D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower 🍎)) ]
-            ≡⟨ (λ i → ((R .F-seq ( D .id , ψ ) ((coindx (lower 🍎)) , C .id)) (~ i)) εx) ⟩
-          ((R ⟪ ( D .id ⋆⟨ (D ^op) ⟩ (coindx (lower 🍎)) , ψ ⋆⟨ C ⟩ C .id )  ⟫) εx)
-            ≡⟨ ((λ i → (R ⟪ (D ^op) .⋆IdL (coindx (lower 🍎))(i) , C .⋆IdR ψ (i) ⟫) εx))⟩
-          (R ⟪ (coindx (lower 🍎)) , ψ ⟫) εx
-            ≡⟨ ((λ i → (R ⟪ (D ^op) .⋆IdR (coindx (lower 🍎))(~ i) , C .⋆IdL ψ (~ i) ⟫) εx))⟩
-          ((R ⟪ ( (coindx (lower 🍎)) ⋆⟨ (D ^op) ⟩ D .id , C .id ⋆⟨ C ⟩ ψ )  ⟫) εx)
-            ≡⟨ (λ i → ((R .F-seq ( (coindx (lower 🍎)) , C .id ) (D .id , ψ)) (i)) εx) ⟩
-          ((R ⟪ D .id , ψ ⟫) (D [ εx ∘ᴾ⟨ R⟅-,x⟆ ⟩ (coindx (lower 🍎)) ]))
-            ≡⟨ ((λ i → (R ⟪ D .id , ψ ⟫) (Ux .commutes (lower 🍎) (i))))⟩
-          ((R ⟪ D .id , ψ ⟫) (lower 🍎)) ∎
+                     ((R ⟪ D .id , ψ ⟫) εx) (coindx (lower α))) i)]  ) ⟩
+          D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ( D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower α)) ]) ]
+            ≡⟨ Uy .commutes (D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower α)) ]) ⟩
+          D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower α)) ]
+            ≡⟨ (λ i → ((R .F-seq ( D .id , ψ ) ((coindx (lower α)) , C .id)) (~ i)) εx) ⟩
+          ((R ⟪ ( D .id ⋆⟨ (D ^op) ⟩ (coindx (lower α)) , ψ ⋆⟨ C ⟩ C .id )  ⟫) εx)
+            ≡⟨ ((λ i → (R ⟪ (D ^op) .⋆IdL (coindx (lower α))(i) , C .⋆IdR ψ (i) ⟫) εx))⟩
+          (R ⟪ (coindx (lower α)) , ψ ⟫) εx
+            ≡⟨ ((λ i → (R ⟪ (D ^op) .⋆IdR (coindx (lower α))(~ i) , C .⋆IdL ψ (~ i) ⟫) εx))⟩
+          ((R ⟪ ( (coindx (lower α)) ⋆⟨ (D ^op) ⟩ D .id , C .id ⋆⟨ C ⟩ ψ )  ⟫) εx)
+            ≡⟨ (λ i → ((R .F-seq ( (coindx (lower α)) , C .id ) (D .id , ψ)) (i)) εx) ⟩
+          ((R ⟪ D .id , ψ ⟫) (D [ εx ∘ᴾ⟨ R⟅-,x⟆ ⟩ (coindx (lower α)) ]))
+            ≡⟨ ((λ i → (R ⟪ D .id , ψ ⟫) (Ux .commutes (lower α) (i))))⟩
+          ((R ⟪ D .id , ψ ⟫) (lower α)) ∎
           )
           (~ i)))
         ⟩
-        lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (coindx (lower 🍎)))
-          ≡⟨ ((λ i → lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (D .⋆IdL (coindx (lower 🍎))) (~ i)))) ⟩
-        lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ ( (coindx (lower 🍎)) ∘⟨ D ⟩ D .id ))
+        lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (coindx (lower α)))
+          ≡⟨ ((λ i → lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (D .⋆IdL (coindx (lower α))) (~ i)))) ⟩
+        lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ ( (coindx (lower α)) ∘⟨ D ⟩ D .id ))
         ∎
         )))
       representing-nat-iso .nIso c .inv .N-ob d = 
