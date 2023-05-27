@@ -54,6 +54,7 @@ open import Cubical.Categories.Equivalence.WeakEquivalence
 open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.Yoneda.More
 
+open import Cubical.Categories.Presheaf
 open import Cubical.Categories.Presheaf.More
 open import Cubical.Tactics.CategorySolver.Reflection
 open import Cubical.Tactics.FunctorSolver.Reflection
@@ -63,7 +64,6 @@ open import Cubical.Categories.Constructions.BinProduct.More
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 
-open import Cubical.Categories.Presheaf.More
 
 -- There are possibly 5 different levels to consider: the levels of
 -- objects and arrows of the two different categories and the level of
@@ -133,16 +133,19 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
     -- | Definition 3: Parameterized Universal Element
     -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
-    RepresentableAt : (c : C .ob) → Type _
-    RepresentableAt c = UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
-
+    private
+      R[-,_] : (c : C .ob) → Presheaf D ℓs
+      R[-, c ] = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
     ParamUniversalElement : Type _
-    ParamUniversalElement = (c : C .ob) → RepresentableAt c
+    ParamUniversalElement = (c : C .ob) → UniversalElement D (R[-, c ])
 
     -- | Definition 4: Parameterized UnivElt
     -- | Same but with the unpacked UnivElt definition
+    RepresentableAt : (c : C .ob) → Type _
+    RepresentableAt c = UnivElt D (R[-, c ])
+
     ParamUnivElt : Type _
-    ParamUnivElt = (c : C .ob) → UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c))
+    ParamUnivElt = (c : C .ob) → RepresentableAt c
 
     -- Show equivalence of all four definitions.
     -- Here we provide functions between definitions,
@@ -409,3 +412,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     -- | Definition 4 → Definition 3
     ParamUnivElt→ParamUniversalElement : ParamUnivElt → ParamUniversalElement
     ParamUnivElt→ParamUniversalElement U c = UnivElt→UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) (U c)
+
+    -- Definition 4 → Definition 1
+    ParamUnivElt→ProfRepresentation : ParamUnivElt → ProfRepresentation
+    ParamUnivElt→ProfRepresentation U = PshFunctorRepresentation→ProfRepresentation (ParamUniversalElement→PshFunctorRepresentation (ParamUnivElt→ParamUniversalElement U)) 

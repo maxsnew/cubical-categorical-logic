@@ -20,16 +20,16 @@ private
   variable
     ℓC ℓC' ℓD ℓD' ℓE ℓE' : Level
 
--- helpful decomposition of morphisms used in several proofs
--- about product category
+open Category
+open Functor
 
+-- Some more functor combinators
 Δ : ∀ (C : Category ℓC ℓC') → Functor C (C ×C C)
 Δ C = Id ,F Id
 
+-- helpful decomposition of morphisms used in several proofs
+-- about product category
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}{E : Category ℓE ℓE'} where
-
-  open Category
-  open Functor
 
   BinMorphDecompL : ∀ {x1 x2} {y1 y2} ((f , g) : (C ×C D) [ (x1 , y1) , (x2 , y2) ])
                       → (F : Functor (C ×C D) E) 
