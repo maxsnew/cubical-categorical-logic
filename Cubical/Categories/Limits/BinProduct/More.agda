@@ -28,11 +28,35 @@ open BinProduct
 open Category
 
 module _ (C : Category ℓ ℓ') where
+  BinProductToRepresentable : ∀ {a b} → BinProduct C a b → RightAdjointAt _ _ (Δ C) (a , b)
+  BinProductToRepresentable bp .vertex = bp .binProdOb
+  BinProductToRepresentable bp .element = (bp .binProdPr₁) , (bp .binProdPr₂)
+  BinProductToRepresentable bp .universal .coinduction (f1 , f2) = bp .univProp f1 f2 .fst .fst
+  BinProductToRepresentable bp .universal .commutes (f1 , f2) = cong₂ _,_ (C .⋆IdR _ ∙ up .fst .snd .fst) ((C .⋆IdR _ ∙ up .fst .snd .snd))
+    where up = bp .univProp f1 f2
+  BinProductToRepresentable bp .universal .is-uniq (f1 , f2) fp commutes = cong fst (sym (bp .univProp f1 f2 .snd (fp , (sym (C .⋆IdR _) ∙ cong fst commutes) , sym (C .⋆IdR _) ∙ cong snd commutes)))
+
+  module _ (bp : BinProducts C) where
+    BinProductsToUnivElts : RightAdjoint C (C ×C C) (Δ C)
+    BinProductsToUnivElts c = BinProductToRepresentable (bp (c .fst) (c .snd))
+
+    ProdProf : C o-[ ℓ' ]-* (C ×C C)
+    ProdProf = Functor→Profo-* C (C ×C C) (Δ C)
+
+    BinProductsToProfRepresentation : ProfRepresentation (C ×C C) C ProdProf
+    BinProductsToProfRepresentation = ParamUnivElt→ProfRepresentation _ _ _ BinProductsToUnivElts
+
+    BinProductF : Functor (C ×C C) C
+    BinProductF = BinProductsToProfRepresentation .fst
+
   module Notation (bp : BinProducts C) where
     private
       variable
         a b c d : C .ob
-        f g : C [ a , b ]
+        f g h : C [ a , b ]
+    ues : RightAdjointAt C (C ×C C) (Δ C) (a , b)
+    ues = BinProductsToUnivElts bp _
+
     _×_ : C .ob → C .ob → C .ob
     a × b = bp a b .binProdOb
 
@@ -48,22 +72,27 @@ module _ (C : Category ℓ ℓ') where
     _×p_ : C [ a , b ] → C [ c , d ] → C [ a × c , b × d ]
     f ×p g = (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂)
 
-    β₁ : π₁ ∘⟨ C ⟩ (f ,p g) ≡ f
-    β₁ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .fst
 
-    β₂ : π₂ ∘⟨ C ⟩ (f ,p g) ≡ g
-    β₂ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .snd
+    -- currently the product functor has some annoying ids in it:
+    bad : (f ∘⟨ C ⟩ (π₁ ∘⟨ C ⟩ C .id)) ,p (g ∘⟨ C ⟩ (π₂ ∘⟨ C ⟩ C .id)) ≡ BinProductF bp ⟪ f , g ⟫
+    bad = refl
 
-    -- η : f ≡ (π₁ ∘⟨ C ⟩ f ,p π₂ ∘⟨ C ⟩ f)
-    -- η {f = f}= {!!}
+    -- Preferably it should be defined like this:
+    -- good : (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂) ≡ BinProductF bp ⟪ f , g ⟫
+    -- good = refl
 
-  BinProductToRepresentable : ∀ {a b} → BinProduct C a b → RightAdjointAt _ _ (Δ C) (a , b)
-  BinProductToRepresentable bp .vertex = bp .binProdOb
-  BinProductToRepresentable bp .element = (bp .binProdPr₁) , (bp .binProdPr₂)
-  BinProductToRepresentable bp .universal .coinduction (f1 , f2) = bp .univProp f1 f2 .fst .fst
-  BinProductToRepresentable bp .universal .commutes (f1 , f2) = cong₂ _,_ (C .⋆IdR _ ∙ up .fst .snd .fst) ((C .⋆IdR _ ∙ up .fst .snd .snd))
-    where up = bp .univProp f1 f2
-  BinProductToRepresentable bp .universal .is-uniq (f1 , f2) fp commutes = cong fst (sym (bp .univProp f1 f2 .snd (fp , (sym (C .⋆IdR _) ∙ cong fst commutes) , sym (C .⋆IdR _) ∙ cong snd commutes)))
+    ×β₁ : π₁ ∘⟨ C ⟩ (f ,p g) ≡ f
+    ×β₁ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .fst
+
+    ×β₂ : π₂ ∘⟨ C ⟩ (f ,p g) ≡ g
+    ×β₂ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .snd
+
+    ×η : f ≡ ((π₁ ∘⟨ C ⟩ f) ,p (π₂ ∘⟨ C ⟩ f))
+    ×η {f = f} = η-expansion (ues .universal) f ∙ cong₂ _,p_ (C .⋆IdR _) (C .⋆IdR _)
+
+    ,p-natural : ( f ,p g ) ∘⟨ C ⟩ h ≡ ((f ∘⟨ C ⟩ h) ,p (g ∘⟨ C ⟩ h))
+    ,p-natural {f = f}{g = g}{h = h} =
+      coinduction-natural (ues .universal) (f , g) h ∙ cong₂ _,p_ ((C .⋆IdR _)) ((C .⋆IdR _))
 
   module _ {a} (bp : ∀ b → BinProduct C a b) where
     ProdAProf : C o-[ ℓ' ]-* C
@@ -84,18 +113,5 @@ module _ (C : Category ℓ ℓ') where
     BinProductWithF = pr .fst
       where pr : ProfRepresentation C C ProdAProf
             pr = ParamUnivElt→ProfRepresentation _ _ _ BinProductWithToRepresentable
-
-  module _ (bp : BinProducts C) where
-    BinProductsToUnivElts : RightAdjoint C (C ×C C) (Δ C)
-    BinProductsToUnivElts c = BinProductToRepresentable (bp (c .fst) (c .snd))
-
-    ProdProf : C o-[ ℓ' ]-* (C ×C C)
-    ProdProf = Functor→Profo-* C (C ×C C) (Δ C)
-
-    BinProductsToProfRepresentation : ProfRepresentation (C ×C C) C ProdProf
-    BinProductsToProfRepresentation = ParamUnivElt→ProfRepresentation _ _ _ BinProductsToUnivElts
-
-    BinProductF : Functor (C ×C C) C
-    BinProductF = BinProductsToProfRepresentation .fst
 
   -- -- -- todo: make this an iso.
