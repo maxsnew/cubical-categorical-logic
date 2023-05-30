@@ -12,7 +12,7 @@ open import Cubical.Categories.Constructions.BinProduct.More
 open import Cubical.Categories.Functors.HomFunctor
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functor
-open import Cubical.Categories.Profunctor.General
+open import Cubical.Categories.Profunctor.AsBifunctor
 open import Cubical.Categories.Isomorphism
 open import Cubical.Categories.Limits.BinProduct
 open import Cubical.Categories.Presheaf.Representable
@@ -32,9 +32,9 @@ module _ (C : Category ℓ ℓ') where
   BinProductToRepresentable bp .vertex = bp .binProdOb
   BinProductToRepresentable bp .element = (bp .binProdPr₁) , (bp .binProdPr₂)
   BinProductToRepresentable bp .universal .coinduction (f1 , f2) = bp .univProp f1 f2 .fst .fst
-  BinProductToRepresentable bp .universal .commutes (f1 , f2) = cong₂ _,_ (C .⋆IdR _ ∙ up .fst .snd .fst) ((C .⋆IdR _ ∙ up .fst .snd .snd))
+  BinProductToRepresentable bp .universal .commutes (f1 , f2) = cong₂ _,_ (up .fst .snd .fst) (up .fst .snd .snd)
     where up = bp .univProp f1 f2
-  BinProductToRepresentable bp .universal .is-uniq (f1 , f2) fp commutes = cong fst (sym (bp .univProp f1 f2 .snd (fp , (sym (C .⋆IdR _) ∙ cong fst commutes) , sym (C .⋆IdR _) ∙ cong snd commutes)))
+  BinProductToRepresentable bp .universal .is-uniq (f1 , f2) fp commutes = cong fst (sym (bp .univProp f1 f2 .snd (fp , cong fst commutes , cong snd commutes)))
 
   module _ (bp : BinProducts C) where
     BinProductsToUnivElts : RightAdjoint C (C ×C C) (Δ C)
@@ -43,11 +43,8 @@ module _ (C : Category ℓ ℓ') where
     ProdProf : C o-[ ℓ' ]-* (C ×C C)
     ProdProf = Functor→Profo-* C (C ×C C) (Δ C)
 
-    BinProductsToProfRepresentation : ProfRepresentation (C ×C C) C ProdProf
-    BinProductsToProfRepresentation = ParamUnivElt→ProfRepresentation _ _ _ BinProductsToUnivElts
-
     BinProductF : Functor (C ×C C) C
-    BinProductF = BinProductsToProfRepresentation .fst
+    BinProductF = ParamUnivElt→Functor _ _ _ BinProductsToUnivElts
 
   module Notation (bp : BinProducts C) where
     private
@@ -72,14 +69,9 @@ module _ (C : Category ℓ ℓ') where
     _×p_ : C [ a , b ] → C [ c , d ] → C [ a × c , b × d ]
     f ×p g = (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂)
 
-
-    -- currently the product functor has some annoying ids in it:
-    bad : (f ∘⟨ C ⟩ (π₁ ∘⟨ C ⟩ C .id)) ,p (g ∘⟨ C ⟩ (π₂ ∘⟨ C ⟩ C .id)) ≡ BinProductF bp ⟪ f , g ⟫
-    bad = refl
-
-    -- Preferably it should be defined like this:
-    -- good : (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂) ≡ BinProductF bp ⟪ f , g ⟫
-    -- good = refl
+    -- Demonstrating the definitional behavior of BinProductF
+    _ : (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂) ≡ BinProductF bp ⟪ f , g ⟫
+    _ = refl
 
     ×β₁ : π₁ ∘⟨ C ⟩ (f ,p g) ≡ f
     ×β₁ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .fst
@@ -88,30 +80,30 @@ module _ (C : Category ℓ ℓ') where
     ×β₂ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .snd
 
     ×η : f ≡ ((π₁ ∘⟨ C ⟩ f) ,p (π₂ ∘⟨ C ⟩ f))
-    ×η {f = f} = η-expansion (ues .universal) f ∙ cong₂ _,p_ (C .⋆IdR _) (C .⋆IdR _)
+    ×η {f = f} = η-expansion (ues .universal) f
 
     ,p-natural : ( f ,p g ) ∘⟨ C ⟩ h ≡ ((f ∘⟨ C ⟩ h) ,p (g ∘⟨ C ⟩ h))
     ,p-natural {f = f}{g = g}{h = h} =
-      coinduction-natural (ues .universal) (f , g) h ∙ cong₂ _,p_ ((C .⋆IdR _)) ((C .⋆IdR _))
+      coinduction-natural (ues .universal) (f , g) h
 
-  module _ {a} (bp : ∀ b → BinProduct C a b) where
-    ProdAProf : C o-[ ℓ' ]-* C
-    ProdAProf = HomFunctor (C ×C C) ∘F ((Δ C ^opF) ×F (Constant C C a ,F Id))
+  -- module _ {a} (bp : ∀ b → BinProduct C a b) where
+  -- --   ProdAProf : C o-[ ℓ' ]-* C
+  -- --   ProdAProf = HomFunctor (C ×C C) ∘F ((Δ C ^opF) ×F (Constant C C a ,F Id))
 
-    -- There should be a less repetive way to do this...
-    BinProductWithToRepresentable : ParamUnivElt C C ProdAProf
-    BinProductWithToRepresentable b .vertex = bp b .binProdOb
-    BinProductWithToRepresentable b .element .fst = bp b .binProdPr₁
-    BinProductWithToRepresentable b .element .snd = bp b .binProdPr₂
-    BinProductWithToRepresentable b .universal .coinduction (f1 , f2) = bp b .univProp f1 f2 .fst .fst
-    BinProductWithToRepresentable b .universal .commutes (f1 , f2) = cong₂ _,_ (C .⋆IdR _ ∙ up .fst .snd .fst) ((C .⋆IdR _ ∙ up .fst .snd .snd))
-      where up = bp b .univProp f1 f2
-    BinProductWithToRepresentable b .universal .is-uniq (f1 , f2) fp commutes = cong fst (sym (bp b .univProp f1 f2 .snd (fp , (sym (C .⋆IdR _) ∙ cong fst commutes) , sym (C .⋆IdR _) ∙ cong snd commutes)))
+  -- --   -- There should be a less repetive way to do this...
+  -- --   BinProductWithToRepresentable : ParamUnivElt C C ProdAProf
+  -- --   BinProductWithToRepresentable b .vertex = bp b .binProdOb
+  -- --   BinProductWithToRepresentable b .element .fst = bp b .binProdPr₁
+  -- --   BinProductWithToRepresentable b .element .snd = bp b .binProdPr₂
+  -- --   BinProductWithToRepresentable b .universal .coinduction (f1 , f2) = bp b .univProp f1 f2 .fst .fst
+  -- --   BinProductWithToRepresentable b .universal .commutes (f1 , f2) = cong₂ _,_ (C .⋆IdR _ ∙ up .fst .snd .fst) ((C .⋆IdR _ ∙ up .fst .snd .snd))
+  -- --     where up = bp b .univProp f1 f2
+  -- --   BinProductWithToRepresentable b .universal .is-uniq (f1 , f2) fp commutes = cong fst (sym (bp b .univProp f1 f2 .snd (fp , (sym (C .⋆IdR _) ∙ cong fst commutes) , sym (C .⋆IdR _) ∙ cong snd commutes)))
 
-    -- Univ
-    BinProductWithF : Functor C C
-    BinProductWithF = pr .fst
-      where pr : ProfRepresentation C C ProdAProf
-            pr = ParamUnivElt→ProfRepresentation _ _ _ BinProductWithToRepresentable
+  -- --   -- Univ
+  -- --   BinProductWithF : Functor C C
+  -- --   BinProductWithF = pr .fst
+  -- --     where pr : ProfRepresentation C C ProdAProf
+  -- --           pr = ParamUnivElt→ProfRepresentation _ _ _ BinProductWithToRepresentable
 
-  -- -- -- todo: make this an iso.
+  -- -- -- -- -- todo: make this an iso.

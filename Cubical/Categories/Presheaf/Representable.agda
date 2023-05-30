@@ -75,6 +75,9 @@ module _ {ℓo}{ℓh}{ℓp} (C : Category ℓo ℓh) (P : Presheaf C ℓp) where
     η-expansion : ∀ {b} (f : C [ b , vertex ]) → f ≡ coinduction (C [ element ∘ᴾ⟨ P ⟩ f ])
     η-expansion f = is-uniq (C [ element ∘ᴾ⟨ P ⟩ f ]) f refl
 
+    coinduction-elt : C .id ≡ coinduction element
+    coinduction-elt = is-uniq element (C .id) (∘ᴾId C P _)
+
     is-uniq-converse : ∀ {b} (ϕ : (P ⟅ b ⟆) .fst) f → f ≡ coinduction ϕ → C [ element ∘ᴾ⟨ P ⟩ f ] ≡ ϕ
     is-uniq-converse ϕ f p =
       C [ element ∘ᴾ⟨ P ⟩ f ]

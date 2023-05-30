@@ -14,6 +14,9 @@ open import Cubical.Foundations.Prelude hiding (Path)
 
 open import Cubical.Categories.Category
 open import Cubical.Categories.Functor
+open import Cubical.Categories.Constructions.BinProduct hiding (Fst; Snd)
+open import Cubical.Categories.Instances.Sets
+
 open import Cubical.Data.Sigma
 open import Cubical.Tactics.CategorySolver.Reflection
 
@@ -93,6 +96,18 @@ Snd {D = D} .Bif-seqL f f' = sym (D .⋆IdL _)
 Snd .Bif-seqR g g' = refl
 Snd {D = D} .Bif-assoc f g = D .⋆IdL _ ∙ sym (D .⋆IdR _)
 
+pAppL : (F : Bifunctor C D E) → C .ob → Functor D E
+pAppL F c .F-ob d = F ⟅ c , d ⟆b
+pAppL F c .F-hom g = F ⟪ g ⟫r
+pAppL F c .F-id = F .Bif-idR
+pAppL F c .F-seq f g = F .Bif-seqR _ _
+
+pAppR : (F : Bifunctor C D E) → D .ob → Functor C E
+pAppR F d .F-ob c = F ⟅ c , d ⟆b
+pAppR F d .F-hom f = F ⟪ f ⟫l
+pAppR F d .F-id = F .Bif-idL
+pAppR F d .F-seq f g = F .Bif-seqL _ _
+
 bifCompL : (F : Bifunctor C D E) (G : Functor C' C) → Bifunctor C' D E
 bifCompL F G .Bif-ob c' d = F ⟅ G ⟅ c' ⟆ ,  d ⟆b
 bifCompL F G .Bif-homL f d = F ⟪ G ⟪ f ⟫ ⟫l
@@ -113,7 +128,21 @@ bifCompR F G .Bif-seqL f f' = F .Bif-seqL _ _
 bifCompR F G .Bif-seqR g g' = cong (F ⟪_⟫r) (G .F-seq _ _) ∙ F .Bif-seqR _ _
 bifCompR F G .Bif-assoc f g = F .Bif-assoc _ _
 
-open import Cubical.Categories.Constructions.BinProduct
+infixr 30 bifCompL
+infixr 30 bifCompR
+
+syntax bifCompL F G = F ∘Fl G
+syntax bifCompR F G = F ∘Fr G
+
+HomBif : (C : Category ℓc ℓc') → Bifunctor (C ^op) C (SET ℓc')
+HomBif C .Bif-ob c c' = (C [ c , c' ]) , (C .isSetHom)
+HomBif C .Bif-homL f d f' = f ⋆⟨ C ⟩ f'
+HomBif C .Bif-homR c f' f = f ⋆⟨ C ⟩ f'
+HomBif C .Bif-idL = funExt (C .⋆IdL)
+HomBif C .Bif-idR = funExt (C .⋆IdR)
+HomBif C .Bif-seqL f' f = funExt (λ f'' → C .⋆Assoc _ _ _)
+HomBif C .Bif-seqR g g' = funExt (λ g'' → sym (C .⋆Assoc _ _ _))
+HomBif C .Bif-assoc f g = funExt (λ g' → C .⋆Assoc _ _ _)
 
 -- There are two simplest definitionally different ways to do this
 Bifunctor→Functor : Bifunctor C D E → Functor (C ×C D) E
@@ -145,3 +174,5 @@ Functor→Bifunctor {C = C}{D = D} F .Bif-assoc f g =
   sym (F .F-seq _ _)
   ∙ cong (F .F-hom) (cong₂ _,_ (C .⋆IdR _ ∙ sym (C .⋆IdL _)) (D .⋆IdL _ ∙ sym (D .⋆IdR _)))
   ∙ F .F-seq _ _
+
+-- TODO: above is an Iso
