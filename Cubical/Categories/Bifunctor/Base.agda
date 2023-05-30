@@ -22,7 +22,7 @@ open import Cubical.Tactics.CategorySolver.Reflection
 
 private
   variable
-    ℓc ℓc' ℓd ℓd' ℓe ℓe' : Level
+    ℓc ℓc' ℓd ℓd' ℓe ℓe' ℓe'' ℓe''' : Level
 
 open Category
 open Functor
@@ -53,6 +53,7 @@ private
      D : Category ℓd ℓd'
      D' : Category ℓd ℓd'
      E : Category ℓe ℓe'
+     E' : Category ℓe'' ℓe'''
 
 -- action on objects
 infix 30 _⟅_⟆b
@@ -176,3 +177,8 @@ Functor→Bifunctor {C = C}{D = D} F .Bif-assoc f g =
   ∙ F .F-seq _ _
 
 -- TODO: above is an Iso
+
+bifCompPost : (F : Bifunctor C D E) (G : Functor E E') → Bifunctor C D E'
+bifCompPost F G = Functor→Bifunctor (G ∘F Bifunctor→Functor F)
+
+syntax bifCompPost F G = G ∘Fp F

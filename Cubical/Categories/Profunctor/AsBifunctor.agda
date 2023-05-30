@@ -15,6 +15,7 @@ open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functors.More
 open import Cubical.Categories.Functors.HomFunctor
@@ -44,7 +45,7 @@ module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-*
               → PH-ob ((R ⟪ g ⟫r) r) ≡ (S ⟪ g ⟫r) (PH-ob r)
 
   open ProfHomo
-  ProfIso : Type (ℓ-max (ℓ-max (ℓ-max (ℓ-max (ℓ-max ℓC ℓC') ℓD) ℓD') ℓR) ℓS)
+  ProfIso : Type _
   ProfIso = Σ[ ϕ ∈ ProfHomo ] ∀ c d → isIso (ϕ .PH-ob {c}{d})
 
 open ProfHomo
@@ -74,11 +75,26 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
   ProfRepresentation : Type _
   ProfRepresentation = Σ[ G ∈ Functor C D ] ProfRepresents G
 
+  PshFunctorRepresentation : Type _
+  PshFunctorRepresentation =
+    Σ[ G ∈ Functor C D ]
+    NatIso (Prof*-o→Functor C D ((LiftF {ℓS}{ℓD'}) ∘Fp R ))
+           (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fp (Functor→Prof*-o C D G)))
+
+
   RepresentableAt : (c : C .ob) → Type _
   RepresentableAt c = UnivElt D (pAppR R c)
 
   ParamUnivElt : Type _
   ParamUnivElt = (c : C .ob) → RepresentableAt c
+
+  ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
+  ProfRepresentation→PshFunctorRepresentation (G , η) =
+    {!!}
+    -- (G ,
+    -- (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
+    -- )
+
 
   ParamUnivElt→Functor : ParamUnivElt → Functor C D
   ParamUnivElt→Functor ues .F-ob c = ues c .vertex
