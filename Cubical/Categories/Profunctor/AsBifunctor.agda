@@ -12,6 +12,7 @@ open import Cubical.Categories.Functor
 open import Cubical.Categories.Bifunctor.Base
 open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation
+open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Instances.Sets
@@ -36,13 +37,42 @@ C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
 
 module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-* D) (S : C o-[ ℓS ]-* D) where
   -- A definition of profunctor homomorphism that avoids Lifts
-  record ProfHomo : Type (ℓ-max ℓC (ℓ-max ℓC' (ℓ-max ℓD (ℓ-max ℓD' (ℓ-max ℓS ℓR))))) where
+
+  ℓmaxCDSR : Level
+  ℓmaxCDSR = (ℓ-max ℓC (ℓ-max ℓC' (ℓ-max ℓD (ℓ-max ℓD' (ℓ-max ℓS ℓR)))))
+
+  open NatIso
+  open Functor
+
+  record ProfHomo : Type ℓmaxCDSR where
     field
       PH-ob : ∀ {c d} → (r : ⟨ R ⟅ c , d ⟆b ⟩) → ⟨ S ⟅ c , d ⟆b ⟩
       PH-natL : ∀ {c c' d} (f : C [ c , c' ]) (r : ⟨ R ⟅ c' , d ⟆b ⟩)
               → PH-ob ((R ⟪ f ⟫l) r) ≡ (S ⟪ f ⟫l) (PH-ob r)
       PH-natR : ∀ {c d d'} (r : ⟨ R ⟅ c , d ⟆b ⟩) (g : D [ d , d' ])
               → PH-ob ((R ⟪ g ⟫r) r) ≡ (S ⟪ g ⟫r) (PH-ob r)
+
+    nat-iso-out-of-product : NatIso (LiftF {ℓR}{ℓmaxCDSR} ∘F (Bifunctor→Functor R)) (LiftF {ℓS}{ℓmaxCDSR} ∘F Bifunctor→Functor S)
+    nat-iso-out-of-product .trans =
+      natTrans
+      (λ x x₁ → lift (PH-ob (lower x₁)))
+      (λ {(c , d)} {(c' , d')}  f →
+          funExt (λ x → 
+            ((λ x₂ → lift (PH-ob (lower x₂)))
+              ∘f
+            (funcComp LiftF (Bifunctor→Functor R) .F-hom f))
+              x
+              ≡⟨ (({!λ i → lift ((PH-natR (lower x) (f .snd)) i)!})) ⟩
+            {!!}
+              ≡⟨ (({!PH-natR (lower x) (f .snd)!})) ⟩
+            ((funcComp LiftF (Bifunctor→Functor S) .F-hom f)
+              ∘f
+            (λ x₂ → lift (PH-ob (lower x₂))))
+              x
+            ∎
+         )
+      )
+    nat-iso-out-of-product .nIso = {!!}
 
   open ProfHomo
   ProfIso : Type _
@@ -88,9 +118,12 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
   ParamUnivElt : Type _
   ParamUnivElt = (c : C .ob) → RepresentableAt c
 
+  ParamUniversalElement : Type _
+  ParamUniversalElement = (c : C .ob) → UniversalElement D (pAppR R c)
+
   ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
   ProfRepresentation→PshFunctorRepresentation (G , η) =
-    {!!}
+    G , preservesNatIsosF (curryFl (D ^op) (SET _)) {!η!}
     -- (G ,
     -- (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
     -- )
