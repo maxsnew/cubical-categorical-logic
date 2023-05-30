@@ -2,6 +2,7 @@
 module Cubical.Categories.Profunctor.AsBifunctor where
 
 open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Univalence
@@ -18,6 +19,7 @@ open import Cubical.Categories.Instances.Sets
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functors.More
 open import Cubical.Categories.Functors.HomFunctor
+open import Cubical.Data.Sigma
 
 open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Categories.Presheaf.More
@@ -27,11 +29,31 @@ private
   variable
     ℓC ℓC' ℓD ℓD' ℓS ℓR : Level
 
+open Category
+open Functor
+open UnivElt
+open isUniversal
+open Bifunctor
+
 _o-[_]-*_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C o-[ ℓS ]-* D = Bifunctor (C ^op) D (SET ℓS)
 
 _*-[_]-o_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
+
+module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {ℓS : Level} where
+  -- Product of a presheaf with a profunctor
+  -- This could be done by turning the presheaf into a profunctor
+  -- first but at the cost of extra ids.
+  _o×_ : (P : 𝓟o C ℓS) → (R : C o-[ ℓS ]-* D) → C o-[ ℓS ]-* D
+  (P o× R) .Bif-ob c d = ⟨ P ⟅ c ⟆ ⟩ × ⟨ R ⟅ c , d ⟆b ⟩ , isSet× ((P ⟅ c ⟆) .snd) ((R ⟅ c , d ⟆b) .snd) -- should be a combinator somewhere
+  (P o× R) .Bif-homL f d (p , r) = (P ⟪ f ⟫) p , (R ⟪ f ⟫l) r
+  (P o× R) .Bif-homR c g (p , r) = p , ((R ⟪ g ⟫r) r)
+  (P o× R) .Bif-idL = funExt λ (p , r) → λ i → (P .F-id i p , R .Bif-idL i r)
+  (P o× R) .Bif-idR = funExt λ (p , r) → λ i → (p , R .Bif-idR i r)
+  (P o× R) .Bif-seqL f f' = funExt (λ (p , r) i → (P .F-seq f f' i p , R .Bif-seqL f f' i r))
+  (P o× R) .Bif-seqR g g' = funExt (λ (p , r) i → (p , R .Bif-seqR g g' i r))
+  (P o× R) .Bif-assoc f g = funExt λ (p , r) i → ((P ⟪ f ⟫) p) , (R .Bif-assoc f g i r)
 
 module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-* D) (S : C o-[ ℓS ]-* D) where
   -- A definition of profunctor homomorphism that avoids Lifts
@@ -62,11 +84,6 @@ Profo-*→Functor : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C o
 Profo-*→Functor C D R = curryF D (SET _) ⟅ Bifunctor→Functor R ⟆
 
 module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o D) where
-  open Category
-  open Functor
-  open UnivElt
-  open isUniversal
-  open Bifunctor
 
   ProfRepresents : Functor C D → Type _
   ProfRepresents G = ProfIso {C = D}{D = C} R (Functor→Prof*-o C D G)
