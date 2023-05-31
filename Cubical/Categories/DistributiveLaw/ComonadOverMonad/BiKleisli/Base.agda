@@ -1,5 +1,5 @@
 {-# OPTIONS --safe #-}
-module Cubical.Categories.DistributiveLaw.ComonadOverMonad where
+module Cubical.Categories.DistributiveLaw.ComonadOverMonad.BiKleisli.Base where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function renaming (_∘_ to _∘f_)
@@ -10,41 +10,14 @@ open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.Monad.Base
 open import Cubical.Categories.Comonad.Base
 
-open import Cubical.Tactics.CategorySolver.Reflection
+open import Cubical.Categories.DistributiveLaw.ComonadOverMonad.Base
 open import Cubical.Tactics.FunctorSolver.Reflection
-
 private
   variable
     ℓ ℓ' : Level
 
-open NatTrans
--- open isMonad
--- Here we model the comonad as a monad on the opposite
--- category. Worth refactoring at some point
-record DistributiveLaw {C : Category ℓ ℓ'} (D : Comonad C) (T : Monad C) : Type (ℓ-max ℓ ℓ') where
-  Df : Functor C C
-  Df = D .fst
-  open IsComonad (D .snd)
-  Tf = T .fst
-  open IsMonad (T .snd)
-  open Category C
-
-  field
-    l : NatTrans (Df ∘F Tf) (Tf ∘F Df)
-    -- This way avoids PathPs
-    ε-law : ∀ {c} → ((Tf ∘ʳ ε) ∘ᵛ l) .N-ob c ≡ (ε ∘ˡ Tf) .N-ob c
-    δ-law : ∀ {c} →
-      -- T δ ∘ l
-      -- ≡ l ∘ D l ∘ δ
-      ((Tf ∘ʳ δ) ∘ᵛ l) .N-ob c
-      ≡ (l ∘ˡ Df) ⟦ c ⟧ ∘ ((Df ∘ʳ l) ⟦ c ⟧ ∘ (δ ∘ˡ Tf) ⟦ c ⟧)
-    η-law : ∀ {c} → (l ∘ᵛ (Df ∘ʳ η)) .N-ob c ≡ (η ∘ˡ Df) .N-ob c
-    μ-law : ∀ {c} →
-      -- l ∘ D μ ≡ μ ∘ T l ∘ l
-      (l ∘ᵛ (Df ∘ʳ μ)) .N-ob c
-      ≡ (μ ∘ˡ Df) ⟦ c ⟧ ∘ ((Tf ∘ʳ l) ⟦ c ⟧ ∘ (l ∘ˡ Tf) ⟦ c ⟧)
-
 module _ {C : Category ℓ ℓ'} (D : Comonad C) (T : Monad C) (law : DistributiveLaw D T) where
+  open NatTrans
   open IsComonad (D .snd)
   open IsMonad (T .snd)
   open DistributiveLaw law
