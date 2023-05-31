@@ -48,22 +48,23 @@ module _ {C : Category ℓ ℓ'} {D : Comonad C} {T : Monad C}{D' : Comonad C}
     ∙ lem4
     -- ≡ δ' ⋆ D' (ϕ ⋆ f) ⋆ l' ⋆ T (ϕ ⋆ g) ⋆ μ
     where
-      lem0 : N-ob (ϕ .fst .fst) x ⋆ ((δ (D .snd) .N-ob x ⋆ F-hom (D .fst) f) ⋆ N-ob (DistributiveLaw.l law) y) ⋆ F-hom (T .fst) g ⋆ N-ob (IsMonad.μ (T .snd)) z
-           ≡ ((N-ob (ϕ .fst .fst) x ⋆ δ (D .snd) .N-ob x) ⋆ (((F-hom (D .fst) f) ⋆ N-ob (DistributiveLaw.l law) y) ⋆ F-hom (T .fst) g ⋆ N-ob (IsMonad.μ (T .snd)) z))
+      lem0 : N-ob (ϕ .fst .fst) x ⋆ ((δ (D .snd) .N-ob x ⋆ F-hom (D .fst) f) ⋆ N-ob (fst law) y) ⋆ F-hom (T .fst) g ⋆ N-ob (IsMonad.μ (T .snd)) z
+           ≡ ((N-ob (ϕ .fst .fst) x ⋆ δ (D .snd) .N-ob x) ⋆ (((F-hom (D .fst) f) ⋆ N-ob (fst law) y) ⋆ F-hom (T .fst) g ⋆ N-ob (IsMonad.μ (T .snd)) z))
       lem0 = solveCat! C
-xx
-      lem1 : (snd D' .δ .N-ob x ⋆ F-hom (fst D') (N-ob (ϕ .fst .fst) x) ⋆ N-ob (ϕ .fst .fst) (F-ob (D .fst) x)) ⋆ C .Category._⋆_ (C .Category._⋆_ (F-hom (D .fst) f) (N-ob (DistributiveLaw.l law) y)) (C .Category._⋆_ (F-hom (T .fst) g) (N-ob (IsMonad.μ (T .snd)) z))
-           ≡ (snd D' .δ .N-ob x ⋆ F-hom (fst D') (N-ob (ϕ .fst .fst) x)) ⋆ (N-ob (ϕ .fst .fst) (F-ob (D .fst) x) ⋆ (F-hom (D .fst) f)) ⋆ ((N-ob (DistributiveLaw.l law) y) ⋆ (F-hom (T .fst) g) ⋆ (N-ob (IsMonad.μ (T .snd)) z))
+
+      lem1 : (snd D' .δ .N-ob x ⋆ F-hom (fst D') (N-ob (ϕ .fst .fst) x) ⋆ N-ob (ϕ .fst .fst) (F-ob (D .fst) x)) ⋆ C .Category._⋆_ (C .Category._⋆_ (F-hom (D .fst) f) (N-ob (fst law) y)) (C .Category._⋆_ (F-hom (T .fst) g) (N-ob (IsMonad.μ (T .snd)) z))
+           ≡ (snd D' .δ .N-ob x ⋆ F-hom (fst D') (N-ob (ϕ .fst .fst) x)) ⋆ (N-ob (ϕ .fst .fst) (F-ob (D .fst) x) ⋆ (F-hom (D .fst) f)) ⋆ ((N-ob (fst law) y) ⋆ (F-hom (T .fst) g) ⋆ (N-ob (IsMonad.μ (T .snd)) z))
+
       lem1 = solveCat! C
 
-      lem2 : C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) (F-hom (fst D') (N-ob (ϕ .fst .fst) x))) ((fst D' .F-hom f ⋆ ϕ .fst .fst .N-ob (F-ob (T .fst) y)) ⋆ C .Category._⋆_ (N-ob (DistributiveLaw.l law) y) (C .Category._⋆_ (F-hom (T .fst) g) (N-ob (IsMonad.μ (T .snd)) z)))
-           ≡ C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) (F-hom (fst D') (N-ob (ϕ .fst .fst) x))) (fst D' .F-hom f) ⋆ (ϕ .fst .fst .N-ob (F-ob (T .fst) y) ⋆ (N-ob (DistributiveLaw.l law) y)) ⋆ (C .Category._⋆_ (F-hom (T .fst) g) (N-ob (IsMonad.μ (T .snd)) z))
+      lem2 : C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) (F-hom (fst D') (N-ob (ϕ .fst .fst) x))) ((fst D' .F-hom f ⋆ ϕ .fst .fst .N-ob (F-ob (T .fst) y)) ⋆ C .Category._⋆_ (N-ob (fst law) y) (C .Category._⋆_ (F-hom (T .fst) g) (N-ob (IsMonad.μ (T .snd)) z)))
+           ≡ C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) (F-hom (fst D') (N-ob (ϕ .fst .fst) x))) (fst D' .F-hom f) ⋆ (ϕ .fst .fst .N-ob (F-ob (T .fst) y) ⋆ (N-ob (fst law) y)) ⋆ (C .Category._⋆_ (F-hom (T .fst) g) (N-ob (IsMonad.μ (T .snd)) z))
       lem2 = solveCat! C
-
-      lem3 : C .Category._⋆_ (C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) (F-hom (fst D') (N-ob (ϕ .fst .fst) x))) (fst D' .F-hom f)) ((law' .DistributiveLaw.l .N-ob y ⋆ h) ⋆ C .Category._⋆_ k (N-ob (IsMonad.μ (T .snd)) z))
-           ≡ C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) ((F-hom (fst D') ((N-ob (ϕ .fst .fst) x) ⋆ f)))) ((law' .DistributiveLaw.l .N-ob y ⋆ h) ⋆ C .Category._⋆_ k (N-ob (IsMonad.μ (T .snd)) z))
+      --p
+      lem3 : C .Category._⋆_ (C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) (F-hom (fst D') (N-ob (ϕ .fst .fst) x))) (fst D' .F-hom f)) ((law' .fst .N-ob y ⋆ h) ⋆ C .Category._⋆_ k (N-ob (IsMonad.μ (T .snd)) z))
+           ≡ C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) ((F-hom (fst D') ((N-ob (ϕ .fst .fst) x) ⋆ f)))) ((law' .fst .N-ob y ⋆ h) ⋆ C .Category._⋆_ k (N-ob (IsMonad.μ (T .snd)) z))
       lem3 = solveFunctor! C C (D' .fst)
 
-      lem4 : C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) h) (C .Category._⋆_ (C .Category._⋆_ (law' .DistributiveLaw.l .N-ob y) (F-hom (T .fst) (N-ob (ϕ .fst .fst) y))) (C .Category._⋆_ (F-hom (T .fst) g) (N-ob (IsMonad.μ (T .snd)) z)))
-           ≡ ((δ (D' .snd) .N-ob x ⋆ h) ⋆ N-ob (DistributiveLaw.l law') y) ⋆ F-hom (T .fst) (N-ob (ϕ .fst .fst) y ⋆ g) ⋆ N-ob (IsMonad.μ (T .snd)) z
+      lem4 : C .Category._⋆_ (C .Category._⋆_ (snd D' .δ .N-ob x) h) (C .Category._⋆_ (C .Category._⋆_ (law' .fst .N-ob y) (F-hom (T .fst) (N-ob (ϕ .fst .fst) y))) (C .Category._⋆_ (F-hom (T .fst) g) (N-ob (IsMonad.μ (T .snd)) z)))
+           ≡ ((δ (D' .snd) .N-ob x ⋆ h) ⋆ N-ob (fst law') y) ⋆ F-hom (T .fst) (N-ob (ϕ .fst .fst) y ⋆ g) ⋆ N-ob (IsMonad.μ (T .snd)) z
       lem4 = solveFunctor! C C (T .fst)

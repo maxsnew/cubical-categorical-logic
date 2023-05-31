@@ -18,7 +18,8 @@ open NatTrans
 -- open isMonad
 -- Here we model the comonad as a monad on the opposite
 -- category. Worth refactoring at some point
-record DistributiveLaw {C : Category ℓ ℓ'} (D : Comonad C) (T : Monad C) : Type (ℓ-max ℓ ℓ') where
+
+record IsDistributiveLaw {C : Category ℓ ℓ'} (D : Comonad C) (T : Monad C) (l : NatTrans (D .fst ∘F T .fst) (T .fst ∘F D .fst)) : Type (ℓ-max ℓ ℓ') where
   Df : Functor C C
   Df = D .fst
   open IsComonad (D .snd)
@@ -27,7 +28,6 @@ record DistributiveLaw {C : Category ℓ ℓ'} (D : Comonad C) (T : Monad C) : T
   open Category C
 
   field
-    l : NatTrans (Df ∘F Tf) (Tf ∘F Df)
     -- This way avoids PathPs
     ε-law : ∀ {c} → ((Tf ∘ʳ ε) ∘ᵛ l) .N-ob c ≡ (ε ∘ˡ Tf) .N-ob c
     δ-law : ∀ {c} →
@@ -41,18 +41,23 @@ record DistributiveLaw {C : Category ℓ ℓ'} (D : Comonad C) (T : Monad C) : T
       (l ∘ᵛ (Df ∘ʳ μ)) .N-ob c
       ≡ (μ ∘ˡ Df) ⟦ c ⟧ ∘ ((Tf ∘ʳ l) ⟦ c ⟧ ∘ (l ∘ˡ Tf) ⟦ c ⟧)
 
-open DistributiveLaw
+open IsDistributiveLaw
+
+DistributiveLaw : ∀ {C : Category ℓ ℓ'} (D : Comonad C) (T : Monad C) → Type _
+DistributiveLaw D T = Σ _ (IsDistributiveLaw D T)
+  
 -- This is the level of generality I need but in general you can have
 -- a monad morphism as well, but using it more specifically has extra
 -- id's in the definition.
-ComonadMorphism : {C : Category ℓ ℓ'} {D : Comonad C} {T : Monad C} {D' : Comonad C} (law : DistributiveLaw D T) (law' : DistributiveLaw D' T) → Type _
-ComonadMorphism {D = D}{T = T}{D'} law law' =
-  -- note the inversion here
-  Σ[ ϕ ∈ ComonadHom D' D ]
+module _ {C : Category ℓ ℓ'} {D : Comonad C} {T : Monad C} {D' : Comonad C} (law : DistributiveLaw D T) (law' : DistributiveLaw D' T) where
   -- D' T -- l' --> T D'
   -- |              |
   -- ϕ T            T ϕ
   -- |              |
   ---D T  -- l  --> T D
-  law .l ∘ᵛ (ϕ .fst ∘ˡ T .fst) ≡ (T .fst ∘ʳ ϕ .fst) ∘ᵛ law' .l
+  -- note the inversion here
+  isComonadMorphism : ComonadHom D' D → Type _
+  isComonadMorphism ϕ = law .fst ∘ᵛ (ϕ .fst ∘ˡ T .fst) ≡ (T .fst ∘ʳ ϕ .fst) ∘ᵛ law' .fst
 
+  ComonadMorphism : Type _
+  ComonadMorphism = Σ _ isComonadMorphism

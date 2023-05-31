@@ -54,50 +54,6 @@ module _ (C : Category ℓ ℓ') where
       a b c d : C .ob
       f g h : C [ a , b ]
 
-  module Notation (bp : BinProducts C) where
-    private
-      ues : RightAdjointAt C (C ×C C) (Δ C) (a , b)
-      ues = BinProductsToUnivElts bp _
-
-    _×_ : C .ob → C .ob → C .ob
-    a × b = bp a b .binProdOb
-
-    π₁ : C [ a × b , a ]
-    π₁ {a}{b} = bp a b .binProdPr₁
-
-    π₂ : C [ a × b , b ]
-    π₂ {a}{b} = bp a b .binProdPr₂
-
-    _,p_ : C [ c , a ] → C [ c , b ] → C [ c , a × b ]
-    f ,p g = bp _ _ . univProp f g .fst .fst
-
-    ×pF = BinProductF bp
-
-    _×p_ : C [ a , b ] → C [ c , d ] → C [ a × c , b × d ]
-    f ×p g = (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂)
-
-    -- Demonstrating the definitional behavior of BinProductF
-    _ : (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂) ≡ BinProductF bp ⟪ f , g ⟫
-    _ = refl
-
-    ×β₁ : π₁ ∘⟨ C ⟩ (f ,p g) ≡ f
-    ×β₁ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .fst
-
-    ×β₂ : π₂ ∘⟨ C ⟩ (f ,p g) ≡ g
-    ×β₂ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .snd
-
-    ×η : f ≡ ((π₁ ∘⟨ C ⟩ f) ,p (π₂ ∘⟨ C ⟩ f))
-    ×η {f = f} = η-expansion (ues .universal) f
-
-    ,p-natural : ( f ,p g ) ∘⟨ C ⟩ h ≡ ((f ∘⟨ C ⟩ h) ,p (g ∘⟨ C ⟩ h))
-    ,p-natural {f = f}{g = g}{h = h} =
-      coinduction-natural (ues .universal) (f , g) h
-
-    -- this has the benefit of always applying
-    ×-extensionality : π₁ ∘⟨ C ⟩ f ≡ π₁ ∘⟨ C ⟩ g → π₂ ∘⟨ C ⟩ f ≡ π₂ ∘⟨ C ⟩ g → f ≡ g
-    ×-extensionality p1 p2 = determined-by-elt (ues .universal) (cong₂ _,_ p1 p2)
-
-
   module _ {a} (bp : ∀ b → BinProduct C a b) where
     -- ProdAProf [ c , b ] = C^2 [ (c , c) , (a , b) ]
     ProdAProf : C o-[ ℓ' ]-* C
@@ -154,3 +110,51 @@ module _ (C : Category ℓ ℓ') where
 
       ×-extensionality : π₁ ∘⟨ C ⟩ f ≡ π₁ ∘⟨ C ⟩ g → π₂ ∘⟨ C ⟩ f ≡ π₂ ∘⟨ C ⟩ g → f ≡ g
       ×-extensionality p1 p2 = determined-by-elt (ues _ .universal) (cong₂ _,_ p1 p2)
+
+  module Notation (bp : BinProducts C) where
+    private
+      ues : RightAdjointAt C (C ×C C) (Δ C) (a , b)
+      ues = BinProductsToUnivElts bp _
+
+    _×_ : C .ob → C .ob → C .ob
+    a × b = bp a b .binProdOb
+
+    π₁ : C [ a × b , a ]
+    π₁ {a}{b} = bp a b .binProdPr₁
+
+    π₂ : C [ a × b , b ]
+    π₂ {a}{b} = bp a b .binProdPr₂
+
+    _,p_ : C [ c , a ] → C [ c , b ] → C [ c , a × b ]
+    f ,p g = bp _ _ . univProp f g .fst .fst
+
+    ×pF = BinProductF bp
+
+    _×p_ : C [ a , b ] → C [ c , d ] → C [ a × c , b × d ]
+    f ×p g = (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂)
+
+    -- Demonstrating the definitional behavior of BinProductF
+    _ : (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂) ≡ BinProductF bp ⟪ f , g ⟫
+    _ = refl
+
+    ×β₁ : π₁ ∘⟨ C ⟩ (f ,p g) ≡ f
+    ×β₁ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .fst
+
+    ×β₂ : π₂ ∘⟨ C ⟩ (f ,p g) ≡ g
+    ×β₂ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .snd
+
+    ×η : f ≡ ((π₁ ∘⟨ C ⟩ f) ,p (π₂ ∘⟨ C ⟩ f))
+    ×η {f = f} = η-expansion (ues .universal) f
+
+    ,p-natural : ( f ,p g ) ∘⟨ C ⟩ h ≡ ((f ∘⟨ C ⟩ h) ,p (g ∘⟨ C ⟩ h))
+    ,p-natural {f = f}{g = g}{h = h} =
+      coinduction-natural (ues .universal) (f , g) h
+
+    -- this has the benefit of always applying
+    ×-extensionality : π₁ ∘⟨ C ⟩ f ≡ π₁ ∘⟨ C ⟩ g → π₂ ∘⟨ C ⟩ f ≡ π₂ ∘⟨ C ⟩ g → f ≡ g
+    ×-extensionality p1 p2 = determined-by-elt (ues .universal) (cong₂ _,_ p1 p2)
+
+    module _ (Γ : C .ob) where
+      module PWN = ProdsWithNotation (bp Γ)
+      ×pF-with-agrees : ×pF ⟪ C .id , f ⟫ ≡ PWN.×pF ⟪ f ⟫
+      ×pF-with-agrees = cong₂ _,p_ (C .⋆IdR _) refl
