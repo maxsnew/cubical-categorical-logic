@@ -29,6 +29,12 @@ module _ {C : Category ℓ ℓ'} (W : Functor C C) where
                       ((W ∘ʳ δ) ∘ᵛ δ)
                       ((δ ∘ˡ W) ∘ᵛ δ)
 
+    -- TODO: make this a NatTrans
+    extend : ∀ {c d} → C [ W ⟅ c ⟆ , d ] → C [ W ⟅ c ⟆ , W ⟅ d ⟆ ]
+    extend f = W ⟪ f ⟫ ∘⟨ C ⟩ δ .N-ob _
+
+    extend-ε : ∀ {c} → extend (ε ⟦ c ⟧) ≡ id
+    extend-ε = λ i → idr-δ i ⟦ _ ⟧
 module _ (C : Category ℓ ℓ') where
   Comonad : Type (ℓ-max ℓ ℓ')
   Comonad = Σ[ D ∈ Functor C C ] IsComonad D
