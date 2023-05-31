@@ -65,8 +65,9 @@ module _ {C : Category ℓ ℓ'} (bp : BinProducts C) where
   open Category C
   open Notation C bp
   open Functor
-  Env' : ob → Comonad C
-  Env' Γ = Env Γ (bp Γ)
+  private
+    Env' : ob → Comonad C
+    Env' Γ = Env Γ (bp Γ)
 
   push : {Δ Γ : ob} (γ : Hom[ Δ , Γ ]) → ComonadHom (Env Δ (bp Δ)) (Env Γ (bp Γ))
   push γ .fst .N-ob x = γ ×p id
