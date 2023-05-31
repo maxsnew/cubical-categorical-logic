@@ -27,7 +27,7 @@ module _ {C : Category ℓ ℓ'} (Γ : Category.ob C) (Γ×- : ∀ c → BinProd
   Γ×-F = BinProductWithF C Γ×-
 
   Γ×-F-Como : IsComonad Γ×-F
-  -- This should follow from some abstract nonsense
+  -- Naturality of ε, δ should follow from some more general fact about universal properties
   Γ×-F-Como .ε .N-ob x = Γ×- x .binProdPr₂
   Γ×-F-Como .ε .N-hom {x}{y} f = Γ×- y .univProp _ _ .fst .snd .snd
   Γ×-F-Como .δ .N-ob x = Γ×- (Γ×- x .binProdOb) .univProp (Γ×- x .binProdPr₁) id .fst .fst
