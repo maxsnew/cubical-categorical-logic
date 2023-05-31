@@ -53,9 +53,11 @@ module _ (C : Category ℓ ℓ') where
     variable
       a b c d : C .ob
       f g h : C [ a , b ]
+
   module Notation (bp : BinProducts C) where
-    ues : RightAdjointAt C (C ×C C) (Δ C) (a , b)
-    ues = BinProductsToUnivElts bp _
+    private
+      ues : RightAdjointAt C (C ×C C) (Δ C) (a , b)
+      ues = BinProductsToUnivElts bp _
 
     _×_ : C .ob → C .ob → C .ob
     a × b = bp a b .binProdOb
@@ -68,6 +70,8 @@ module _ (C : Category ℓ ℓ') where
 
     _,p_ : C [ c , a ] → C [ c , b ] → C [ c , a × b ]
     f ,p g = bp _ _ . univProp f g .fst .fst
+
+    ×pF = BinProductF bp
 
     _×p_ : C [ a , b ] → C [ c , d ] → C [ a × c , b × d ]
     f ×p g = (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂)
@@ -89,6 +93,11 @@ module _ (C : Category ℓ ℓ') where
     ,p-natural {f = f}{g = g}{h = h} =
       coinduction-natural (ues .universal) (f , g) h
 
+    -- this has the benefit of always applying
+    ×-extensionality : π₁ ∘⟨ C ⟩ f ≡ π₁ ∘⟨ C ⟩ g → π₂ ∘⟨ C ⟩ f ≡ π₂ ∘⟨ C ⟩ g → f ≡ g
+    ×-extensionality p1 p2 = determined-by-elt (ues .universal) (cong₂ _,_ p1 p2)
+
+
   module _ {a} (bp : ∀ b → BinProduct C a b) where
     -- ProdAProf [ c , b ] = C^2 [ (c , c) , (a , b) ]
     ProdAProf : C o-[ ℓ' ]-* C
@@ -107,3 +116,41 @@ module _ (C : Category ℓ ℓ') where
 
     _ : ∀ {b b'}(f : C [ b , b' ]) → BinProductWithF ⟪ f ⟫ ≡ bp b' .univProp (bp b .binProdPr₁) (f ∘⟨ C ⟩ bp b .binProdPr₂) .fst .fst
     _ = λ f → refl
+    module ProdsWithNotation where
+      private
+        ues = BinProductWithToRepresentable
+      a×_ : C .ob → C .ob
+      a× b = ues b .vertex
+
+      π₁ : C [ a× b , a ]
+      π₁ {b} = ues b .element .fst 
+
+      π₂ : C [ a× b , b ]
+      π₂ {b} = ues b .element .snd
+
+      -- TODO: π₁, π₂ are natural transformations as well, which should follow by general fact that universal elements are natural
+
+      _,p_ : C [ c , a ] → C [ c , b ] → C [ c , a× b ]
+      f ,p g = ues _ .universal .coinduction (f , g)
+
+      ×pF = BinProductWithF
+      ×p_ : C [ b , c ] → C [ a× b , a× c ]
+      ×p_ = BinProductWithF .F-hom
+
+      ×β₁ : π₁ ∘⟨ C ⟩ (f ,p g) ≡ f
+      ×β₁ = cong fst (ues _ .universal .commutes _) 
+
+      ×β₂ : π₂ ∘⟨ C ⟩ (f ,p g) ≡ g
+      ×β₂ = cong snd (ues _ .universal .commutes _)
+
+      ×η : f ≡ ((π₁ ∘⟨ C ⟩ f) ,p (π₂ ∘⟨ C ⟩ f))
+      ×η = η-expansion (ues _ .universal) _
+
+      ×η' : C .id {x = a× b} ≡ (π₁ ,p π₂)
+      ×η' = coinduction-elt (ues _ .universal)
+
+      ,p-natural : ( f ,p g ) ∘⟨ C ⟩ h ≡ ((f ∘⟨ C ⟩ h) ,p (g ∘⟨ C ⟩ h))
+      ,p-natural = coinduction-natural (ues _ .universal) _ _
+
+      ×-extensionality : π₁ ∘⟨ C ⟩ f ≡ π₁ ∘⟨ C ⟩ g → π₂ ∘⟨ C ⟩ f ≡ π₂ ∘⟨ C ⟩ g → f ≡ g
+      ×-extensionality p1 p2 = determined-by-elt (ues _ .universal) (cong₂ _,_ p1 p2)

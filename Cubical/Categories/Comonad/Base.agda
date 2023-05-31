@@ -25,10 +25,11 @@ module _ {C : Category ℓ ℓ'} (W : Functor C C) where
       δ : NatTrans W (funcComp W W)
       idl-δ : PathP (λ i → NatTrans W (F-rUnit {F = W} i)) ((ε ∘ˡ W) ∘ᵛ δ) (idTrans W)
       idr-δ : PathP (λ i → NatTrans W (F-lUnit {F = W} i)) ((W ∘ʳ ε) ∘ᵛ δ) (idTrans W)
-      assoc-δ : PathP (λ i → NatTrans W (F-assoc {F = W} {G = W} {H = W} i))
-                      ((W ∘ʳ δ) ∘ᵛ δ)
-                      ((δ ∘ˡ W) ∘ᵛ δ)
-
+      -- This is the obvious definition, but F-assoc is bad definitionally
+      -- assoc-δ : PathP (λ i → NatTrans W (F-assoc {F = W} {G = W} {H = W} i))
+      --                 ((W ∘ʳ δ) ∘ᵛ δ)
+      --                 ((δ ∘ˡ W) ∘ᵛ δ)
+      assoc-δ : ∀ {c} → ((W ∘ʳ δ) ∘ᵛ δ) ⟦ c ⟧ ≡ ((δ ∘ˡ W) ∘ᵛ δ) ⟦ c ⟧
     -- TODO: make this a NatTrans
     extend : ∀ {c d} → C [ W ⟅ c ⟆ , d ] → C [ W ⟅ c ⟆ , W ⟅ d ⟆ ]
     extend f = W ⟪ f ⟫ ∘⟨ C ⟩ δ .N-ob _
