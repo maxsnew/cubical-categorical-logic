@@ -4,21 +4,16 @@
 module Cubical.Categories.Monad.Strength.Cartesian where
 
 open import Cubical.Foundations.Prelude
-open import Cubical.Foundations.Function renaming (_∘_ to _∘f_)
 open import Cubical.Categories.Category hiding (isIso)
 open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Functor
 open import Cubical.Categories.NaturalTransformation
-open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.Monad.Base
-open import Cubical.Categories.Comonad.Base
 open import Cubical.Categories.Comonad.Instances.Environment
 open import Cubical.Categories.Limits.BinProduct
 open import Cubical.Categories.Limits.BinProduct.More
 open import Cubical.Categories.DistributiveLaw.ComonadOverMonad.Base
 open import Cubical.Categories.DistributiveLaw.ComonadOverMonad.BiKleisli.Base
-open import Cubical.Tactics.FunctorSolver.Reflection
-open import Cubical.Tactics.CategorySolver.Reflection
 
 private
   variable
@@ -40,3 +35,6 @@ module _ {C : Category ℓ ℓ'} (bp : BinProducts C) (T : Monad C) where
   Strength =
     Σ[ σ ∈ StrengthTrans ]
     ∀ Γ → IsDistributiveLaw (Env Γ (bp Γ)) T (fix-Γ Γ σ)
+
+  strength-law : ∀ (σ : Strength) (Γ : ob) → DistributiveLaw (Env Γ (bp Γ)) T
+  strength-law σ Γ = (fix-Γ Γ (σ .fst)) , (σ .snd Γ)
