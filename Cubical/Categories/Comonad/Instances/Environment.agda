@@ -44,12 +44,12 @@ module _ {C : Category ℓ ℓ'} (bp : BinProducts C) where
   Env' : ob → Comonad C
   Env' Γ = Env Γ (bp Γ)
 
-  pull : {Δ Γ : ob} (γ : Hom[ Δ , Γ ]) → ComonadHom (Env Γ (bp Γ)) (Env Δ (bp Δ))
-  pull = {!!}
+  push : {Δ Γ : ob} (γ : Hom[ Δ , Γ ]) → ComonadHom (Env Δ (bp Δ)) (Env Γ (bp Γ))
+  push = {!!}
 
-  pull-id : ∀ {Γ} → pull (id {Γ}) .fst ≡ idTrans (Env' Γ .fst)
-  pull-id = {!!}
+  push-id : ∀ {Γ} → push (id {Γ}) .fst ≡ idTrans (Env' Γ .fst)
+  push-id = {!!}
 
-  pull-comp : ∀ {Θ Δ Γ} (γ : Hom[ Δ , Γ ])(δ : Hom[ Θ , Δ ])
-          → pull (γ ∘ δ) .fst ≡ pull δ .fst ∘ᵛ pull γ .fst
-  pull-comp = {!!}
+  push-comp : ∀ {Θ Δ Γ} (γ : Hom[ Δ , Γ ])(δ : Hom[ Θ , Δ ])
+          → push (γ ∘ δ) .fst ≡ push γ .fst ∘ᵛ push δ .fst
+  push-comp = {!!}
