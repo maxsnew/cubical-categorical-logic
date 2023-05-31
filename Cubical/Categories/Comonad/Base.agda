@@ -39,3 +39,26 @@ module _ (C : Category ℓ ℓ') where
   Comonad : Type (ℓ-max ℓ ℓ')
   Comonad = Σ[ D ∈ Functor C C ] IsComonad D
 
+module _ {C : Category ℓ ℓ'} (coW coV : Comonad C) (ν : NatTrans (fst coW) (fst coV)) where
+
+  private
+    W V : Functor C C
+    W = fst coW
+    V = fst coV
+    module W = IsComonad (snd coW)
+    module V = IsComonad (snd coV)
+
+  record IsComonadHom : Type (ℓ-max ℓ ℓ') where
+    constructor proveComonadHom
+    field
+      V-ε : V.ε ∘ᵛ ν ≡ W.ε
+      V-δ : V.δ ∘ᵛ ν ≡ (ν ∘ʰ ν) ∘ᵛ W.δ
+  open IsComonadHom
+
+  isProp-IsComnadHom : isProp (IsComonadHom)
+  isProp-IsComnadHom ν ν' i .V-ε = isSetNatTrans _ _ (ν .V-ε) (ν' .V-ε) i
+  isProp-IsComnadHom ν ν' i .V-δ = isSetNatTrans _ _ (ν .V-δ) (ν' .V-δ) i
+
+module _ {C : Category ℓ ℓ'} (comonadW comonadV : Comonad C) where
+  ComonadHom : Type (ℓ-max ℓ ℓ')
+  ComonadHom = Σ[ ν ∈ NatTrans (fst comonadW) (fst comonadV) ] IsComonadHom comonadW comonadV ν

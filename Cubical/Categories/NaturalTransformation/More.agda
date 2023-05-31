@@ -28,7 +28,10 @@ open NatIso
 open isIsoC
 
 infixl 8 _∘ᵛ_
+infixl 8 _∘ʰ_
 _∘ᵛ_ = compTrans
+
+_∘ʰ_ = whiskerTrans
 
 α : {F : Functor B C} {G : Functor C D} {H : Functor D E}
   → NatTrans (H ∘F (G ∘F F)) ((H ∘F G) ∘F F)
