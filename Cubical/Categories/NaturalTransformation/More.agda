@@ -24,6 +24,10 @@ open Category
 open NatTrans
 open NatIso
 open isIsoC
+
+infixl 8 _∘ᵛ_
+_∘ᵛ_ = compTrans
+
 module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} where
   seqNatIso : {F G H : Functor C D} → NatIso F G → NatIso G H → NatIso F H
   seqNatIso ı ı' .trans = seqTrans (ı .trans) (ı' .trans)
