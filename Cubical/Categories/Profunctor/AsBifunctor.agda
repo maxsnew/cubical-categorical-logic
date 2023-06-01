@@ -13,8 +13,10 @@ open import Cubical.Categories.Functor
 open import Cubical.Categories.Bifunctor.Base
 open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation
+open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.Constructions.BinProduct
+open import Cubical.Categories.Constructions.BinProduct.More
 open import Cubical.Categories.Instances.Sets
 open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Functors.Constant
@@ -58,7 +60,17 @@ module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {ℓS : Level} wher
 
 module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-* D) (S : C o-[ ℓS ]-* D) where
   -- A definition of profunctor homomorphism that avoids Lifts
-  record ProfHomo : Type (ℓ-max ℓC (ℓ-max ℓC' (ℓ-max ℓD (ℓ-max ℓD' (ℓ-max ℓS ℓR))))) where
+
+  ℓmaxCDSR : Level
+  ℓmaxCDSR = (ℓ-max ℓC (ℓ-max ℓC' (ℓ-max ℓD (ℓ-max ℓD' (ℓ-max ℓS ℓR)))))
+
+  open NatIso
+  open Functor
+  open Category
+  open NatTrans
+  open Bifunctor
+
+  record ProfHomo : Type ℓmaxCDSR where
     field
       PH-ob : ∀ {c d} → (r : ⟨ R ⟅ c , d ⟆b ⟩) → ⟨ S ⟅ c , d ⟆b ⟩
       PH-natL : ∀ {c c' d} (f : C [ c , c' ]) (r : ⟨ R ⟅ c' , d ⟆b ⟩)
@@ -69,6 +81,91 @@ module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-*
   open ProfHomo
   ProfIso : Type _
   ProfIso = Σ[ ϕ ∈ ProfHomo ] ∀ c d → isIso (ϕ .PH-ob {c}{d})
+
+  -- Repackage the profunctor isomorphism as a natural isomorphism between functors
+  ProfIso→NatIso : ProfIso → NatIso (LiftF {ℓR}{ℓmaxCDSR} ∘F (Bifunctor→Functor R)) (LiftF {ℓS}{ℓmaxCDSR} ∘F Bifunctor→Functor S)
+  ProfIso→NatIso the-prof-iso =
+    binaryNatIso {C = C ^op} {D = D} {E = SET _}
+      (funcComp LiftF (Bifunctor→Functor R))
+      (funcComp LiftF (Bifunctor→Functor S))
+      (λ c → CFixed c)
+      (λ d → DFixed d)
+      (λ (c , d) → refl)
+      where
+      CFixed : (c : C .ob)
+        → NatIso
+          ((curryF D (SET (ℓ-max ℓR ℓmaxCDSR)) ⟅
+             funcComp LiftF (Bifunctor→Functor R) ⟆)
+               ⟅ c ⟆)
+          ((curryF D (SET (ℓ-max ℓR ℓmaxCDSR)) ⟅
+             funcComp LiftF (Bifunctor→Functor S) ⟆)
+               ⟅ c ⟆)
+      CFixed c .trans .N-ob d x = lift (PH-ob (the-prof-iso .fst) (lower x))
+      CFixed c .trans .N-hom {d₁}{d₂} ϕ =
+        funExt (λ x →
+          (CFixed c .trans .N-ob d₂) (lift (Bifunctor.Bif-homR R c ϕ ((R ⟪ (C ^op) .id ⟫l) (x .lower))))
+            ≡⟨ ( (λ i → ((CFixed c .trans .N-ob d₂) (lift (R .Bif-homR c ϕ ((R .Bif-idL i) (x .lower))))) ) ) ⟩
+          (CFixed c .trans .N-ob d₂) (lift (Bifunctor.Bif-homR R c ϕ ((x .lower))))
+            ≡⟨ ((λ i → lift (the-prof-iso .fst .PH-natR (lower x) ϕ i))) ⟩
+          lift (Bifunctor.Bif-homR S c ϕ ((PH-ob (the-prof-iso .fst) (lower x))))
+            ≡⟨ ((λ i → (lift (Bifunctor.Bif-homR S c ϕ ((S .Bif-idL (~ i)) (PH-ob (the-prof-iso .fst) (lower x))))))) ⟩
+          lift (Bifunctor.Bif-homR S c ϕ ((S ⟪ (C ^op) .id ⟫l) (PH-ob (the-prof-iso .fst) (lower x)))) ∎
+        )
+      CFixed c .nIso =
+        λ d →
+          isiso
+          (λ x → lift (the-prof-iso .snd c d .fst (lower x)))
+          (funExt (λ x i → lift (the-prof-iso .snd c d .snd .fst (lower x) i)))
+          (funExt (λ x i → lift (the-prof-iso .snd c d .snd .snd (lower x) i)))
+
+      DFixed : (d : D .ob)
+        → NatIso ((curryFl (C ^op) (SET (ℓ-max ℓR ℓmaxCDSR)) ⟅
+                 funcComp LiftF (Bifunctor→Functor R) ⟆)
+                   ⟅ d ⟆)
+                 ((curryFl (C ^op) (SET (ℓ-max ℓR ℓmaxCDSR)) ⟅
+                   funcComp LiftF (Bifunctor→Functor S) ⟆)
+                   ⟅ d ⟆)
+      DFixed d .trans .N-ob c x = lift (PH-ob (the-prof-iso .fst) (lower x))
+      DFixed d .trans .N-hom {c₁}{c₂} ψ =
+        funExt (λ x → 
+          (DFixed d .trans .N-ob c₂) (lift (Bif-homR R c₂ (id D) ((R ⟪ ψ ⟫l) (lower x))))
+            ≡⟨ (λ i →  (DFixed d .trans .N-ob c₂) (lift (R .Bif-idR i ((R ⟪ ψ ⟫l) (lower x))))) ⟩
+          (DFixed d .trans .N-ob c₂) ((lift ((R ⟪ ψ ⟫l) (lower x))))
+            ≡⟨ (λ i → lift (the-prof-iso .fst .PH-natL ψ (lower x) i)) ⟩
+          lift ((S ⟪ ψ ⟫l) ((DFixed d .trans) .N-ob c₁ x .lower))
+            ≡⟨ ((λ i → lift ((S .Bif-idR (~ i)) ((S ⟪ ψ ⟫l) (DFixed d .trans .N-ob c₁ x .lower)))) ) ⟩
+          lift (F-hom (Bifunctor→Functor S) (ψ , id D) (PH-ob (the-prof-iso .fst) (lower x))) ∎
+        )
+      DFixed d .nIso =
+        λ c →
+          isiso
+          (λ x → lift (the-prof-iso .snd c d .fst (lower x)))
+          (funExt (λ x i → lift (the-prof-iso .snd c d .snd .fst (lower x) i)))
+          (funExt (λ x i → lift (the-prof-iso .snd c d .snd .snd (lower x) i)))
+
+  NatIso→ProfIso : NatIso (LiftF {ℓR}{ℓmaxCDSR} ∘F (Bifunctor→Functor R)) (LiftF {ℓS}{ℓmaxCDSR} ∘F Bifunctor→Functor S)
+                   → ProfIso
+  NatIso→ProfIso η =
+    (record {
+      PH-ob = λ {c d} r → lower (η .trans .N-ob (c , d) (lift r)) ;
+      PH-natL = λ {c c' d} f r → 
+        lower (η .trans .N-ob (c , d) (lift ((R ⟪ f ⟫l) r)))
+          ≡⟨ (λ i → lower (η .trans .N-ob (c , d) (lift ((R .Bif-idR (~ i)) ((R ⟪ f ⟫l )r))))) ⟩
+        lower ((N-ob (η .trans) (c , d) ∘f ((LiftF {ℓR}{ℓmaxCDSR} ∘F Bifunctor→Functor R) ⟪ f , D .id ⟫)) (lift r))
+          ≡⟨ ((λ i → lower (η .trans .N-hom {x = (c' , d)} {y = (c , d)} (f , D .id) i (lift r)))) ⟩
+        lower ((((LiftF {ℓS}{ℓmaxCDSR} ∘F Bifunctor→Functor S) ⟪ f , D .id ⟫) ∘f (N-ob (η .trans) (c' , d))) (lift r))
+          ≡⟨ (λ i → S .Bif-idR i ((S ⟪ f ⟫l) (lower (η .trans .N-ob (c' , d) (lift r))))) ⟩
+        (S ⟪ f ⟫l) (lower (η .trans .N-ob (c' , d) (lift r))) ∎
+     ;
+        -- lower (η .trans .N-hom {x = (c' , d)} {y = (c , d)} (f , D .id) {!i!} (lift r));
+      PH-natR = λ {d d' c} r g → 
+        lower (η .trans .N-ob (d , c) (lift ((R ⟪ g ⟫r) r)))
+         ≡⟨ (λ i → lower (η .trans .N-ob (d , c) (lift ((R .Bif-idL (~ i)) (( R ⟪ g ⟫r ) r) )))) ⟩
+        {!!}
+         ≡⟨ {!!} ⟩
+        (S ⟪ g ⟫r) (lower (η .trans .N-ob (d , d') (lift r))) ∎
+    }) ,
+    (λ c d → {!!})
 
 open ProfHomo
 
@@ -105,13 +202,18 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
   ParamUnivElt : Type _
   ParamUnivElt = (c : C .ob) → RepresentableAt c
 
+  ParamUniversalElement : Type _
+  ParamUniversalElement = (c : C .ob) → UniversalElement D (pAppR R c)
+
   ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
   ProfRepresentation→PshFunctorRepresentation (G , η) =
-    {!!}
+    G , preservesNatIsosF (curryFl (D ^op) (SET _)) {!ProfIso→NatIso!}
     -- (G ,
     -- (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
     -- )
 
+  PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
+  PshFunctorRepresentation→ProfRepresentation (G , η) = {!!} , {!!}
 
   ParamUnivElt→Functor : ParamUnivElt → Functor C D
   ParamUnivElt→Functor ues .F-ob c = ues c .vertex
