@@ -20,7 +20,7 @@ RightAdjointAt : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functo
 RightAdjointAt C D F = RepresentableAt D C (Functor→Profo-* C D F)
 
 LeftAdjoint : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → Type _
-LeftAdjoint C D F  = ParamUnivElt C D (Functor→Prof*-o C D F)
+LeftAdjoint C D F  = RightAdjoint (C ^op) (D ^op) (F ^opF)
 
-LeftAdjointAt : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) (c : C .ob) → Type _
-LeftAdjointAt C D F = RepresentableAt C D (Functor→Prof*-o C D F)
+LeftAdjointAt : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) (d : D .ob) → Type _
+LeftAdjointAt C D F = RightAdjointAt (C ^op) (D ^op) (F ^opF)
