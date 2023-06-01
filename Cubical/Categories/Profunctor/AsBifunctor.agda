@@ -8,7 +8,7 @@ open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Univalence
 open import Cubical.Foundations.Function renaming (_∘_ to _∘f_)
 
-open import Cubical.Categories.Category hiding (isIso)
+open import Cubical.Categories.Category renaming (isIso to isIsoC)
 open import Cubical.Categories.Functor
 open import Cubical.Categories.Bifunctor.Base
 open import Cubical.Categories.Instances.Functors
@@ -214,6 +214,62 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
 
   PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
   PshFunctorRepresentation→ProfRepresentation (G , η) = {!!} , {!!}
+
+
+  open NatIso
+  open NatTrans
+  open isIsoC
+
+  -- Psh -> UnivElt
+  PshFunctorRepresentation→ParamUnivElt : PshFunctorRepresentation → ParamUnivElt
+  PshFunctorRepresentation→ParamUnivElt (G , η) = (λ c →
+    let R⟅-,c⟆ = (pAppR R c) in
+    let η⁻¹ = symNatIso η in
+      record {
+        vertex = (G ⟅ c ⟆) ;
+        element = lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))) ;
+        universal = record {
+          coinduction = λ {d} ϕ → lower ((η .trans .N-ob c .N-ob d) (lift ϕ));
+          commutes = (λ {d} ϕ →
+            let coindϕ = (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) in
+            lower (((LiftF ∘F R⟅-,c⟆) ⟪ coindϕ ⟫) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))
+              ≡⟨ (λ i → lower (((LiftF ∘Fb R ) .Bif-idR (~ i)) (((LiftF ∘Fb R ) .Bif-homL coindϕ c) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id)))))) ⟩
+            lower ((((Prof*-o→Functor C D ((LiftF {ℓS}{ℓD'}) ∘Fb R )) ⟅ c ⟆) ⟪ coindϕ ⟫) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))
+              ≡⟨ (λ i → lower ((((η⁻¹ .trans .N-ob c .N-hom coindϕ) (~ i)) (lift (D .id))))) ⟩
+            lower ((η⁻¹ .trans .N-ob c .N-ob d) (((Bifunctor→Functor ((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D))) ⟪ coindϕ , G ⟪ C .id ⟫ ⟫) (lift (D .id))))
+              ≡⟨ ( λ i → lower ((η⁻¹ .trans .N-ob c .N-ob d) (((Bifunctor→Functor ((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D))) ⟪ coindϕ , G .F-id (i) ⟫) (lift (D .id))))) ⟩
+            lower ((η⁻¹ .trans .N-ob c .N-ob d) (((Bifunctor→Functor ((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D))) ⟪ coindϕ , D .id ⟫) (lift (D .id))))
+              ≡⟨ (λ i →
+                lower ((η⁻¹ .trans .N-ob c .N-ob d) ((((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D)) .Bif-idR (i))
+                  ((((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D)) .Bif-homL coindϕ (G ⟅ c ⟆)) (lift (D .id))))
+                )
+                ) ⟩
+            lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (coindϕ ⋆⟨ D ⟩ (D .id))))
+              ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (D .⋆IdR coindϕ (i))))) ⟩
+            lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (coindϕ)))
+              ≡⟨ (λ i → lower ((((η .nIso c .ret) (i)) .N-ob d) (lift ϕ))) ⟩
+            ϕ ∎) ;
+          is-uniq =
+            λ {d} ϕ f ε⋆f≡ϕ →
+            let coindϕ = (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) in
+              f
+                ≡⟨ sym (D .⋆IdR f) ⟩
+              (f ⋆⟨ D ⟩ D .id)
+                ≡⟨ (λ i → (((HomBif D) .Bif-idR (~ i)) (((HomBif D) .Bif-homL f (G ⟅ c ⟆)) (D .id)))) ⟩
+              (((Bifunctor→Functor (HomBif D)) ⟪ f , D .id ⟫) (D .id))
+                ≡⟨ (λ i → (((Bifunctor→Functor (HomBif D)) ⟪ f , G .F-id (~ i) ⟫) (D .id))) ⟩
+              (((Bifunctor→Functor (HomBif D)) ⟪ f , G ⟪ C .id ⟫ ⟫) (D .id))
+                ≡⟨ (λ i → lower(((η .nIso c .sec) (~ i) .N-ob d) (lift (((Bifunctor→Functor (HomBif D)) ⟪ f , G ⟪ C .id ⟫ ⟫) (D .id))))) ⟩
+              lower ((η .trans .N-ob c .N-ob d) ((η⁻¹ .trans .N-ob c .N-ob d) (lift (((Bifunctor→Functor (HomBif D)) ⟪ f , G ⟪ C .id ⟫ ⟫) (D .id)))))
+                ≡⟨ (λ i → lower ((η .trans .N-ob c .N-ob d) (((η⁻¹ .trans .N-ob c .N-hom f) (i)) (lift (D .id))))) ⟩
+              lower ((η .trans .N-ob c .N-ob d) ((((Prof*-o→Functor C D ((LiftF {ℓS}{ℓD'}) ∘Fb R )) ⟅ c ⟆) ⟪ f ⟫) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id)))))
+                ≡⟨ ( λ i → lower ((η .trans .N-ob c .N-ob d) (((LiftF ∘Fb R ) .Bif-idR (i)) (((LiftF ∘Fb R ) .Bif-homL f c) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))))) ⟩
+              lower ((η .trans .N-ob c .N-ob d) (lift ((R⟅-,c⟆ ⟪ f ⟫) (lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id)))))))
+                ≡⟨ (λ i →  (lower ((η .trans .N-ob c .N-ob d) (lift (ε⋆f≡ϕ i))))) ⟩
+              coindϕ ∎
+        }
+      }
+    )
 
   ParamUnivElt→Functor : ParamUnivElt → Functor C D
   ParamUnivElt→Functor ues .F-ob c = ues c .vertex
