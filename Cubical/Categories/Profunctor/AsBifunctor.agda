@@ -192,8 +192,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
   PshFunctorRepresentation : Type _
   PshFunctorRepresentation =
     Σ[ G ∈ Functor C D ]
-    NatIso (Prof*-o→Functor C D ((LiftF {ℓS}{ℓD'}) ∘Fp R ))
-           (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fp (Functor→Prof*-o C D G)))
+    NatIso (Prof*-o→Functor C D ((LiftF {ℓS}{ℓD'}) ∘Fb R ))
+           (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb (Functor→Prof*-o C D G)))
 
 
   RepresentableAt : (c : C .ob) → Type _
