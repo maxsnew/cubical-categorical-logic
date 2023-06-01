@@ -136,7 +136,12 @@ module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-*
         (S ⟪ f ⟫l) (lower (η .trans .N-ob (c' , d) (lift r))) ∎
      ;
         -- lower (η .trans .N-hom {x = (c' , d)} {y = (c , d)} (f , D .id) {!i!} (lift r));
-      PH-natR = {!!}
+      PH-natR = λ {d d' c} r g → 
+        lower (η .trans .N-ob (d , c) (lift ((R ⟪ g ⟫r) r)))
+         ≡⟨ (λ i → lower (η .trans .N-ob (d , c) (lift ((R .Bif-idL (~ i)) (( R ⟪ g ⟫r ) r) )))) ⟩
+        {!!}
+         ≡⟨ {!!} ⟩
+        (S ⟪ g ⟫r) (lower (η .trans .N-ob (d , d') (lift r))) ∎
     }) ,
     (λ c d → {!!})
 
