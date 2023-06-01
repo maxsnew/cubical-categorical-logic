@@ -22,7 +22,7 @@ open import Cubical.Tactics.CategorySolver.Reflection
 
 private
   variable
-    ℓc ℓc' ℓd ℓd' ℓe ℓe' ℓe'' ℓe''' : Level
+    ℓc ℓc' ℓd ℓd' ℓe ℓe' : Level
 
 open Category
 open Functor
@@ -30,8 +30,8 @@ open Functor
 record Bifunctor (C : Category ℓc ℓc') (D : Category ℓd ℓd') (E : Category ℓe ℓe') : Type (ℓ-max ℓc (ℓ-max ℓc' (ℓ-max ℓd (ℓ-max ℓd' (ℓ-max ℓe ℓe'))))) where
   field
     Bif-ob : C .ob → D .ob → E .ob
-    Bif-homL : ∀ {c c'} → C [ c , c' ] → ∀ d → E [ Bif-ob c d , Bif-ob c' d ]
-    Bif-homR : ∀ {d d'} c → D [ d , d' ] → E [ Bif-ob c d , Bif-ob c d' ]
+    Bif-homL : ∀ {c c'} → (f : C [ c , c' ]) → ∀ d → E [ Bif-ob c d , Bif-ob c' d ]
+    Bif-homR : ∀ {d d'} c → (g : D [ d , d' ]) → E [ Bif-ob c d , Bif-ob c d' ]
     Bif-idL : ∀ {c d} → Bif-homL (C .id {c}) d ≡ E .id
     Bif-idR : ∀ {c d} → Bif-homR c (D .id {d}) ≡ E .id
     Bif-seqL : ∀ {c c' c'' d} (f : C [ c , c' ])(f' : C [ c' , c'' ])
@@ -53,7 +53,7 @@ private
      D : Category ℓd ℓd'
      D' : Category ℓd ℓd'
      E : Category ℓe ℓe'
-     E' : Category ℓe'' ℓe'''
+     E' : Category ℓe ℓe'
 
 -- action on objects
 infix 30 _⟅_⟆b
@@ -129,11 +129,23 @@ bifCompR F G .Bif-seqL f f' = F .Bif-seqL _ _
 bifCompR F G .Bif-seqR g g' = cong (F ⟪_⟫r) (G .F-seq _ _) ∙ F .Bif-seqR _ _
 bifCompR F G .Bif-assoc f g = F .Bif-assoc _ _
 
+bifCompF : (F : Functor E E') (G : Bifunctor C D E) → Bifunctor C D E'
+bifCompF F G .Bif-ob c d = F ⟅ G ⟅ c , d ⟆b ⟆
+bifCompF F G .Bif-homL f d = F ⟪ G ⟪ f ⟫l ⟫
+bifCompF F G .Bif-homR c g = F ⟪ G ⟪ g ⟫r ⟫
+bifCompF F G .Bif-idL = cong (F ⟪_⟫) (G .Bif-idL) ∙ F .F-id
+bifCompF F G .Bif-idR = cong (F ⟪_⟫) (G .Bif-idR) ∙ F .F-id
+bifCompF F G .Bif-seqL f f' = cong (F ⟪_⟫) (G .Bif-seqL _ _) ∙ F .F-seq _ _
+bifCompF F G .Bif-seqR g g' = cong (F ⟪_⟫) (G .Bif-seqR _ _) ∙ F .F-seq _ _
+bifCompF F G .Bif-assoc f g = sym (F .F-seq _ _) ∙ cong (F ⟪_⟫) (G .Bif-assoc _ _) ∙ F .F-seq _ _
+
 infixr 30 bifCompL
 infixr 30 bifCompR
+infixr 30 bifCompF
 
 syntax bifCompL F G = F ∘Fl G
 syntax bifCompR F G = F ∘Fr G
+syntax bifCompF F G = F ∘Fb G
 
 HomBif : (C : Category ℓc ℓc') → Bifunctor (C ^op) C (SET ℓc')
 HomBif C .Bif-ob c c' = (C [ c , c' ]) , (C .isSetHom)
@@ -145,7 +157,16 @@ HomBif C .Bif-seqL f' f = funExt (λ f'' → C .⋆Assoc _ _ _)
 HomBif C .Bif-seqR g g' = funExt (λ g'' → sym (C .⋆Assoc _ _ _))
 HomBif C .Bif-assoc f g = funExt (λ g' → C .⋆Assoc _ _ _)
 
--- There are two simplest definitionally different ways to do this
+UniversalBifunctor : Bifunctor C D (C ×C D)
+UniversalBifunctor .Bif-ob c d = c , d
+UniversalBifunctor {D = D} .Bif-homL f d = f , D .id
+UniversalBifunctor {C = C} .Bif-homR c g = C .id , g
+UniversalBifunctor .Bif-idL = refl
+UniversalBifunctor .Bif-idR = refl
+UniversalBifunctor {D = D} .Bif-seqL f f' = cong₂ _,_ refl (sym (D .⋆IdR _))
+UniversalBifunctor {C = C} .Bif-seqR g g' = cong₂ _,_ (sym (C .⋆IdR _)) refl
+UniversalBifunctor {C = C}{D = D} .Bif-assoc f g = cong₂ _,_ (C .⋆IdR _ ∙ sym (C .⋆IdL _)) (D .⋆IdL _ ∙ sym (D .⋆IdR _))
+
 Bifunctor→Functor : Bifunctor C D E → Functor (C ×C D) E
 Bifunctor→Functor F .F-ob p = F ⟅ p ⟆b
 Bifunctor→Functor {E = E} F .F-hom (f , g) = F ⟪ f ⟫l ⋆⟨ E ⟩ F ⟪ g ⟫r
@@ -164,21 +185,6 @@ Bifunctor→Functor {E = E} F .F-seq (f , g) (f' , g') =
   lem = solveCat! E
 
 Functor→Bifunctor : Functor (C ×C D) E → Bifunctor C D E
-Functor→Bifunctor F .Bif-ob c d = F ⟅ c , d ⟆ 
-Functor→Bifunctor {D = D} F .Bif-homL f _ = F ⟪ f , D .id ⟫
-Functor→Bifunctor {C = C} F .Bif-homR _ g = F ⟪ C .id , g ⟫
-Functor→Bifunctor F .Bif-idL = F .F-id
-Functor→Bifunctor F .Bif-idR = F .F-id
-Functor→Bifunctor {D = D} F .Bif-seqL f f' = cong (F .F-hom) (cong₂ _,_ refl (sym (D .⋆IdL (D .id)))) ∙ F .F-seq _ _
-Functor→Bifunctor {C = C} F .Bif-seqR g g' = cong (F .F-hom) (cong₂ _,_ (sym (C .⋆IdL (C .id))) refl) ∙ F .F-seq _ _
-Functor→Bifunctor {C = C}{D = D} F .Bif-assoc f g =
-  sym (F .F-seq _ _)
-  ∙ cong (F .F-hom) (cong₂ _,_ (C .⋆IdR _ ∙ sym (C .⋆IdL _)) (D .⋆IdL _ ∙ sym (D .⋆IdR _)))
-  ∙ F .F-seq _ _
+Functor→Bifunctor {C = C}{D = D} F = F ∘Fb UniversalBifunctor {C = C}{D = D}
 
--- TODO: above is an Iso
-
-bifCompPost : (F : Bifunctor C D E) (G : Functor E E') → Bifunctor C D E'
-bifCompPost F G = Functor→Bifunctor (G ∘F Bifunctor→Functor F)
-
-syntax bifCompPost F G = G ∘Fp F
+-- -- TODO: above is an Iso

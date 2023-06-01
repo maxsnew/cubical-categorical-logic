@@ -19,11 +19,28 @@ open import Cubical.Categories.Instances.Functors
 private
   variable
     ℓA ℓA' ℓB ℓB' ℓC ℓC' ℓD ℓD' ℓE ℓE' : Level
+    ℓ ℓ' ℓ'' : Level
+    B C D E : Category ℓ ℓ'
 
 open Category
 open NatTrans
 open NatIso
 open isIsoC
+
+infixl 8 _∘ᵛ_
+infixl 8 _∘ʰ_
+_∘ᵛ_ = compTrans
+
+_∘ʰ_ = whiskerTrans
+
+α : {F : Functor B C} {G : Functor C D} {H : Functor D E}
+  → NatTrans (H ∘F (G ∘F F)) ((H ∘F G) ∘F F)
+α = pathToNatTrans F-assoc
+
+α⁻¹ : {F : Functor B C} {G : Functor C D} {H : Functor D E}
+   → NatTrans ((H ∘F G) ∘F F) (H ∘F (G ∘F F))
+α⁻¹ = pathToNatTrans (sym F-assoc)
+
 module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} where
   seqNatIso : {F G H : Functor C D} → NatIso F G → NatIso G H → NatIso F H
   seqNatIso ı ı' .trans = seqTrans (ı .trans) (ı' .trans)

@@ -45,3 +45,8 @@ PshIso {ℓS = ℓS}{ℓS' = ℓS'} C P Q =
 
 IdPshIso : (C : Category ℓ ℓ') (P : Presheaf C ℓS) → PshIso C P P
 IdPshIso C P = idCatIso
+
+𝓟o = Presheaf
+
+𝓟* : Category ℓ ℓ' → (ℓS : Level) → Type (ℓ-max (ℓ-max ℓ ℓ') (ℓ-suc ℓS))
+𝓟* C ℓS = Functor C (SET ℓS)
