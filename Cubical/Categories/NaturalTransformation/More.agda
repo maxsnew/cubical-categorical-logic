@@ -30,8 +30,19 @@ open isIsoC
 infixl 8 _∘ᵛ_
 infixl 8 _∘ʰ_
 _∘ᵛ_ = compTrans
-
 _∘ʰ_ = whiskerTrans
+
+module _ {B : Category ℓB ℓB'} {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} where
+  open NatTrans
+  whiskerTrans' : {F F' : Functor B C} {G G' : Functor C D} (β : NatTrans G G') (α : NatTrans F F')
+    → NatTrans (G ∘F F) (G' ∘F F')
+  whiskerTrans' {F}{F'}{G}{G'} β α = compTrans (G' ∘ʳ α) (β ∘ˡ F)
+
+  whiskerTrans≡whiskerTrans' : {F F' : Functor B C} {G G' : Functor C D} (β : NatTrans G G') (α : NatTrans F F') → whiskerTrans β α ≡ whiskerTrans' β α
+  whiskerTrans≡whiskerTrans' β α = makeNatTransPath (funExt (λ x → β .N-hom _))
+
+_∘ʰ'_ = whiskerTrans'
+
 
 α : {F : Functor B C} {G : Functor C D} {H : Functor D E}
   → NatTrans (H ∘F (G ∘F F)) ((H ∘F G) ∘F F)
@@ -71,7 +82,7 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} where
                       → PathP (λ i → (x : C .ob) → D [ (p i) .F-ob x , (q i) .F-ob x ])
                               (α .trans .N-ob) (β .trans .N-ob)
                       → PathP (λ i → NatIso (p i) (q i)) α β
-    
+
     makeNatIsoPathP p q P i .trans = makeNatTransPathP {α = α .trans} {β = β .trans} p q P i
     makeNatIsoPathP p q P i .nIso x =
       isProp→PathP (λ i → isPropIsIso (makeNatIsoPathP p q P i .trans .N-ob x)) (α .nIso _) (β .nIso _) i
@@ -85,9 +96,9 @@ module _ {B : Category ℓB ℓB'}{C : Category ℓC ℓC'}{D : Category ℓD �
   open Functor
   _∘ˡi_ : ∀ (K : Functor B C) → {G H : Functor C D} (β : NatIso G H)
        → NatIso (G ∘F K) (H ∘F K)
-  _∘ˡi_ K β .trans = β .trans ∘ˡ K 
+  _∘ˡi_ K β .trans = β .trans ∘ˡ K
   _∘ˡi_ K β .nIso b  = β .nIso (K ⟅ b ⟆)
-  
+
 
 
   CAT⋆Assoc : {E : Category ℓE ℓE'}
@@ -100,10 +111,10 @@ module _ {B : Category ℓB ℓB'}{C : Category ℓC ℓC'}{D : Category ℓD �
 
 
 module _ {A : Category ℓA ℓA'}{B : Category ℓB ℓB'}{C : Category ℓC ℓC'}{D : Category ℓD ℓD'} where
-  preservesNatIsosF : ∀ (𝔽 : Functor (FUNCTOR A B) (FUNCTOR C D)) → {F G : Functor A B} → (β : NatIso F G) 
+  preservesNatIsosF : ∀ (𝔽 : Functor (FUNCTOR A B) (FUNCTOR C D)) → {F G : Functor A B} → (β : NatIso F G)
       → NatIso (𝔽 ⟅ F ⟆) (𝔽 ⟅ G ⟆)
   preservesNatIsosF 𝔽 β =
-    FUNCTORIso→NatIso C D 
-      (preserveIsosF {F = 𝔽} 
+    FUNCTORIso→NatIso C D
+      (preserveIsosF {F = 𝔽}
         (NatIso→FUNCTORIso A B β)
       )

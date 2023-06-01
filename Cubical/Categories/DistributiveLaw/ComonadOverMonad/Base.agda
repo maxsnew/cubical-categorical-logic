@@ -61,3 +61,17 @@ module _ {C : Category ℓ ℓ'} {D : Comonad C} {T : Monad C} {D' : Comonad C} 
 
   ComonadMorphism : Type _
   ComonadMorphism = Σ _ isComonadMorphism
+
+module _ {C : Category ℓ ℓ'} where
+  open Category C
+  open Functor
+
+  idCMM : ∀  {D : Comonad C} {T : Monad C} (law : DistributiveLaw D T) → ComonadMorphism law law
+  idCMM {D = D} law .fst = idCoHom D
+  idCMM {D = D}{T = T} law .snd = makeNatTransPath (funExt (λ x → ⋆IdL _ ∙ sym (⋆IdR _) ∙ cong₂ _⋆_ refl (sym (T .fst .F-id))))
+
+  module _ {D D' D'' : Comonad C} {T : Monad C} {law : DistributiveLaw D T} {law' : DistributiveLaw D' T} {law'' : DistributiveLaw D'' T} where
+    -- note the inversion
+    compCMM : ComonadMorphism law' law'' → ComonadMorphism law law' → ComonadMorphism law law''
+    compCMM ϕ ϕ' .fst = compCoHom (ϕ' .fst) (ϕ .fst)
+    compCMM ϕ ϕ' .snd = makeNatTransPath (funExt (λ x → ⋆Assoc _ _ _ ∙ cong₂ _⋆_ refl (λ i → ϕ' .snd i ⟦ _ ⟧) ∙ sym (⋆Assoc _ _ _) ∙ cong₂ _∘_ refl ((λ i → ϕ .snd i ⟦ _ ⟧)) ∙  (⋆Assoc _ _ _) ∙ cong₂ _⋆_ refl (sym (T .fst .F-seq _ _)) ))

@@ -17,22 +17,22 @@ private
   variable
     ℓ ℓ' : Level
 
-module _ {C : Category ℓ ℓ'} where
+module _ (C : Category ℓ ℓ') where
   open Category
   private
     variable
       a b c : C .ob
       f g h : C [ a , b ]
-  record ExtensionSystem : Type (ℓ-max ℓ ℓ') where
+
+  record ExtensionSystem (T : C .ob → C .ob) : Type (ℓ-max ℓ ℓ') where
     field
-      T : C .ob → C .ob
       η : C [ a , T a ]
       bind : C [ a , T b ] → C [ T a , T b ]
       bind-r : bind (η {a = a}) ≡ C .id
       bind-l : bind f ∘⟨ C ⟩ η ≡ f
       bind-comp : bind f ∘⟨ C ⟩ bind g ≡ bind (bind f ∘⟨ C ⟩ g)
 
-  module _ (E : ExtensionSystem) where
+  module _ {T} (E : ExtensionSystem T) where
     open ExtensionSystem E
     Kleisli : Category _ _
     Kleisli .ob = C .ob
@@ -62,4 +62,4 @@ module _ {C : Category ℓ ℓ'} where
     F c .universal .commutes ϕ = bind-l
     F c .universal .is-uniq ϕ f p = sym bind-l ∙ p
 
-    -- TODO: by abstract nonsense construct a monad on T
+    -- TODO: by abstract nonsense construct a monad structure for T
