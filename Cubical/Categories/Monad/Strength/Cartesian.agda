@@ -1,5 +1,5 @@
 {- Strength for a monad on a cartesian category is a bit simpler than for monoidal categories -}
-
+{- Unfortunately this is very slow but lossy unification breaks it -}
 {-# OPTIONS --safe #-}
 module Cubical.Categories.Monad.Strength.Cartesian where
 
@@ -45,16 +45,24 @@ module _ {C : Category ℓ ℓ'} (bp : BinProducts C) (T : Monad C) where
     Σ[ σ ∈ StrengthTrans ]
     ∀ Γ → IsDistributiveLaw (Env' Γ) T (fix-Γ Γ σ)
 
-  strength-law : ∀ (σ : Strength) (Γ : ob) → DistributiveLaw (Env' Γ) T
-  strength-law σ Γ = (fix-Γ Γ (σ .fst)) , (σ .snd Γ)
-
   module _ (σ : Strength) where
     open IsMonad (T .snd)
     open IsComonad
     open IsDistributiveLaw
-    IndexedKleisli : ∀ (Γ : ob) → Category _ _
-    IndexedKleisli Γ = BiKleisli (Env' Γ) T (strength-law σ Γ)
+    strength-law : (Γ : ob) → DistributiveLaw (Env' Γ) T
+    strength-law Γ = (fix-Γ Γ (σ .fst)) , (σ .snd Γ)
 
+    change-of-base : ∀ {Δ Γ} (γ : Hom[ Δ , Γ ]) → ComonadMorphism (strength-law Γ) (strength-law Δ)
+    change-of-base γ .fst = push bp γ
+    change-of-base γ .snd = makeNatTransPath (funExt (λ x →
+      (cong₂ _∘_ refl (cong₂ _×p_ refl (sym (T .fst .F-id))))
+      ∙ σ .fst .N-hom _ -- this doesn't work with --lossy-unification
+      ))
+
+    IndexedKleisli : ∀ (Γ : ob) → Category _ _
+    IndexedKleisli Γ = BiKleisli (Env' Γ) T (strength-law Γ)
+
+    -- I suppose this actually works for any comonad...
     wkF : (Γ : ob) → Functor (Kleisli T) (IndexedKleisli Γ)
     wkF Γ .F-ob x = x
     wkF Γ .F-hom f = f ∘ Env' Γ .snd .ε ⟦ _ ⟧ -- π₂ is the counit of Env'!
@@ -63,7 +71,7 @@ module _ {C : Category ℓ ℓ'} (bp : BinProducts C) (T : Monad C) where
       -- μ ∘ T g ∘ f ∘ π₂
       sym (⋆Assoc _ _ _)
       -- μ ∘ T g ∘ π₂ ∘ (π₁ , f ∘ π₂)
-      ∙ cong₂ _∘_ refl (sym ×β₂ ∙ (cong₂ _⋆_ refl (sym ((ε-law (strength-law σ Γ .snd))))))
+      ∙ cong₂ _∘_ refl (sym ×β₂ ∙ (cong₂ _⋆_ refl (sym ((ε-law (strength-law Γ .snd))))))
       ∙ lem0
       -- μ ∘ T g ∘ T π₂ ∘ σ ∘ (π₁ , f ∘ π₂)
       -- μ ∘ T (g ∘ π₂) ∘ σ ∘ (π₁ , f ∘ π₂)
