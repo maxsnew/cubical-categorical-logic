@@ -188,6 +188,10 @@ Profo-*→Functor C D R = curryF D (SET _) ⟅ Bifunctor→Functor R ⟆
 
 module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o D) where
 
+  open NatTrans
+  open NatIso
+  open isIsoC
+
   ProfRepresents : Functor C D → Type _
   ProfRepresents G = ProfIso {C = D}{D = C} R (Functor→Prof*-o C D G)
 
@@ -213,39 +217,51 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
   ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
   ProfRepresentation→PshFunctorRepresentation (G , η) =
     G ,
-    --- TODO prove something analogous to binaryNatIso, but with bifunctors and partial applicaton instead
-    --- of currying
-    {!binaryNatIso {C = C ^op} {D = D} {E = SET _}
-    (Prof*-o→Functor C D ((LiftF {ℓS}{ℓD'}) ∘Fb R))
-    (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb (Functor→Prof*-o C D G)))
-!}
-    -- record {
-    --   trans =
-    --     natTrans
-    --       (λ c →
-    --         natTrans
-    --           (λ _ x → lift (η .fst .PH-ob (lower x)))
-    --           (λ {d'}{d''} f → funExt λ x →
-    --             (Prof*-o→Functor C D (bifCompF LiftF R) .F-ob c .F-hom f
-    --               ⋆f
-    --                (λ x₁ → lift (η .fst .PH-ob (lower x₁))))
-    --               x
-    --              ≡⟨ {!!} ⟩
-    --             ((λ x₁ → lift (η .fst .PH-ob (lower x₁)))
-    --                ⋆f
-    --                Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)) .F-ob
-    --                c .F-hom f)
-    --               x ∎
-    --         )
-    --       )
-    --       {!!} ;
-    --   nIso = {!!}
-    -- }
-    -- (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
-    -- )
+    record {
+      trans =
+        natTrans
+        (λ c → natTrans
+               (λ d x → lift (η .fst .PH-ob (lower x)))
+               (λ f → funExt (λ x → 
+                 (Prof*-o→Functor C D (bifCompF LiftF R) .F-ob c .F-hom f
+                    ⋆f
+                    (λ x₂ → lift (η .fst .PH-ob (lower x₂))))
+                   x
+                    ≡⟨ (λ i → lift (η .fst .PH-ob (((R ⟪ f ⟫l) ⋆f R .Bif-idR i) (lower x)))) ⟩
+                  lift (PH-ob (η .fst) ((R ⟪ f ⟫l) (lower x)))
+                    ≡⟨ (λ i → lift (η .fst .PH-natL f (lower x) i)) ⟩
+                  lift ((Functor→Prof*-o C D G ⟪ f ⟫l) (PH-ob (η .fst) (lower x)))
+                    ≡⟨ (λ i → lift (((Functor→Prof*-o C D G) ⟪ f ⟫l ⋆f Functor→Prof*-o C D G .Bif-idR (~ i)) (η .fst .PH-ob (lower x)))) ⟩
+                  ((λ x₂ → lift (η .fst .PH-ob (lower x₂)))
+                     ⋆f
+                      Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)) .F-ob
+                      c .F-hom f)
+                   x ∎
+             ))
+        )
+        λ f → makeNatTransPath
+              (funExt (λ d → funExt λ x →
+                lift (η .fst .PH-ob ((Bif-homL R (id D) _ ⋆f (R ⟪ f ⟫r)) (lower x)))
+                  ≡⟨ (λ i → lift (η .fst .PH-ob ((R .Bif-idL i ⋆f (R ⟪ f ⟫r)) (lower x)))) ⟩
+                lift (PH-ob (η .fst) ((R ⟪ f ⟫r) (lower x)))
+                  ≡⟨ (λ i → lift (η .fst .PH-natR (lower x) f i)) ⟩
+                lift ((Functor→Prof*-o C D G ⟪ f ⟫r) (PH-ob (η .fst) (lower x)))
+                  ≡⟨ ((λ i → lift ((Functor→Prof*-o C D G .Bif-idL (~ i) ⋆f (Functor→Prof*-o C D G ⟪ f ⟫r )) (η .fst .PH-ob (lower x))))) ⟩
+                lift
+                  ((Bif-homL (Functor→Prof*-o C D G) (id D) _ ⋆f
+                    (Functor→Prof*-o C D G ⟪ f ⟫r))
+                   (η .fst .PH-ob (lower x))) ∎
+            )) ;
+      nIso = λ c →
+        isiso
+        (natTrans
+          (λ d x → lift (η .snd d c .fst (lower x)))
+          λ f → {!!}
+        )
+        {!!}
+        {!!}
+    }
 
-  open NatTrans
-  open NatIso
 
   PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
   PshFunctorRepresentation→ProfRepresentation (G , η) =
@@ -272,9 +288,11 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
           ≡⟨ ((λ i → (Functor→Prof*-o C D G .Bif-idL i ⋆f (Functor→Prof*-o C D G ⟪ g ⟫r)) (lower (η .trans .N-ob d .N-ob c (lift r))))) ⟩
         (Functor→Prof*-o C D G ⟪ g ⟫r)
           (lower (η .trans .N-ob d .N-ob c (lift r))) ∎
-      
       }) ,
-    λ d c → {!η .nIso c!}
+    λ d c →
+      (λ x → lower (η .nIso c .inv .N-ob d (lift x))) ,
+      (λ x i → lower ((η .nIso c .sec i .N-ob d) (lift x))) ,
+      (λ x i → lower((η .nIso c .ret i .N-ob d) (lift x)))
 
 
   open NatIso
