@@ -252,9 +252,29 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
     G ,
     (record {
       PH-ob = λ {d}{c} r → lower ((η .trans .N-ob c .N-ob d) (lift r)) ;
-      PH-natL = λ {d}{d'}{c} f r i → {!lower (η .trans .N-ob c .N-hom f i (lift r))!} ;
-      PH-natR = {!!} }) ,
-    {!!}
+      PH-natL = λ {d}{d'}{c} f r → 
+        lower (((η .trans .N-ob c .N-ob d) ∘f ((bifCompF LiftF R) .Bif-homL f c)) (lift r))
+         ≡⟨ ((λ i → lower (((η .trans .N-ob c .N-ob d) ∘f ( (bifCompF LiftF R) .Bif-homL f c ⋆f (bifCompF LiftF R) .Bif-idR (~ i))) (lift r)))) ⟩
+        lower (((η .trans .N-ob c .N-ob d) ∘f (((bifCompF LiftF R) .Bif-homL f c) ⋆f (bifCompF LiftF R) .Bif-homR d (C .id))) (lift r))
+         ≡⟨ ((λ i → lower ((η .trans .N-ob c .N-hom f i) (lift r)))) ⟩
+        lower ((N-ob (η .trans .N-ob c) d' ⋆f Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)) .F-ob c .F-hom f) (lift r))
+         ≡⟨ ((λ i → ((Functor→Prof*-o C D G ⟪ f ⟫l) ⋆f (Functor→Prof*-o C D G) .Bif-idR i) (lower (η .trans .N-ob c .N-ob d' (lift r))))) ⟩
+        (Functor→Prof*-o C D G ⟪ f ⟫l)
+          (lower (η .trans .N-ob c .N-ob d' (lift r))) ∎
+       ;
+      PH-natR = λ {c}{d}{d'} r g → 
+        lower (η .trans .N-ob d' .N-ob c (lift ((R ⟪ g ⟫r) r)))
+          ≡⟨ (λ i → lower (η .trans .N-ob d' .N-ob c (lift ((R .Bif-idL (~ i) ⋆f R ⟪ g ⟫r) r)))) ⟩
+        lower
+          ((Prof*-o→Functor C D (bifCompF LiftF R) .F-hom g .N-ob c ⋆f N-ob (η .trans) d' .N-ob c) (lift r))
+          ≡⟨ (λ i → lower ((η .trans .N-hom g i .N-ob c) (lift r))) ⟩
+        lower ((N-ob (η .trans) d .N-ob c ⋆f Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)) .F-hom g .N-ob c) (lift r))
+          ≡⟨ ((λ i → (Functor→Prof*-o C D G .Bif-idL i ⋆f (Functor→Prof*-o C D G ⟪ g ⟫r)) (lower (η .trans .N-ob d .N-ob c (lift r))))) ⟩
+        (Functor→Prof*-o C D G ⟪ g ⟫r)
+          (lower (η .trans .N-ob d .N-ob c (lift r))) ∎
+      
+      }) ,
+    λ d c → {!η .nIso c!}
 
 
   open NatIso
