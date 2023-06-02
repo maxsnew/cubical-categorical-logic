@@ -12,7 +12,6 @@ import Cubical.Categories.Monad.ExtensionSystem as MES
 open import Cubical.Categories.Comonad.ExtensionSystem
 open import Cubical.Categories.Limits.BinProduct
 open import Cubical.Categories.Limits.BinProduct.More
-open import Cubical.Categories.Presheaf.Representable
 
 open import Cubical.Categories.DistributiveLaw.ComonadOverMonad.Base
 open import Cubical.Tactics.FunctorSolver.Reflection
@@ -22,8 +21,6 @@ private
 
 open BinProduct
 open NatTrans
-open isUniversal
-open UnivElt
 
 module _ {C : Category ℓ ℓ'} (Γ : Category.ob C) (Γ×- : ∀ c → BinProduct C Γ c) where
   open Category C
@@ -58,3 +55,10 @@ module _ {C : Category ℓ ℓ'} (bp : BinProducts C) where
     cong₂ _,p_ (⋆IdR _ ∙ sym (⋆IdL _)) (sym (⋆IdL _)) ∙ sym ×η)
   Envs .F-seq f g = ComonadMorphism≡ C (funExt λ x →
     cong₂ _,p_ (sym (⋆Assoc _ _ _) ∙ cong₂ _⋆_ (sym ×β₁) refl ∙ ⋆Assoc _ _ _) (sym ×β₂) ∙ sym ,p-natural)
+module EnvNotation {C : Category ℓ ℓ'} (bp : BinProducts C) where
+  open Category
+  With : (Γ : C .ob) → Category _ _
+  With Γ = Kleisli C (Envs bp ⟅ Γ ⟆)
+
+  _^* : ∀ {Δ Γ} (γ : C [ Δ , Γ ]) → Functor (With Γ) (With Δ)
+  γ ^* = pull C (Envs bp ⟪ γ ⟫)

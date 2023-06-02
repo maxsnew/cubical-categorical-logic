@@ -41,7 +41,9 @@ module _ (C : Category ℓ ℓ') where
   COMONAD : Category _ _
   COMONAD = (MES.MONAD (C ^op)) ^op
 
+  ComonadMorphism = COMONAD .Hom[_,_]
   ComonadMorphism≡ = MES.MonadMorphism≡ (C ^op)
+
 
   module _ (E : ExtensionSystem) where
     Kleisli : Category _ _
@@ -53,3 +55,7 @@ module _ (C : Category ℓ ℓ') where
     open import Cubical.Categories.Adjoint.UniversalElements
     G : RightAdjoint _ _ F
     G = MES.F (C ^op) E
+
+  pull : {T T' : ExtensionSystem} → ComonadMorphism T T' → Functor (Kleisli T') (Kleisli T)
+  pull {T}{T'} ϕ = (MES.push (C ^op) ϕ) ^opF
+
