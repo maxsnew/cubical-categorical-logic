@@ -354,4 +354,27 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
           lift (((Bifunctor→Functor (HomBif D)) ⟪ D .id , representing-functor ⟪ ψ ⟫ ⟫) (coindx (lower α))) ∎
         
       )))
-    representing-nat-iso .nIso = {!!}
+    representing-nat-iso .nIso c .inv .N-ob d =
+      let εc = ues c .element in
+      let R⟅-,c⟆ = (pAppR R c) in
+      λ f → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower f) ])
+    representing-nat-iso .nIso c .inv .N-hom {d}{d'} ϕ =
+      let εc = ues c .element in
+      let R⟅-,c⟆ =(pAppR R c) in
+      funExt λ x →
+        lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((Bifunctor→Functor (HomBif D)) ⟪ ϕ , representing-functor ⟪ C .id ⟫ ⟫) (lower x) ])
+          ≡⟨ (λ i → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((Bifunctor→Functor (HomBif D)) ⟪ ϕ , representing-functor .F-id i ⟫) (lower x) ])) ⟩
+        lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((Bifunctor→Functor (HomBif D)) ⟪ ϕ , D .id ⟫ ) (lower x) ])
+          ≡⟨ (λ i → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((HomBif D) .Bif-idR (i) (((HomBif D) .Bif-homL ϕ _) (lower x))) ])) ⟩
+        lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (ϕ ⋆⟨ D ⟩ (lower x)) ])
+          ≡⟨ (λ i → lift (((R⟅-,c⟆ .F-seq (lower x) ϕ) i) εc)) ⟩
+        lift ((R .Bif-homL ϕ _) (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower x) ]))
+          ≡⟨ (λ i → lift ((R .Bif-idR (~ i)) ((R .Bif-homL ϕ _) (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower x) ])))) ⟩
+        lift (((Bifunctor→Functor R) ⟪ ϕ , C .id ⟫) (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower x) ])) ∎
+        
+    representing-nat-iso .nIso c .sec =
+      let R⟅-,c⟆ = (pAppR R c) in
+      makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift ((η-expansion ((ues c) .universal) (lower x)) (~ i))) )
+    representing-nat-iso .nIso c .ret =
+      let R⟅-,c⟆ = (pAppR R c) in
+      makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift (((ues c) .universal .commutes (lower x)) i)))
