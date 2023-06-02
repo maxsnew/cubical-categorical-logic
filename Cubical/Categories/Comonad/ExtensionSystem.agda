@@ -59,3 +59,12 @@ module _ (C : Category ℓ ℓ') where
   pull : {T T' : ExtensionSystem} → ComonadMorphism T T' → Functor (Kleisli T') (Kleisli T)
   pull {T}{T'} ϕ = (MES.push (C ^op) ϕ) ^opF
 
+  open Functor
+
+  -- not sure why pushId doesn't work here
+  pullId : {T : ExtensionSystem} → pull (COMONAD .id {T}) ≡ Id
+  pullId = Functor≡ (λ c → refl) λ f → C .⋆IdL _
+
+  pullComp : {T T' T'' : ExtensionSystem} (ϕ' : COMONAD [ T' , T'' ]) (ϕ : COMONAD [ T , T' ])
+         → pull (ϕ' ∘⟨ COMONAD ⟩ ϕ) ≡ (pull ϕ ∘F pull ϕ')
+  pullComp ϕ' ϕ = Functor≡ (λ _ → refl) (λ f → (C .⋆Assoc _ _ _))

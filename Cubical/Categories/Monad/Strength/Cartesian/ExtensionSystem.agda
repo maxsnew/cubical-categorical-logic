@@ -20,7 +20,7 @@ open import Cubical.Categories.Limits.Terminal.More
 open import Cubical.Categories.Limits.Cartesian.Base
 open import Cubical.Categories.Comonad.Instances.Environment
 open import Cubical.Categories.Monad.ExtensionSystem as Monad
-open import Cubical.Categories.Comonad.ExtensionSystem as Comonad
+open import Cubical.Categories.Comonad.ExtensionSystem as Comonad renaming (pull to comonad-pull)
 open import Cubical.Categories.Isomorphism
 
 open import Cubical.Tactics.CategorySolver.Reflection
@@ -54,7 +54,6 @@ module _ {C : Category ℓ ℓ'} (bp : BinProducts C) where
       bind-natural : (γ ^*) ⟪ systems Γ .bind s ⟫ ≡ systems Δ .bind ((γ ^*) ⟪ s ⟫)
 
   -- | TODO: resulting η, bind are natural in all arguments
-
   -- If C further has a terminal object we get an "underlying monad" on C because Envs 𝟙 ≅ Id
   module _ (term : Terminal C) (SE : StrongExtensionSystem) where
     open StrongExtensionSystem SE
@@ -112,3 +111,33 @@ module _ {C : Category ℓ ℓ'} (bp : BinProducts C) where
     -- TODO: once we establish that T is a functor, we can show the following is natural
     σ : C [ Γ × T a , T (Γ × a) ]
     σ {Γ = Γ} = systems Γ .bind (fromWith1 (E1 .η))
+module StrongMonadNotation {C : Category ℓ ℓ'} (bp : BinProducts C) (SE : StrongExtensionSystem bp) where
+  open Category
+  open Notation C bp
+  open EnvNotation bp
+  open StrongExtensionSystem SE public
+  private
+    variable
+      Γ Δ a b c : C .ob
+      γ δ : C [ Δ , Γ ]
+      f g : C [ a , b ]
+      s t : With Γ [ a , b ]
+
+  open Functor
+
+  PKleisli : C .ob → Category _ _
+  PKleisli Γ = Monad.Kleisli (With Γ) (T , systems Γ)
+
+  PG : (Γ : C .ob) → Functor (PKleisli Γ) (With Γ)
+  PG Γ = Monad.G ((With Γ)) ((T , systems Γ))
+
+  bind : PKleisli Γ [ a , b ] → With Γ [ T a , T b ]
+  bind {Γ = Γ} = PG Γ .F-hom
+
+  open Functor
+
+  pull : (γ : C [ Δ , Γ ]) → Functor (PKleisli Γ) (PKleisli Δ)
+  pull γ .F-ob = λ z → z
+  pull γ .F-hom f = (γ ^*) ⟪ f ⟫
+  pull γ .F-id = η-natural
+  pull {Δ = Δ} γ .F-seq f g = (γ ^*) .F-seq _ _ ∙ cong₂ (seq' (With Δ)) refl bind-natural

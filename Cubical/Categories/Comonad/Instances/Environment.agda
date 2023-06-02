@@ -1,4 +1,4 @@
-{-# OPTIONS --safe #-}
+{-# OPTIONS --safe --lossy-unification #-}
 module Cubical.Categories.Comonad.Instances.Environment where
 
 open import Cubical.Foundations.Prelude
@@ -56,9 +56,20 @@ module _ {C : Category ℓ ℓ'} (bp : BinProducts C) where
   Envs .F-seq f g = ComonadMorphism≡ C (funExt λ x →
     cong₂ _,p_ (sym (⋆Assoc _ _ _) ∙ cong₂ _⋆_ (sym ×β₁) refl ∙ ⋆Assoc _ _ _) (sym ×β₂) ∙ sym ,p-natural)
 module EnvNotation {C : Category ℓ ℓ'} (bp : BinProducts C) where
-  open Category
-  With : (Γ : C .ob) → Category _ _
+  open Category C
+  open Functor
+  open Notation C bp
+
+  With : (Γ : ob) → Category _ _
   With Γ = Kleisli C (Envs bp ⟅ Γ ⟆)
 
   _^* : ∀ {Δ Γ} (γ : C [ Δ , Γ ]) → Functor (With Γ) (With Δ)
   γ ^* = pull C (Envs bp ⟪ γ ⟫)
+
+  -- sometimes it's easier to prove by definition that re-use a lemma
+  id^* : ∀ {Γ} → (id {Γ}) ^* ≡ Id
+  id^* {Γ} = Functor≡ (λ c → refl) λ f → cong₂ _⋆_ (cong₂ _,p_ (⋆IdR _) refl ∙ sym ×η') refl ∙ ⋆IdL _
+
+  comp^* : ∀ {Γ Γ' Γ''} → (γ' : Hom[ Γ' , Γ'' ])(γ : Hom[ Γ , Γ' ])
+         → ((γ' ∘ γ) ^*) ≡ (γ ^*) ∘F (γ' ^*)
+  comp^* γ' γ = Functor≡ (λ c → refl) (λ f →  cong₂ _⋆_ (cong₂ _,p_ (( sym (⋆Assoc _ _ _) ∙ cong₂ _∘_ refl (sym ×β₁)) ∙ ⋆Assoc _ _ _) (sym ×β₂) ∙ sym ,p-natural) refl ∙ ⋆Assoc _ _ _)

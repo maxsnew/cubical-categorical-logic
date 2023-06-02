@@ -146,6 +146,9 @@ module _ (C : Category ℓ ℓ') where
     ×η : f ≡ ((π₁ ∘⟨ C ⟩ f) ,p (π₂ ∘⟨ C ⟩ f))
     ×η {f = f} = η-expansion (ues .universal) f
 
+    ×η' : C .id {a × b} ≡ (π₁ ,p π₂)
+    ×η' = coinduction-elt (ues .universal)
+
     ,p-natural : ( f ,p g ) ∘⟨ C ⟩ h ≡ ((f ∘⟨ C ⟩ h) ,p (g ∘⟨ C ⟩ h))
     ,p-natural {f = f}{g = g}{h = h} =
       coinduction-natural (ues .universal) (f , g) h
