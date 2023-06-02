@@ -17,8 +17,10 @@ open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.Functors.HomFunctor
 open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Reflection.RecordEquiv
+open import Cubical.Categories.Monad.Base
 
 open import Cubical.Tactics.CategorySolver.Reflection
+open import Cubical.Tactics.FunctorSolver.Reflection
 
 private
   variable
@@ -163,3 +165,33 @@ module _ (C : Category ℓ ℓ') where
   push-G-Comp : {T T' T'' : ExtensionSystem}(ϕ' : MONAD [ T' , T'' ])(ϕ : MONAD [ T , T' ])
               → PathP (λ i → NatTrans (G T) (push-G-Comp-Path ϕ' ϕ i)) (push-G (ϕ' ∘⟨ MONAD ⟩ ϕ)) ((push-G ϕ' ∘ˡ (push ϕ)) ∘ᵛ push-G ϕ)
   push-G-Comp ϕ' ϕ = makeNatTransPathP refl ((push-G-Comp-Path ϕ' ϕ)) (funExt λ x → refl)
+
+  Monad→ExtensionSystem : Monad C → ExtensionSystem
+  Monad→ExtensionSystem M .fst = M .fst .F-ob
+  Monad→ExtensionSystem M .snd .η = M .snd .IsMonad.η ⟦ _ ⟧
+  Monad→ExtensionSystem M .snd .bind f = M .snd .IsMonad.μ ⟦ _ ⟧ ∘⟨ C ⟩ M .fst ⟪ f ⟫
+  Monad→ExtensionSystem M .snd .bind-r = λ i → M .snd .IsMonad.idr-μ i ⟦ _ ⟧
+  Monad→ExtensionSystem M .snd .bind-l =
+    sym (C .⋆Assoc _ _ _)
+    ∙ cong₂ (C ._⋆_) (sym (M .snd .IsMonad.η .N-hom _)) refl
+    ∙ C .⋆Assoc _ _ _
+    ∙ cong₂ (seq' C) refl (λ i → M .snd .IsMonad.idl-μ i ⟦ _ ⟧)
+    ∙ C .⋆IdR _
+  Monad→ExtensionSystem M .snd .bind-comp =
+    lem0
+    ∙ cong₂ (comp' C) refl (cong₂ (seq' C) refl (sym (M .snd .IsMonad.μ .N-hom _)))
+    ∙ lem1
+    ∙ cong₂ (seq' C) refl (λ i → M .snd .IsMonad.assoc-μ (~ i) ⟦ _ ⟧)
+    ∙ lem2
+    where
+      lem0 : comp' C (comp' C (M .snd .IsMonad.μ ⟦ _ ⟧) (M .fst ⟪ f ⟫)) (comp' C (M .snd .IsMonad.μ ⟦ _ ⟧) (M .fst ⟪ g ⟫))
+           ≡ M .snd .IsMonad.μ ⟦ _ ⟧ ∘⟨ C ⟩ (M .fst ⟪ f ⟫ ∘⟨ C ⟩ M .snd .IsMonad.μ ⟦ _ ⟧) ∘⟨ C ⟩ (M .fst ⟪ g ⟫)
+      lem0 = solveCat! C
+
+      lem1 : (C ⋆ (C ⋆ F-hom (M .fst) g) ((C ⋆ F-hom (M .fst) (F-hom (M .fst) f)) (M .snd .IsMonad.μ .N-ob (F-ob (M .fst) _)))) (N-ob (M .snd .IsMonad.μ) _)
+           ≡ (((M .snd .IsMonad.μ) ⟦ _ ⟧) ∘⟨ C ⟩ M .snd .IsMonad.μ ⟦ _ ⟧) ∘⟨ C ⟩ (M .fst ⟪ M .fst ⟪ f ⟫ ⟫ ∘⟨ C ⟩ M .fst ⟪ g ⟫)
+      lem1 = solveCat! C
+
+      lem2 : (C ⋆ (C ⋆ F-hom (M .fst) g) (F-hom (M .fst) (F-hom (M .fst) f))) ((C ⋆ F-hom (M .fst) (N-ob (M .snd .IsMonad.μ) _)) (M .snd .IsMonad.μ .N-ob _))
+           ≡ (C ⋆ F-hom (M .fst) ((C ⋆ g) ((C ⋆ F-hom (M .fst) f) (N-ob (M .snd .IsMonad.μ) _)))) (N-ob (M .snd .IsMonad.μ) _)
+      lem2 = solveFunctor! C C (M .fst)
