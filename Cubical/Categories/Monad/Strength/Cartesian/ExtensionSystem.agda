@@ -131,8 +131,20 @@ module StrongMonadNotation {C : Category ℓ ℓ'} (bp : BinProducts C) (SE : St
   PG : (Γ : C .ob) → Functor (PKleisli Γ) (With Γ)
   PG Γ = Monad.G ((With Γ)) ((T , systems Γ))
 
-  bind : PKleisli Γ [ a , b ] → With Γ [ T a , T b ]
-  bind {Γ = Γ} = PG Γ .F-hom
+  bindP : PKleisli Γ [ a , b ] → With Γ [ T a , T b ]
+  bindP {Γ = Γ} = PG Γ .F-hom
+
+  retP : PKleisli Γ [ a , a ]
+  retP {Γ} = PKleisli Γ .id
+
+  bindP-comp : bindP f ∘⟨ With Γ ⟩ bindP g ≡ bindP (bindP f ∘⟨ With Γ ⟩ g)
+  bindP-comp {Γ = Γ} = ExtensionSystemFor.bind-comp (systems Γ)
+
+  bindP-l : bindP f ∘⟨ With Γ ⟩ retP ≡ f
+  bindP-l {Γ = Γ} = ExtensionSystemFor.bind-l (systems Γ)
+
+  bindP-r : bindP (retP {a = a}) ≡ With Γ .id
+  bindP-r {Γ = Γ} = ExtensionSystemFor.bind-r (systems Γ)
 
   open Functor
 
