@@ -50,10 +50,18 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (L : Functor C D) (
           ≡⟨ ((λ i → R ⟪ L⊣R .Δ₁ c i ⟫)) ⟩
         R ⟪ D .id ⟫
           ≡⟨ R .F-id ⟩
-        C .id ∎
-      ))
+        C .id ∎))
   assoc-μ (MonadFromAdjunction L⊣R) =
     makeNatTransPathP
       (λ i → F-assoc i)
       (λ i → funcComp R L)
-      ?
+      (funExt (λ c → 
+        (funcComp R L) ⟪ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ⟫
+          ⋆⟨ C ⟩ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫
+          ≡⟨ sym (R .F-seq (L ⟪ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ⟫) (L⊣R .ε ⟦ L ⟅ c ⟆ ⟧)) ⟩
+        R ⟪ (L ⟪ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ⟫) ⋆⟨ D ⟩ (L⊣R .ε ⟦ L ⟅ c ⟆ ⟧) ⟫
+          ≡⟨ (λ i → R ⟪ L⊣R .ε .N-hom (L⊣R .ε .N-ob (L ⟅ c ⟆)) i ⟫) ⟩
+        R ⟪ L⊣R .ε ⟦ L ⟅ funcComp R L ⟅ c ⟆ ⟆ ⟧ ⋆⟨ D ⟩ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫
+          ≡⟨ R .F-seq (L⊣R .ε ⟦ L ⟅ funcComp R L ⟅ c ⟆ ⟆ ⟧) (L⊣R .ε ⟦ L ⟅ c ⟆ ⟧) ⟩
+        R ⟪ L⊣R .ε ⟦ L ⟅ funcComp R L ⟅ c ⟆ ⟆ ⟧ ⟫ ⋆⟨ C ⟩ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ∎
+      ))
