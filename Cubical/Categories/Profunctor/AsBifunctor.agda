@@ -64,7 +64,7 @@ module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {ℓS : Level} wher
   (P o× R) .Bif-assoc f g = funExt λ (p , r) i → ((P ⟪ f ⟫) p) , (R .Bif-assoc f g i r)
 
 module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-* D) (S : C o-[ ℓS ]-* D) where
-  -- A definition of profunctor homomorphism that avoids Lifts
+  -- A definition of profunctor homomorphism that avoids Lfts
 
   ℓmaxCDSR : Level
   ℓmaxCDSR = (ℓ-max ℓC (ℓ-max ℓC' (ℓ-max ℓD (ℓ-max ℓD' (ℓ-max ℓS ℓR)))))
@@ -214,32 +214,43 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
   ParamUniversalElement : Type _
   ParamUniversalElement = (c : C .ob) → UniversalElement D (pAppR R c)
 
+  -- Profunctor Representation → Presheaf Representation
   ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
   ProfRepresentation→PshFunctorRepresentation (G , η) =
     G ,
     record {
-      trans =
+      trans = the-trans ;
+      nIso = λ c →
+        FUNCTORIso
+          (D ^op)
+          (SET (ℓ-max ℓD' ℓS))
+          (the-trans .N-ob c)
+          λ d →
+            isiso
+              (λ x → lift ((η .snd d c .fst) (lower x)))
+              (λ i x → lift ((η .snd d c .snd .fst) (lower x) i))
+              (λ i x → lift ((η .snd d c .snd .snd) (lower x) i))
+      }
+      where
+      the-trans : NatTrans (Prof*-o→Functor C D (bifCompF LiftF R)) (Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)))
+      the-trans .N-ob c =
         natTrans
-        (λ c → natTrans
-               (λ d x → lift (η .fst .PH-ob (lower x)))
-               (λ f → funExt (λ x → 
-                 (Prof*-o→Functor C D (bifCompF LiftF R) .F-ob c .F-hom f
-                    ⋆f
-                    (λ x₂ → lift (η .fst .PH-ob (lower x₂))))
-                   x
-                    ≡⟨ (λ i → lift (η .fst .PH-ob (((R ⟪ f ⟫l) ⋆f R .Bif-idR i) (lower x)))) ⟩
-                  lift (PH-ob (η .fst) ((R ⟪ f ⟫l) (lower x)))
-                    ≡⟨ (λ i → lift (η .fst .PH-natL f (lower x) i)) ⟩
-                  lift ((Functor→Prof*-o C D G ⟪ f ⟫l) (PH-ob (η .fst) (lower x)))
-                    ≡⟨ (λ i → lift (((Functor→Prof*-o C D G) ⟪ f ⟫l ⋆f Functor→Prof*-o C D G .Bif-idR (~ i)) (η .fst .PH-ob (lower x)))) ⟩
-                  ((λ x₂ → lift (η .fst .PH-ob (lower x₂)))
-                     ⋆f
-                      Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)) .F-ob
-                      c .F-hom f)
-                   x ∎
+          (λ d x → lift (η .fst .PH-ob (lower x)))
+          (λ f → funExt (λ x →
+            (Prof*-o→Functor C D (bifCompF LiftF R) .F-ob c .F-hom f
+              ⋆f
+              (λ x₂ → lift (η .fst .PH-ob (lower x₂)))) x
+              ≡⟨ (λ i → lift (η .fst .PH-ob (((R ⟪ f ⟫l) ⋆f R .Bif-idR i) (lower x)))) ⟩
+            lift (PH-ob (η .fst) ((R ⟪ f ⟫l) (lower x)))
+              ≡⟨ (λ i → lift (η .fst .PH-natL f (lower x) i)) ⟩
+            lift ((Functor→Prof*-o C D G ⟪ f ⟫l) (PH-ob (η .fst) (lower x)))
+              ≡⟨ (λ i → lift (((Functor→Prof*-o C D G) ⟪ f ⟫l ⋆f Functor→Prof*-o C D G .Bif-idR (~ i)) (η .fst .PH-ob (lower x)))) ⟩
+            ((λ x₂ → lift (η .fst .PH-ob (lower x₂)))
+              ⋆f
+              Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)) .F-ob c .F-hom f) x ∎
              ))
-        )
-        λ f → makeNatTransPath
+      the-trans .N-hom f =
+        makeNatTransPath
               (funExt (λ d → funExt λ x →
                 lift (η .fst .PH-ob ((Bif-homL R (id D) _ ⋆f (R ⟪ f ⟫r)) (lower x)))
                   ≡⟨ (λ i → lift (η .fst .PH-ob ((R .Bif-idL i ⋆f (R ⟪ f ⟫r)) (lower x)))) ⟩
@@ -250,19 +261,9 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
                 lift
                   ((Bif-homL (Functor→Prof*-o C D G) (id D) _ ⋆f
                     (Functor→Prof*-o C D G ⟪ f ⟫r))
-                   (η .fst .PH-ob (lower x))) ∎
-            )) ;
-      nIso = λ c →
-        isiso
-        (natTrans
-          (λ d x → lift (η .snd d c .fst (lower x)))
-          λ f → {!!}
-        )
-        {!!}
-        {!!}
-    }
+                   (η .fst .PH-ob (lower x))) ∎))
 
-
+  -- Presheaf Representation → Profunctor Representation
   PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
   PshFunctorRepresentation→ProfRepresentation (G , η) =
     G ,
