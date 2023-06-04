@@ -64,17 +64,11 @@ module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {ℓS : Level} wher
   (P o× R) .Bif-assoc f g = funExt λ (p , r) i → ((P ⟪ f ⟫) p) , (R .Bif-assoc f g i r)
 
 module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-* D) (S : C o-[ ℓS ]-* D) where
-  -- A definition of profunctor homomorphism that avoids Lfts
 
   ℓmaxCDSR : Level
   ℓmaxCDSR = (ℓ-max ℓC (ℓ-max ℓC' (ℓ-max ℓD (ℓ-max ℓD' (ℓ-max ℓS ℓR)))))
 
-  open NatIso
-  open Functor
-  open Category
-  open NatTrans
-  open Bifunctor
-
+  -- A definition of profunctor homomorphism that avoids Lifts
   record ProfHomo : Type ℓmaxCDSR where
     field
       PH-ob : ∀ {c d} → (r : ⟨ R ⟅ c , d ⟆b ⟩) → ⟨ S ⟅ c , d ⟆b ⟩
@@ -128,7 +122,16 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
   ParamUniversalElement : Type _
   ParamUniversalElement = (c : C .ob) → UniversalElement D (pAppR R c)
 
-  -- Profunctor Representation → Presheaf Representation
+  {-
+    ProfRepresentation, PshFunctorRepresentation, ParamUnivElt, and ParamUniversalElement
+    each give a different criterion for a profunctor R to be representable.
+
+    These are all equivalent, and the equivalence is witnessed by the following functions.
+    Below we simply provide the functions, and in Profunctor.Equivalence we prove
+    that they do indeed provide type isomorphisms.
+  -}
+
+  -- ProfRepresentation → PshFunctorRepresentation
   ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
   ProfRepresentation→PshFunctorRepresentation (G , η) =
     G ,
@@ -177,7 +180,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
                     (Functor→Prof*-o C D G ⟪ f ⟫r))
                    (η .fst .PH-ob (lower x))) ∎))
 
-  -- Presheaf Representation → Profunctor Representation
+  -- PshFunctor Representation → ProfRepresentation
   PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
   PshFunctorRepresentation→ProfRepresentation (G , η) =
     G ,
@@ -209,12 +212,11 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
       (λ x i → lower ((η .nIso c .sec i .N-ob d) (lift x))) ,
       (λ x i → lower((η .nIso c .ret i .N-ob d) (lift x)))
 
-
   open NatIso
   open NatTrans
   open isIsoC
 
-  -- Psh → UnivElt
+  -- PshFunctorRepresentation → ParamUnivElt
   PshFunctorRepresentation→ParamUnivElt : PshFunctorRepresentation → ParamUnivElt
   PshFunctorRepresentation→ParamUnivElt (G , η) = (λ c →
     let R⟅-,c⟆ = (pAppR R c) in
@@ -265,7 +267,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
       }
     )
 
-
   ParamUnivElt→Functor : ParamUnivElt → Functor C D
   ParamUnivElt→Functor ues .F-ob c = ues c .vertex
   ParamUnivElt→Functor ues .F-hom {x = c}{y = c'} f = ues c' .universal .coinduction ((R ⟪ f ⟫r) (ues c .element))
@@ -281,9 +282,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
         ∙ (λ i → R .Bif-assoc (ues c' .universal .coinduction ((R ⟪ f ⟫r) (ues c .element))) g i (ues c' .element)))
     ∙ sym (coinduction-natural (ues c'' .universal) _ _)
 
-
-
-  -- UnivElt → Psh
+  -- ParamUnivElt → PshFunctorRepresentation
   ParamUnivElt→PshFunctorRepresentation : ParamUnivElt → PshFunctorRepresentation
   ParamUnivElt→PshFunctorRepresentation ues = (representing-functor , representing-nat-iso) where
     representing-functor : Functor C D
@@ -372,3 +371,44 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
     representing-nat-iso .nIso c .ret =
       let R⟅-,c⟆ = (pAppR R c) in
       makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift (((ues c) .universal .commutes (lower x)) i)))
+
+  -- ParamUniversalElement → ParamUnivElt
+  ParamUniversalElement→ParamUnivElt : ParamUniversalElement → ParamUnivElt
+  ParamUniversalElement→ParamUnivElt U c = UniversalElement→UnivElt D (pAppR R c) (U c)
+
+  -- ParamUnivElt → ParamUniversalElement
+  ParamUnivElt→ParamUniversalElement : ParamUnivElt → ParamUniversalElement
+  ParamUnivElt→ParamUniversalElement U c = UnivElt→UniversalElement D (pAppR R c) (U c)
+
+  {-
+    We have now given maps
+      ProfRepresentation ⇔ PshFunctorRepresentation
+      PshFunctorRepresentation ⇔ ParamUnivElt
+      ParamUnivElt ⇔ ParamUniversalElement
+
+    For convenience, below we also stitch these together to give all pairwise maps.
+  -}
+
+  -- ProfRepresentation → ParamUnivElt
+  ProfRepresentation→ParamUnivElt : ProfRepresentation → ParamUnivElt
+  ProfRepresentation→ParamUnivElt R = PshFunctorRepresentation→ParamUnivElt (ProfRepresentation→PshFunctorRepresentation R)
+
+  -- ProfRepresentation → ParamUniversalElement
+  ProfRepresentation→ParamUniversalElement : ProfRepresentation → ParamUniversalElement
+  ProfRepresentation→ParamUniversalElement R = ParamUnivElt→ParamUniversalElement (ProfRepresentation→ParamUnivElt R)
+
+  -- PshFunctorRepresentation → ParamUniversalElement
+  PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
+  PshFunctorRepresentation→ParamUniversalElement R = ParamUnivElt→ParamUniversalElement (PshFunctorRepresentation→ParamUnivElt R)
+
+  -- ParamUnivElt → ProfRepresentation
+  ParamUnivElt→ProfRepresentation : ParamUnivElt → ProfRepresentation
+  ParamUnivElt→ProfRepresentation U = PshFunctorRepresentation→ProfRepresentation (ParamUnivElt→PshFunctorRepresentation U)
+
+  -- ParamUniversalElement → ProfRepresentation
+  ParamUniversalElement→ProfRepresentation : ParamUniversalElement → ProfRepresentation
+  ParamUniversalElement→ProfRepresentation U = ParamUnivElt→ProfRepresentation (ParamUniversalElement→ParamUnivElt U)
+
+  -- ParamUniversalElement → PshFunctorRepresentation
+  ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
+  ParamUniversalElement→PshFunctorRepresentation U = ParamUnivElt→PshFunctorRepresentation (ParamUniversalElement→ParamUnivElt U)
