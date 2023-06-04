@@ -1,418 +1,414 @@
-{-
-
-  Definition of profunctors (https://ncatlab.org/nlab/show/profunctor)
-  and some basic facts about them.
-
-  We define a profunctor C ⊶ D as a functor C^o x D -> Set. We pick
-  the universe levels such that the hom sets of C and D match Set,
-  which roughly matches the set-theoretic notion of "locally small"
-  categories.
-
-  We give some convenient notation for thinking of profunctors as a
-  notion of "heteromorphism" between objects of different categories,
-  with appropriate composition.
-
-  A main use of profunctors is in defining universal properties as
-  profunctors representable as a functor. The first definition is the
-  isomorphism Hom[ F - , = ] =~ R[ - , = ] and the second is a
-  generalization of the definition of an adjoint by giving "universal
-  morphisms". These notions are equivalent, though for now we have
-  only shown logical equivalence.
-
--}
-
 {-# OPTIONS --safe #-}
-module Cubical.Categories.Profunctor.General where
+module Cubical.Categories.Profunctor.AsBifunctor where
 
-open import Cubical.Foundations.Prelude hiding (Path)
+open import Cubical.Foundations.Prelude
+open import Cubical.Foundations.HLevels
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.Structure
 open import Cubical.Foundations.Univalence
 open import Cubical.Foundations.Function renaming (_∘_ to _∘f_)
 
-open import Cubical.Data.Graph.Base
-open import Cubical.Data.Graph.Path
-
-open import Cubical.Categories.Category
+open import Cubical.Categories.Category renaming (isIso to isIsoC)
 open import Cubical.Categories.Functor
+open import Cubical.Categories.Bifunctor.Base
 open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation
+open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.Constructions.BinProduct
+open import Cubical.Categories.Constructions.BinProduct.More
 open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functors.More
 open import Cubical.Categories.Functors.HomFunctor
+open import Cubical.Data.Sigma
 
 open import Cubical.Categories.Presheaf.Representable
-open import Cubical.Categories.Instances.Sets.More
-open import Cubical.Categories.Instances.Functors.More
-
-
-open import Cubical.Categories.Equivalence.Base
-open import Cubical.Categories.Equivalence.Properties
-open import Cubical.Categories.Equivalence.WeakEquivalence
-open import Cubical.Categories.NaturalTransformation.More
-open import Cubical.Categories.Yoneda.More
-
-open import Cubical.Categories.Presheaf
 open import Cubical.Categories.Presheaf.More
-open import Cubical.Tactics.CategorySolver.Reflection
-open import Cubical.Tactics.FunctorSolver.Reflection
-open import Cubical.Categories.Constructions.BinProduct.More
-
-
-open import Cubical.Foundations.HLevels
-open import Cubical.Foundations.Isomorphism
-
-
--- There are possibly 5 different levels to consider: the levels of
--- objects and arrows of the two different categories and the level of
--- the sets in the profunctor.
+open import Cubical.Categories.Instances.Functors.More
 
 private
   variable
-    ℓC ℓC' ℓD ℓD' : Level
-PROFo-* : (C : Category ℓC ℓC') (D : Category ℓD ℓD') → ∀ ℓS → Category _ _
-PROFo-* C D ℓS = FUNCTOR (C ^op ×C D) (SET ℓS)
+    ℓC ℓC' ℓD ℓD' ℓS ℓR : Level
 
-PROF⊶ = PROFo-*
+open Category
+open Functor
+open UnivElt
+open isUniversal
+open Bifunctor
 
-PROF*-o : (D : Category ℓD ℓD')(C : Category ℓC ℓC') → ∀ ℓS → Category _ _
-PROF*-o D C = PROFo-* C D
-
-PROF⊷ = PROF*-o
+--TODO put this somewhere better
+_⋆f_ : {ℓ : Level} {A : Type ℓ } → {B : A → Type ℓ} → {C : (a : A) → B a → Type ℓ} →
+       (f : (a : A) → B a) → (g : {a : A} → (b : B a) → C a b) → (a : A) → C a (f a)
+f ⋆f g = λ x → (g ∘f f) x
 
 _o-[_]-*_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
-C o-[ ℓS ]-* D = Category.ob (PROF⊶ C D ℓS)
+C o-[ ℓS ]-* D = Bifunctor (C ^op) D (SET ℓS)
 
 _*-[_]-o_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C *-[ ℓS ]-o D = D o-[ ℓS ]-* C
 
-private
-  variable
-    ℓs : Level
+module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {ℓS : Level} where
+  -- Product of a presheaf with a profunctor
+  -- This could be done by turning the presheaf into a profunctor
+  -- first but at the cost of extra ids.
+  _o×_ : (P : 𝓟o C ℓS) → (R : C o-[ ℓS ]-* D) → C o-[ ℓS ]-* D
+  (P o× R) .Bif-ob c d = ⟨ P ⟅ c ⟆ ⟩ × ⟨ R ⟅ c , d ⟆b ⟩ , isSet× ((P ⟅ c ⟆) .snd) ((R ⟅ c , d ⟆b) .snd) -- should be a combinator somewhere
+  (P o× R) .Bif-homL f d (p , r) = (P ⟪ f ⟫) p , (R ⟪ f ⟫l) r
+  (P o× R) .Bif-homR c g (p , r) = p , ((R ⟪ g ⟫r) r)
+  (P o× R) .Bif-idL = funExt λ (p , r) → λ i → (P .F-id i p , R .Bif-idL i r)
+  (P o× R) .Bif-idR = funExt λ (p , r) → λ i → (p , R .Bif-idR i r)
+  (P o× R) .Bif-seqL f f' = funExt (λ (p , r) i → (P .F-seq f f' i p , R .Bif-seqL f f' i r))
+  (P o× R) .Bif-seqR g g' = funExt (λ (p , r) i → (p , R .Bif-seqR g g' i r))
+  (P o× R) .Bif-assoc f g = funExt λ (p , r) i → ((P ⟪ f ⟫) p) , (R .Bif-assoc f g i r)
 
-open Functor
+module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-* D) (S : C o-[ ℓS ]-* D) where
+
+  ℓmaxCDSR : Level
+  ℓmaxCDSR = (ℓ-max ℓC (ℓ-max ℓC' (ℓ-max ℓD (ℓ-max ℓD' (ℓ-max ℓS ℓR)))))
+
+  -- A definition of profunctor homomorphism that avoids Lifts
+  record ProfHomo : Type ℓmaxCDSR where
+    field
+      PH-ob : ∀ {c d} → (r : ⟨ R ⟅ c , d ⟆b ⟩) → ⟨ S ⟅ c , d ⟆b ⟩
+      PH-natL : ∀ {c c' d} (f : C [ c , c' ]) (r : ⟨ R ⟅ c' , d ⟆b ⟩)
+              → PH-ob ((R ⟪ f ⟫l) r) ≡ (S ⟪ f ⟫l) (PH-ob r)
+      PH-natR : ∀ {c d d'} (r : ⟨ R ⟅ c , d ⟆b ⟩) (g : D [ d , d' ])
+              → PH-ob ((R ⟪ g ⟫r) r) ≡ (S ⟪ g ⟫r) (PH-ob r)
+
+  open ProfHomo
+  ProfIso : Type _
+  ProfIso = Σ[ ϕ ∈ ProfHomo ] ∀ c d → isIso (ϕ .PH-ob {c}{d})
+
+open ProfHomo
 
 Functor→Prof*-o : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C *-[ ℓD' ]-o D
-Functor→Prof*-o C D F = HomFunctor D ∘F (Id {C = D ^op} ×F F)
+Functor→Prof*-o C D F = HomBif D ∘Fr F
 
 Functor→Profo-* : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (F : Functor C D) → C o-[ ℓD' ]-* D
-Functor→Profo-* C D F = HomFunctor D ∘F ((F ^opF) ×F Id {C = D})
+Functor→Profo-* C D F = HomBif D ∘Fl (F ^opF)
 
-Prof*-o→Functor : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o D) → Functor C (FUNCTOR (D ^op) (SET ℓs))
-Prof*-o→Functor C D R = curryFl (D ^op) (SET _) ⟅ R ⟆
+Prof*-o→Functor : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o D) → Functor C (FUNCTOR (D ^op) (SET ℓS))
+Prof*-o→Functor C D R = curryFl (D ^op) (SET _) ⟅ Bifunctor→Functor R ⟆
 
-Profo-*→Functor : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C o-[ ℓs ]-* D) → Functor (C ^op) (FUNCTOR D (SET ℓs))
-Profo-*→Functor C D R = curryF D (SET _) ⟅ R ⟆
+Profo-*→Functor : (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C o-[ ℓS ]-* D) → Functor (C ^op) (FUNCTOR D (SET ℓS))
+Profo-*→Functor C D R = curryF D (SET _) ⟅ Bifunctor→Functor R ⟆
 
-module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
-  open Category
+module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o D) where
 
-  -- | Note that this works for both *-o and o-*, either way, the
-  -- | contravariant variable goes on the left, to match Hom.
-  _p[_,_] : ∀ {ℓs} → (C *-[ ℓs ]-o D) → D .ob → C .ob → Type ℓs
-  R p[ d , c ] = ⟨ R ⟅ d , c ⟆ ⟩
+  open NatTrans
+  open NatIso
+  open isIsoC
 
-  module _ {ℓs} (R : C *-[ ℓs ]-o D) where
-    ProfRepresents : (Functor C D) → Type _
-    ProfRepresents G = NatIso (LiftF {ℓs}{ℓD'} ∘F R) (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G)
+  ProfRepresents : Functor C D → Type _
+  ProfRepresents G = ProfIso {C = D}{D = C} R (Functor→Prof*-o C D G)
 
-    -- | Definition 1: A profunctor R representation is a functor G
-    -- | with a natural isomorphism between R and G viewed as a profunctor
-    ProfRepresentation : Type _
-    ProfRepresentation = Σ[ G ∈ Functor C D ] ProfRepresents G
+  ProfRepresentation : Type _
+  ProfRepresentation = Σ[ G ∈ Functor C D ] ProfRepresents G
 
-    -- | Definition 2: A profunctor R representation is a functor G
-    -- | with a natural isomorphism between λF R and Y o G.
-    PshFunctorRepresentation : Type _
-    PshFunctorRepresentation =
-      Σ[ G ∈ Functor C D ]
-      NatIso (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
-             (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F Functor→Prof*-o C D G))
+  PshFunctorRepresentation : Type _
+  PshFunctorRepresentation =
+    Σ[ G ∈ Functor C D ]
+    NatIso (Prof*-o→Functor C D ((LiftF {ℓS}{ℓD'}) ∘Fb R ))
+           (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb (Functor→Prof*-o C D G)))
 
-    -- | Definition 3: Parameterized Universal Element
-    -- | A profunctor R representation is a *function* from objects (c : C) to universal elements for R [-, c ]
-    private
-      R[-,_] : (c : C .ob) → Presheaf D ℓs
-      R[-, c ] = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)
-    ParamUniversalElement : Type _
-    ParamUniversalElement = (c : C .ob) → UniversalElement D (R[-, c ])
+  RepresentableAt : (c : C .ob) → Type _
+  RepresentableAt c = UnivElt D (pAppR R c)
 
-    -- | Definition 4: Parameterized UnivElt
-    -- | Same but with the unpacked UnivElt definition
-    RepresentableAt : (c : C .ob) → Type _
-    RepresentableAt c = UnivElt D (R[-, c ])
+  ParamUnivElt : Type _
+  ParamUnivElt = (c : C .ob) → RepresentableAt c
 
-    ParamUnivElt : Type _
-    ParamUnivElt = (c : C .ob) → RepresentableAt c
+  ParamUniversalElement : Type _
+  ParamUniversalElement = (c : C .ob) → UniversalElement D (pAppR R c)
 
-    -- Show equivalence of all four definitions.
-    -- Here we provide functions between definitions,
-    -- we offload the proofs that these are indeed equivalences to Profunctor.Equivalence
+  {-
+    ProfRepresentation, PshFunctorRepresentation, ParamUnivElt, and ParamUniversalElement
+    each give a different criterion for a profunctor R to be representable.
 
-    -- | Definition 1 → Definition 2
-    ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
-    ProfRepresentation→PshFunctorRepresentation (G , η) = (G ,
-        (preservesNatIsosF (curryFl (D ^op) (SET _)) η)
-      )
+    These are all equivalent, and the equivalence is witnessed by the following functions.
+    Below we simply provide the functions, and in Profunctor.Equivalence we prove
+    that they do indeed provide type isomorphisms.
+  -}
 
-    open isEquivalence
-    open NatIso
-    open isWeakEquivalence
-
-    -- | Definition 2 → Definition 1
-    PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
-    PshFunctorRepresentation→ProfRepresentation (G , η) = (G ,
-      FUNCTORIso→NatIso (D ^op ×C C) (SET _)
-        (liftIso {F = curryFl (D ^op) (SET _) {Γ = C}}
-        (isEquiv→isWeakEquiv (curryFl-isEquivalence (D ^op) (SET _) {Γ = C}) .fullfaith)
-        (NatIso→FUNCTORIso C _ η)
-      ))
-
-    open isIso
-    open NatTrans
-    open UnivElt
-    open isUniversal
-
-    -- | Definition 2 → Definition 3
-    PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
-    PshFunctorRepresentation→ParamUniversalElement (G , η) = (λ c →
-      let R⟅-,c⟆ = (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) in
-      let η⁻¹ = symNatIso η in
-        UnivElt→UniversalElement D R⟅-,c⟆ record {
-          vertex = (G ⟅ c ⟆) ;
-          element = lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))) ;
-          universal = record {
-            coinduction = λ {d} ϕ → lower ((η .trans .N-ob c .N-ob d) (lift ϕ));
-            commutes = (λ {d} ϕ →
-              let coindϕ = (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) in
-              let p = ((coindϕ ⋆⟨ D ⟩ (D .id)) ⋆⟨ D ⟩ (G ⟪ C .id ⟫) ≡⟨ solveFunctor! C D G ⟩ coindϕ ∎) in
-              lower (((LiftF ∘F R⟅-,c⟆) ⟪ coindϕ ⟫) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))
-                ≡⟨ (λ i → lower ((((η⁻¹ .trans .N-ob c .N-hom coindϕ) (~ i)) (lift (D .id))))) ⟩
-              lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift ((coindϕ ⋆⟨ D ⟩ (D .id)) ⋆⟨ D ⟩ (G ⟪ C .id ⟫))))
-                ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift ((p i))) )) ⟩
-              lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (coindϕ)))
-                ≡⟨ (λ i → lower ((((η .nIso c .ret) (i)) .N-ob d) (lift ϕ))) ⟩
-              ϕ ∎) ;
-            is-uniq =
-              λ {d} ϕ f ε⋆f≡ϕ →
-              let coindϕ = (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) in
-              let p = ((f ⋆⟨ D ⟩ (D .id)) ⋆⟨ D ⟩ (G ⟪ C .id ⟫) ≡⟨ solveFunctor! C D G ⟩ f ∎) in
-                f
-                  ≡⟨ (λ i → lower(((η .nIso c .sec) (~ i) .N-ob d) (lift f))) ⟩
-                (lower ((η .trans .N-ob c .N-ob d) ((η⁻¹ .trans .N-ob c .N-ob d) (lift f))))
-                  ≡⟨ (λ i → (lower ((η .trans .N-ob c .N-ob d) ((η⁻¹ .trans .N-ob c .N-ob d) (lift (p (~ i))))))) ⟩
-                (lower ((η .trans .N-ob c .N-ob d) ((η⁻¹ .trans .N-ob c .N-ob d) (lift ((f ⋆⟨ D ⟩ D .id) ⋆⟨ D ⟩ (G ⟪ C .id ⟫))))))
-                  ≡⟨ (λ i → lower ( (η .trans .N-ob c .N-ob d) (((η⁻¹ .trans .N-ob c .N-hom f) (i)) (lift (D .id))))) ⟩
-                (lower ((η .trans .N-ob c .N-ob d) (lift ((R⟅-,c⟆ ⟪ f ⟫) (lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))))))
-                  ≡⟨ (λ i →  (lower ((η .trans .N-ob c .N-ob d) (lift (ε⋆f≡ϕ i))))) ⟩
-                coindϕ ∎
-          }
-        }
-      )
-
-    open UnivElt
-    open isUniversal
-    -- | Definition 3 → Definition 2
-    ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
-    ParamUniversalElement→PshFunctorRepresentation U =
-      (representing-functor , representing-nat-iso)
+  -- ProfRepresentation → PshFunctorRepresentation
+  ProfRepresentation→PshFunctorRepresentation : ProfRepresentation → PshFunctorRepresentation
+  ProfRepresentation→PshFunctorRepresentation (G , η) =
+    G ,
+    record {
+      trans = the-trans ;
+      nIso = λ c →
+        FUNCTORIso
+          (D ^op)
+          (SET (ℓ-max ℓD' ℓS))
+          (the-trans .N-ob c)
+          λ d →
+            isiso
+              (λ x → lift ((η .snd d c .fst) (lower x)))
+              (λ i x → lift ((η .snd d c .snd .fst) (lower x) i))
+              (λ i x → lift ((η .snd d c .snd .snd) (lower x) i))
+      }
       where
-      λR = curryF C (SET _) {Γ = (D ^op)} ⟅ R ⟆
-      -- | For Definition 3 → Definition 2, we need to construct a functor
-      representing-functor : Functor C D
-      representing-functor .F-ob c = fst (fst (U c))
-      representing-functor .F-hom {x} {y} ϕ =
-        (UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y)) (U y))
-          .universal .coinduction
-          (((λR ⟅ (fst (fst (U x))) ⟆) ⟪ ϕ ⟫) (snd (fst (U x))))
-      representing-functor .F-id {x} =
-        let R⟅-,x⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in
-        let (dₓ , θₓ) = (fst (U x)) in
-          (UniversalElement→UnivElt D R⟅-,x⟆ (U x))
-              .universal .coinduction
-            (((λR ⟅ dₓ ⟆) ⟪ C .id ⟫) θₓ)
-          -- Use the fact that curryF is a functor to simplify coinduction target (F-id)
-          ≡⟨ (λ i →
-              (UniversalElement→UnivElt D R⟅-,x⟆ (U x))
-                .universal .coinduction
-                (((λR ⟅ dₓ ⟆) .F-id (i)) θₓ)) ⟩
-          (UniversalElement→UnivElt D R⟅-,x⟆ (U x)) .universal .coinduction θₓ
-          -- use uniqueness of universal element.
-          ≡⟨ sym ((UniversalElement→UnivElt D R⟅-,x⟆ (U x)) .universal .is-uniq θₓ (D .id)
-                -- Nested proof that identity also works.
-                ( (R⟅-,x⟆ ⟪ D .id ⟫) ((UniversalElement→UnivElt D R⟅-,x⟆ (U x)) .element)
-                  ≡⟨ (λ i → (R⟅-,x⟆ .F-id (i)) ((UniversalElement→UnivElt D R⟅-,x⟆ (U x)) .element)) ⟩
-                θₓ ∎
+      the-trans : NatTrans (Prof*-o→Functor C D (bifCompF LiftF R)) (Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)))
+      the-trans .N-ob c =
+        natTrans
+          (λ d x → lift (η .fst .PH-ob (lower x)))
+          (λ f → funExt (λ x →
+            (Prof*-o→Functor C D (bifCompF LiftF R) .F-ob c .F-hom f
+              ⋆f
+              (λ x₂ → lift (η .fst .PH-ob (lower x₂)))) x
+              ≡⟨ (λ i → lift (η .fst .PH-ob (((R ⟪ f ⟫l) ⋆f R .Bif-idR i) (lower x)))) ⟩
+            lift (PH-ob (η .fst) ((R ⟪ f ⟫l) (lower x)))
+              ≡⟨ (λ i → lift (η .fst .PH-natL f (lower x) i)) ⟩
+            lift ((Functor→Prof*-o C D G ⟪ f ⟫l) (PH-ob (η .fst) (lower x)))
+              ≡⟨ (λ i → lift (((Functor→Prof*-o C D G) ⟪ f ⟫l ⋆f Functor→Prof*-o C D G .Bif-idR (~ i)) (η .fst .PH-ob (lower x)))) ⟩
+            ((λ x₂ → lift (η .fst .PH-ob (lower x₂)))
+              ⋆f
+              Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)) .F-ob c .F-hom f) x ∎
+             ))
+      the-trans .N-hom f =
+        makeNatTransPath
+              (funExt (λ d → funExt λ x →
+                lift (η .fst .PH-ob ((Bif-homL R (id D) _ ⋆f (R ⟪ f ⟫r)) (lower x)))
+                  ≡⟨ (λ i → lift (η .fst .PH-ob ((R .Bif-idL i ⋆f (R ⟪ f ⟫r)) (lower x)))) ⟩
+                lift (PH-ob (η .fst) ((R ⟪ f ⟫r) (lower x)))
+                  ≡⟨ (λ i → lift (η .fst .PH-natR (lower x) f i)) ⟩
+                lift ((Functor→Prof*-o C D G ⟪ f ⟫r) (PH-ob (η .fst) (lower x)))
+                  ≡⟨ ((λ i → lift ((Functor→Prof*-o C D G .Bif-idL (~ i) ⋆f (Functor→Prof*-o C D G ⟪ f ⟫r )) (η .fst .PH-ob (lower x))))) ⟩
+                lift
+                  ((Bif-homL (Functor→Prof*-o C D G) (id D) _ ⋆f
+                    (Functor→Prof*-o C D G ⟪ f ⟫r))
+                   (η .fst .PH-ob (lower x))) ∎))
+
+  -- PshFunctor Representation → ProfRepresentation
+  PshFunctorRepresentation→ProfRepresentation : PshFunctorRepresentation → ProfRepresentation
+  PshFunctorRepresentation→ProfRepresentation (G , η) =
+    G ,
+    (record {
+      PH-ob = λ {d}{c} r → lower ((η .trans .N-ob c .N-ob d) (lift r)) ;
+      PH-natL = λ {d}{d'}{c} f r → 
+        lower (((η .trans .N-ob c .N-ob d) ∘f ((bifCompF LiftF R) .Bif-homL f c)) (lift r))
+         ≡⟨ ((λ i → lower (((η .trans .N-ob c .N-ob d) ∘f ( (bifCompF LiftF R) .Bif-homL f c ⋆f (bifCompF LiftF R) .Bif-idR (~ i))) (lift r)))) ⟩
+        lower (((η .trans .N-ob c .N-ob d) ∘f (((bifCompF LiftF R) .Bif-homL f c) ⋆f (bifCompF LiftF R) .Bif-homR d (C .id))) (lift r))
+         ≡⟨ ((λ i → lower ((η .trans .N-ob c .N-hom f i) (lift r)))) ⟩
+        lower ((N-ob (η .trans .N-ob c) d' ⋆f Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)) .F-ob c .F-hom f) (lift r))
+         ≡⟨ ((λ i → ((Functor→Prof*-o C D G ⟪ f ⟫l) ⋆f (Functor→Prof*-o C D G) .Bif-idR i) (lower (η .trans .N-ob c .N-ob d' (lift r))))) ⟩
+        (Functor→Prof*-o C D G ⟪ f ⟫l)
+          (lower (η .trans .N-ob c .N-ob d' (lift r))) ∎
+       ;
+      PH-natR = λ {c}{d}{d'} r g → 
+        lower (η .trans .N-ob d' .N-ob c (lift ((R ⟪ g ⟫r) r)))
+          ≡⟨ (λ i → lower (η .trans .N-ob d' .N-ob c (lift ((R .Bif-idL (~ i) ⋆f R ⟪ g ⟫r) r)))) ⟩
+        lower
+          ((Prof*-o→Functor C D (bifCompF LiftF R) .F-hom g .N-ob c ⋆f N-ob (η .trans) d' .N-ob c) (lift r))
+          ≡⟨ (λ i → lower ((η .trans .N-hom g i .N-ob c) (lift r))) ⟩
+        lower ((N-ob (η .trans) d .N-ob c ⋆f Prof*-o→Functor C D (bifCompF LiftF (Functor→Prof*-o C D G)) .F-hom g .N-ob c) (lift r))
+          ≡⟨ ((λ i → (Functor→Prof*-o C D G .Bif-idL i ⋆f (Functor→Prof*-o C D G ⟪ g ⟫r)) (lower (η .trans .N-ob d .N-ob c (lift r))))) ⟩
+        (Functor→Prof*-o C D G ⟪ g ⟫r)
+          (lower (η .trans .N-ob d .N-ob c (lift r))) ∎
+      }) ,
+    λ d c →
+      (λ x → lower (η .nIso c .inv .N-ob d (lift x))) ,
+      (λ x i → lower ((η .nIso c .sec i .N-ob d) (lift x))) ,
+      (λ x i → lower((η .nIso c .ret i .N-ob d) (lift x)))
+
+  open NatIso
+  open NatTrans
+  open isIsoC
+
+  -- PshFunctorRepresentation → ParamUnivElt
+  PshFunctorRepresentation→ParamUnivElt : PshFunctorRepresentation → ParamUnivElt
+  PshFunctorRepresentation→ParamUnivElt (G , η) = (λ c →
+    let R⟅-,c⟆ = (pAppR R c) in
+    let η⁻¹ = symNatIso η in
+      record {
+        vertex = (G ⟅ c ⟆) ;
+        element = lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))) ;
+        universal = record {
+          coinduction = λ {d} ϕ → lower ((η .trans .N-ob c .N-ob d) (lift ϕ));
+          commutes = (λ {d} ϕ →
+            let coindϕ = (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) in
+            lower (((LiftF ∘F R⟅-,c⟆) ⟪ coindϕ ⟫) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))
+              ≡⟨ (λ i → lower (((LiftF ∘Fb R ) .Bif-idR (~ i)) (((LiftF ∘Fb R ) .Bif-homL coindϕ c) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id)))))) ⟩
+            lower ((((Prof*-o→Functor C D ((LiftF {ℓS}{ℓD'}) ∘Fb R )) ⟅ c ⟆) ⟪ coindϕ ⟫) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))
+              ≡⟨ (λ i → lower ((((η⁻¹ .trans .N-ob c .N-hom coindϕ) (~ i)) (lift (D .id))))) ⟩
+            lower ((η⁻¹ .trans .N-ob c .N-ob d) (((Bifunctor→Functor ((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D))) ⟪ coindϕ , G ⟪ C .id ⟫ ⟫) (lift (D .id))))
+              ≡⟨ ( λ i → lower ((η⁻¹ .trans .N-ob c .N-ob d) (((Bifunctor→Functor ((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D))) ⟪ coindϕ , G .F-id (i) ⟫) (lift (D .id))))) ⟩
+            lower ((η⁻¹ .trans .N-ob c .N-ob d) (((Bifunctor→Functor ((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D))) ⟪ coindϕ , D .id ⟫) (lift (D .id))))
+              ≡⟨ (λ i →
+                lower ((η⁻¹ .trans .N-ob c .N-ob d) ((((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D)) .Bif-idR (i))
+                  ((((LiftF {ℓD'}{ℓS}) ∘Fb (HomBif D)) .Bif-homL coindϕ (G ⟅ c ⟆)) (lift (D .id))))
                 )
-          )⟩
-        D .id ∎
-      representing-functor .F-seq {x} {y} {z} ϕ ψ =
-        let Gϕ⋆ψ = representing-functor .F-hom (ϕ ⋆⟨ C ⟩ ψ) in
-        let Gϕ = representing-functor .F-hom ϕ in
-        let Gψ = representing-functor .F-hom ψ in
-        let (dx , εx) = (fst (U x)) in
-        let (dy , εy) = (fst (U y)) in
-        let (dz , εz) = (fst (U z)) in
-        let R⟅-,y⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
-        let R⟅-,z⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C z) in
-        let R⟅dx,-⟆ = (λR ⟅ dx ⟆) in
-        let R⟅dy,-⟆ = (λR ⟅ dy ⟆) in
-          ( Gϕ⋆ψ )
-          ≡⟨ (λ i → (UniversalElement→UnivElt D R⟅-,z⟆ (U z))
-            .universal .coinduction
-            (((R⟅dx,-⟆ .F-seq ϕ ψ) (i)) εx)
-          ) ⟩
-          ((UniversalElement→UnivElt D R⟅-,z⟆ (U z))
-            .universal .coinduction
-            ((R⟅dx,-⟆ ⟪ ψ ⟫)
-              ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx)
-            )
-          )
-          ≡⟨ sym ((UniversalElement→UnivElt D R⟅-,z⟆ (U z)) .universal .is-uniq
-            ((R⟅dx,-⟆ ⟪ ψ ⟫)((R⟅dx,-⟆ ⟪ ϕ ⟫) εx))
-            -- enough to show that this function also yields above result
-            (Gϕ ⋆⟨ D ⟩ Gψ)
-            (
-              (D [ εz ∘ᴾ⟨ R⟅-,z⟆ ⟩ (Gϕ ⋆⟨ D ⟩ Gψ) ])
-                ≡⟨ (λ i → ((R⟅-,z⟆ .F-seq Gψ Gϕ) (i)) εz) ⟩
-              (D [ (D [ εz ∘ᴾ⟨ R⟅-,z⟆ ⟩ (Gψ) ]) ∘ᴾ⟨ R⟅-,z⟆ ⟩ Gϕ ])
-                ≡⟨ (λ i →
-                  (D [
-                    (((UniversalElement→UnivElt D R⟅-,z⟆ (U z)) .universal .commutes ((R⟅dy,-⟆ ⟪ ψ ⟫) εy)) (i))
-                    ∘ᴾ⟨ R⟅-,z⟆ ⟩ Gϕ ]
-                  )
                 ) ⟩
-              (D [ ((R⟅dy,-⟆ ⟪ ψ ⟫) εy) ∘ᴾ⟨ R⟅-,z⟆ ⟩ Gϕ ])
-                ≡⟨ refl ⟩
-              ((R ⟪ Gϕ , C .id ⟫) ((R ⟪ D .id , ψ ⟫) (εy)))
-                ≡⟨ (λ i → (
-                  ((BinMorphDecompR {C = (D ^op)} {D = C} {E = (SET _)}
-                    (Gϕ , ψ) R) (~ i)
-                  ) (εy)
-                )) ⟩
-              ((R ⟪ Gϕ , ψ ⟫) (εy))
-                ≡⟨ (λ i → (
-                  ((BinMorphDecompL {C = (D ^op)} {D = C} {E = (SET _)}
-                    (Gϕ , ψ) R) (i)
-                  ) (εy)
-                )) ⟩
-              ((R ⟪ D .id , ψ ⟫) ((R ⟪ Gϕ , C .id ⟫) (εy)))
-                ≡⟨ refl ⟩
-              ((R⟅dx,-⟆ ⟪ ψ ⟫) (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ Gϕ ]))
-                ≡⟨ (λ i →
-                  ((R⟅dx,-⟆ ⟪ ψ ⟫)
-                    (((UniversalElement→UnivElt D R⟅-,y⟆ (U y)) .universal .commutes ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx)) (i))
+            lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (coindϕ ⋆⟨ D ⟩ (D .id))))
+              ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (D .⋆IdR coindϕ (i))))) ⟩
+            lower ((η⁻¹ .trans .N-ob c .N-ob d) (lift (coindϕ)))
+              ≡⟨ (λ i → lower ((((η .nIso c .ret) (i)) .N-ob d) (lift ϕ))) ⟩
+            ϕ ∎) ;
+          is-uniq =
+            λ {d} ϕ f ε⋆f≡ϕ →
+            let coindϕ = (lower ((η .trans .N-ob c .N-ob d) (lift ϕ))) in
+              f
+                ≡⟨ sym (D .⋆IdR f) ⟩
+              (f ⋆⟨ D ⟩ D .id)
+                ≡⟨ (λ i → (((HomBif D) .Bif-idR (~ i)) (((HomBif D) .Bif-homL f (G ⟅ c ⟆)) (D .id)))) ⟩
+              (((Bifunctor→Functor (HomBif D)) ⟪ f , D .id ⟫) (D .id))
+                ≡⟨ (λ i → (((Bifunctor→Functor (HomBif D)) ⟪ f , G .F-id (~ i) ⟫) (D .id))) ⟩
+              (((Bifunctor→Functor (HomBif D)) ⟪ f , G ⟪ C .id ⟫ ⟫) (D .id))
+                ≡⟨ (λ i → lower(((η .nIso c .sec) (~ i) .N-ob d) (lift (((Bifunctor→Functor (HomBif D)) ⟪ f , G ⟪ C .id ⟫ ⟫) (D .id))))) ⟩
+              lower ((η .trans .N-ob c .N-ob d) ((η⁻¹ .trans .N-ob c .N-ob d) (lift (((Bifunctor→Functor (HomBif D)) ⟪ f , G ⟪ C .id ⟫ ⟫) (D .id)))))
+                ≡⟨ (λ i → lower ((η .trans .N-ob c .N-ob d) (((η⁻¹ .trans .N-ob c .N-hom f) (i)) (lift (D .id))))) ⟩
+              lower ((η .trans .N-ob c .N-ob d) ((((Prof*-o→Functor C D ((LiftF {ℓS}{ℓD'}) ∘Fb R )) ⟅ c ⟆) ⟪ f ⟫) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id)))))
+                ≡⟨ ( λ i → lower ((η .trans .N-ob c .N-ob d) (((LiftF ∘Fb R ) .Bif-idR (i)) (((LiftF ∘Fb R ) .Bif-homL f c) ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id))))))) ⟩
+              lower ((η .trans .N-ob c .N-ob d) (lift ((R⟅-,c⟆ ⟪ f ⟫) (lower ((η⁻¹ .trans .N-ob c .N-ob (G ⟅ c ⟆)) (lift (D .id)))))))
+                ≡⟨ (λ i →  (lower ((η .trans .N-ob c .N-ob d) (lift (ε⋆f≡ϕ i))))) ⟩
+              coindϕ ∎
+        }
+      }
+    )
+
+  ParamUnivElt→Functor : ParamUnivElt → Functor C D
+  ParamUnivElt→Functor ues .F-ob c = ues c .vertex
+  ParamUnivElt→Functor ues .F-hom {x = c}{y = c'} f = ues c' .universal .coinduction ((R ⟪ f ⟫r) (ues c .element))
+  ParamUnivElt→Functor ues .F-id {x = c} =
+    cong (ues c .universal .coinduction) (λ i → R .Bif-idR i (ues c .element))
+    ∙ sym (coinduction-elt (ues c .universal))
+  ParamUnivElt→Functor ues .F-seq {x = c}{y = c'}{z = c''} f g =
+    -- Both sides are ≡ to R .Bif-homR (ues c .vertex) g (R .Bif-homR (ues c .vertex) f (ues c .element))
+    cong (ues c'' .universal .coinduction) ((λ i → R .Bif-seqR f g i (ues c .element)))
+    ∙ cong (coinduction (ues c'' .universal))
+        ( cong (R .Bif-homR (ues c .vertex) g)
+          (sym (ues c' .universal .commutes _))
+        ∙ (λ i → R .Bif-assoc (ues c' .universal .coinduction ((R ⟪ f ⟫r) (ues c .element))) g i (ues c' .element)))
+    ∙ sym (coinduction-natural (ues c'' .universal) _ _)
+
+  -- ParamUnivElt → PshFunctorRepresentation
+  ParamUnivElt→PshFunctorRepresentation : ParamUnivElt → PshFunctorRepresentation
+  ParamUnivElt→PshFunctorRepresentation ues = (representing-functor , representing-nat-iso) where
+    representing-functor : Functor C D
+    representing-functor = ParamUnivElt→Functor ues
+
+    rep-nat-iso-trans : (c : C .ob) →
+      NatTrans (Prof*-o→Functor C D (LiftF {ℓS}{ℓD'} ∘Fb R) .F-ob c)
+               (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb (Functor→Prof*-o C D representing-functor)) .F-ob c)
+    rep-nat-iso-trans c .N-ob d  =
+      let R⟅-,c⟆ = (pAppR R c) in
+      (λ f → lift {ℓD'}{ℓS} ((ues c) .universal .coinduction {b = d} (lower {ℓS}{ℓD'} f)))
+    rep-nat-iso-trans c .N-hom {d}{d'} ϕ =
+      let R⟅-,c⟆ = (pAppR R c) in
+      let εc = ues c .element in
+      let coind = (ues c) .universal .coinduction in
+      funExt λ x →
+        lift (coind (((Prof*-o→Functor C D R .F-ob c) ⟪ ϕ ⟫) (lower x)))
+          ≡⟨ ( λ i → lift (coind ((R .Bif-idR (i)) ((R .Bif-homL ϕ c) (lower x))))) ⟩
+        lift (coind (D [ (lower x) ∘ᴾ⟨ R⟅-,c⟆ ⟩ ϕ ] ))
+          ≡⟨ (λ i → lift ((coinduction-natural ((ues c) .universal) (lower x) ϕ) (~ i))) ⟩
+        lift ((coind (lower x)) ∘⟨ D ⟩ ϕ )
+          ≡⟨ (λ i → lift (((HomBif D) .Bif-idR (~ i)) (((HomBif D) .Bif-homL ϕ _) (coind (lower x)))) ) ⟩
+        lift (((Bifunctor→Functor (HomBif D)) ⟪ ϕ , D .id ⟫ ) (coind (lower x)))
+          ≡⟨ (λ i → lift (((Bifunctor→Functor (HomBif D)) ⟪ ϕ , representing-functor .F-id (~ i) ⟫ ) (coind (lower x)))) ⟩
+        lift (((Bifunctor→Functor (HomBif D)) ⟪ ϕ , representing-functor ⟪ C . id ⟫ ⟫ ) (coind (lower x))) ∎
+
+    representing-nat-iso  : NatIso
+        (Prof*-o→Functor C D (LiftF {ℓS}{ℓD'} ∘Fb R))
+        (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb (Functor→Prof*-o C D representing-functor)))
+    representing-nat-iso .trans .N-ob c = rep-nat-iso-trans c
+    representing-nat-iso .trans .N-hom {x}{y} ψ =
+      let R⟅-,x⟆ = (pAppR R x) in
+      let R⟅-,y⟆ = (pAppR R y) in
+      let εy = ues y .element in
+      let εx = ues x .element in
+      let coindx = ues x .universal .coinduction in
+      let coindy = ues y .universal .coinduction in
+      makeNatTransPath (funExt (λ d → funExt (λ α →
+          lift (coindy (((Bifunctor→Functor R) ⟪ D .id , ψ ⟫) (lower α)))
+            ≡⟨ (λ i → lift (coindy (R .Bif-homR _ ψ ((R .Bif-idL (i)) (lower α))))) ⟩
+          lift (coindy (R .Bif-homR _ ψ (lower α)))
+            ≡⟨ ( λ i → lift (ues y .universal .is-uniq
+                  (R .Bif-homR _ ψ (lower α))
+                  ((coindx (lower α)) ⋆⟨ D ⟩ (representing-functor ⟪ ψ ⟫))
+                  (
+                  (
+                    D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindy ((R .Bif-homR _ ψ) εx) ∘⟨ D ⟩ (coindx (lower α))) ]
+                      ≡⟨ (λ i → D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((coinduction-natural (ues y .universal)
+                        ((R .Bif-homR _ ψ) εx) (coindx (lower α))) i)]  ) ⟩
+                    D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ( D [ ((R .Bif-homR _ ψ) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower α)) ]) ]
+                      ≡⟨ ues y .universal .commutes (D [ ((R .Bif-homR _ ψ) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower α)) ]) ⟩
+                    D [ ((R .Bif-homR _ ψ) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower α)) ]
+                     ≡⟨ (λ i → ((R .Bif-assoc (coindx (lower α)) ψ) (~ i)) εx) ⟩
+                    (R .Bif-homR _ ψ) (D [ εx ∘ᴾ⟨ R⟅-,x⟆ ⟩ (coindx (lower α)) ])
+                     ≡⟨ (λ i → (R .Bif-homR _ ψ) (ues x .universal .commutes (lower α) (i))) ⟩
+                    (R .Bif-homR _ ψ (lower α)) ∎
                   )
-                ) ⟩
-              ((R⟅dx,-⟆ ⟪ ψ ⟫)((R⟅dx,-⟆ ⟪ ϕ ⟫) εx))
-            ∎)
-          )⟩
-          (Gϕ ⋆⟨ D ⟩ Gψ) ∎
+                  )
+                  (~ i))) ⟩
+          lift ((coindx (lower α)) ⋆⟨ D ⟩ (representing-functor ⟪ ψ ⟫))
+            ≡⟨ (λ i → lift ((HomBif D) .Bif-homR _ (representing-functor ⟪ ψ ⟫) (((HomBif D) .Bif-idL (~ i)) (coindx (lower α))))) ⟩
+          lift (((Bifunctor→Functor (HomBif D)) ⟪ D .id , representing-functor ⟪ ψ ⟫ ⟫) (coindx (lower α))) ∎
+        
+      )))
+    representing-nat-iso .nIso c .inv .N-ob d =
+      let εc = ues c .element in
+      let R⟅-,c⟆ = (pAppR R c) in
+      λ f → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower f) ])
+    representing-nat-iso .nIso c .inv .N-hom {d}{d'} ϕ =
+      let εc = ues c .element in
+      let R⟅-,c⟆ =(pAppR R c) in
+      funExt λ x →
+        lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((Bifunctor→Functor (HomBif D)) ⟪ ϕ , representing-functor ⟪ C .id ⟫ ⟫) (lower x) ])
+          ≡⟨ (λ i → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((Bifunctor→Functor (HomBif D)) ⟪ ϕ , representing-functor .F-id i ⟫) (lower x) ])) ⟩
+        lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((Bifunctor→Functor (HomBif D)) ⟪ ϕ , D .id ⟫ ) (lower x) ])
+          ≡⟨ (λ i → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((HomBif D) .Bif-idR (i) (((HomBif D) .Bif-homL ϕ _) (lower x))) ])) ⟩
+        lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (ϕ ⋆⟨ D ⟩ (lower x)) ])
+          ≡⟨ (λ i → lift (((R⟅-,c⟆ .F-seq (lower x) ϕ) i) εc)) ⟩
+        lift ((R .Bif-homL ϕ _) (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower x) ]))
+          ≡⟨ (λ i → lift ((R .Bif-idR (~ i)) ((R .Bif-homL ϕ _) (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower x) ])))) ⟩
+        lift (((Bifunctor→Functor R) ⟪ ϕ , C .id ⟫) (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower x) ])) ∎
+        
+    representing-nat-iso .nIso c .sec =
+      let R⟅-,c⟆ = (pAppR R c) in
+      makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift ((η-expansion ((ues c) .universal) (lower x)) (~ i))) )
+    representing-nat-iso .nIso c .ret =
+      let R⟅-,c⟆ = (pAppR R c) in
+      makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift (((ues c) .universal .commutes (lower x)) i)))
 
-      HomFunctor≡Functor→Prof*-o→Functor : (c : C .ob) →
-        D [-, representing-functor .F-ob c ]
-        ≡
-        (Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c)
-      HomFunctor≡Functor→Prof*-o→Functor c = 
-        Functor≡
-          (λ d → refl)
-          (λ f → funExt (λ g →
-            f ⋆⟨ D ⟩ g
-              ≡⟨ solveCat! D ⟩
-            HomFunctor D .F-hom (f , D .id) g
-              ≡⟨ ((λ i → (HomFunctor D .F-hom (f , representing-functor .F-id (~ i))) g)) ⟩
-            (Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c) .F-hom f g ∎
-          ))
+  -- ParamUniversalElement → ParamUnivElt
+  ParamUniversalElement→ParamUnivElt : ParamUniversalElement → ParamUnivElt
+  ParamUniversalElement→ParamUnivElt U c = UniversalElement→UnivElt D (pAppR R c) (U c)
 
-      -- separate definition for termination reasons
-      rep-nat-iso-trans : (c : C .ob) →
-        NatTrans (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R) .F-ob c)
-                 (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D representing-functor)) .F-ob c)
-      rep-nat-iso-trans c .N-ob d  =
-        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
-        (λ f → lift {ℓD'}{ℓs} (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal .coinduction {b = d} (lower {ℓs}{ℓD'} f)))
-      rep-nat-iso-trans c .N-hom {d}{d'} ϕ =
-        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
-        let εc = U c .fst .snd in
-        let coind = UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal .coinduction in
-        funExt λ x →
-          lift (U c .snd (d' , lower ((Prof*-o→Functor C D (funcComp LiftF R) .F-ob c .F-hom ϕ)(x)) ) .fst .fst)
-           ≡⟨ (λ i → lift(((coinduction-natural (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal) (lower x) ϕ)) (~ i))) ⟩
-          lift (D [ coind (lower x) ∘ᴾ⟨ D [-, representing-functor .F-ob c ] ⟩ ϕ ])
-          ≡⟨ ((λ i → lift (((HomFunctor≡Functor→Prof*-o→Functor c) i .F-hom ϕ ) (coind (lower x))))  ) ⟩
-          lift ((Prof*-o→Functor C D (Functor→Prof*-o C D representing-functor) .F-ob c .F-hom ϕ) (coind (lower x)))∎
+  -- ParamUnivElt → ParamUniversalElement
+  ParamUnivElt→ParamUniversalElement : ParamUnivElt → ParamUniversalElement
+  ParamUnivElt→ParamUniversalElement U c = UnivElt→UniversalElement D (pAppR R c) (U c)
 
-      representing-nat-iso  : NatIso
-          (Prof*-o→Functor C D (LiftF {ℓs}{ℓD'} ∘F R))
-          (Prof*-o→Functor C D (LiftF {ℓD'}{ℓs} ∘F (Functor→Prof*-o C D representing-functor)))
-      representing-nat-iso .trans .N-ob c = rep-nat-iso-trans c
-      representing-nat-iso .trans .N-hom {x}{y} ψ =
-        let R⟅-,x⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C x) in
-        let R⟅-,y⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C y) in
-        let εy = U y .fst .snd in
-        let εx = U x .fst .snd in
-        let Ux = UniversalElement→UnivElt D R⟅-,x⟆ (U x) .universal in
-        let Uy = UniversalElement→UnivElt D R⟅-,y⟆ (U y) .universal in
-        makeNatTransPath (funExt (λ d → funExt (λ α →
-        let coindx = Ux .coinduction in
-        let coindy = Uy .coinduction in
-        lift (coindy ((R ⟪ D .id , ψ ⟫) (lower α)))
-        ≡⟨ ( λ i → lift (Uy .is-uniq
-          ((R ⟪ D .id , ψ ⟫) (lower α))
-          (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (coindx (lower α)))
-          (
-          D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ((R ⟪ D .id , ψ ⟫) εx) ∘⟨ D ⟩ (coindx (lower α)) ]
-             ≡⟨ (λ i → D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ ((coinduction-natural Uy
-                     ((R ⟪ D .id , ψ ⟫) εx) (coindx (lower α))) i)]  ) ⟩
-          D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ coindy ( D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower α)) ]) ]
-            ≡⟨ Uy .commutes (D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower α)) ]) ⟩
-          D [ ((R ⟪ D .id , ψ ⟫) εx) ∘ᴾ⟨ R⟅-,y⟆ ⟩ (coindx (lower α)) ]
-            ≡⟨ (λ i → ((BinMorphDecompR {C = (D ^op)} {D = C} {E = (SET _)} ((coindx (lower α)) , ψ) R) (~ i)) εx) ⟩
-          (R ⟪ (coindx (lower α)) , ψ ⟫) εx
-            ≡⟨ (λ i → ((BinMorphDecompL {C = (D ^op)} {D = C} {E = (SET _)} ((coindx (lower α)) , ψ) R) (i)) εx) ⟩
-          ((R ⟪ D .id , ψ ⟫) (D [ εx ∘ᴾ⟨ R⟅-,x⟆ ⟩ (coindx (lower α)) ]))
-            ≡⟨ ((λ i → (R ⟪ D .id , ψ ⟫) (Ux .commutes (lower α) (i))))⟩
-          ((R ⟪ D .id , ψ ⟫) (lower α)) ∎
-          )
-          (~ i)))
-        ⟩
-        lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (coindx (lower α)))
-          ≡⟨ ((λ i → lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ (D .⋆IdL (coindx (lower α))) (~ i)))) ⟩
-        lift (representing-functor ⟪ ψ ⟫ ∘⟨ D ⟩ ( (coindx (lower α)) ∘⟨ D ⟩ D .id ))
-        ∎
-        )))
-      representing-nat-iso .nIso c .inv .N-ob d = 
-        let εc = U c .fst .snd in
-        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
-        λ f → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower f) ]) 
-      representing-nat-iso .nIso c .inv .N-hom {d}{d'} ϕ =
-        let εc = U c .fst .snd in
-        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
-        funExt λ x →
-          lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower (((LiftF ∘F (HomFunctor D)) ⟪ ϕ , representing-functor ⟪ C .id ⟫  ⟫) x)) ])
-            ≡⟨ (λ i → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower (((LiftF ∘F (HomFunctor D)) ⟪ ϕ , (representing-functor .F-id) (i) ⟫) x)) ])) ⟩
-          lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (D .id ∘⟨ D ⟩ ((lower x) ∘⟨ D ⟩ ϕ)) ])
-            ≡⟨ (λ i → lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((D .⋆IdR ((lower x) ∘⟨ D ⟩ ϕ)) (i)) ])) ⟩
-          lift (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ ((lower x) ∘⟨ D ⟩ ϕ) ])
-            ≡⟨ ((λ i → lift (((R⟅-,c⟆ .F-seq (lower x) ϕ) (i)) εc))) ⟩
-          lift ((R⟅-,c⟆ ⟪ ϕ ⟫) (D [ εc ∘ᴾ⟨ R⟅-,c⟆ ⟩ (lower x) ])) ∎
-      representing-nat-iso .nIso c .sec =
-        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
-        makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift ((η-expansion (UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal) (lower x)) (~ i))) )
-      representing-nat-iso .nIso c .ret =
-        let R⟅-,c⟆ = R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c) in
-        makeNatTransPath (funExt λ d → funExt λ x → (λ i → lift ((UniversalElement→UnivElt D R⟅-,c⟆ (U c) .universal .commutes (lower x)) i)))
+  {-
+    We have now given maps
+      ProfRepresentation ⇔ PshFunctorRepresentation
+      PshFunctorRepresentation ⇔ ParamUnivElt
+      ParamUnivElt ⇔ ParamUniversalElement
 
-    -- | Definition 3 → Definition 4
-    ParamUniversalElement→ParamUnivElt : ParamUniversalElement → ParamUnivElt
-    ParamUniversalElement→ParamUnivElt U c = UniversalElement→UnivElt D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) (U c)
+    For convenience, below we also stitch these together to give all pairwise maps.
+  -}
 
-    -- | Definition 4 → Definition 3
-    ParamUnivElt→ParamUniversalElement : ParamUnivElt → ParamUniversalElement
-    ParamUnivElt→ParamUniversalElement U c = UnivElt→UniversalElement D (R ∘F (Id {C = D ^op} ,F Constant (D ^op) C c)) (U c)
+  -- ProfRepresentation → ParamUnivElt
+  ProfRepresentation→ParamUnivElt : ProfRepresentation → ParamUnivElt
+  ProfRepresentation→ParamUnivElt R = PshFunctorRepresentation→ParamUnivElt (ProfRepresentation→PshFunctorRepresentation R)
 
-    -- Definition 4 → Definition 1
-    ParamUnivElt→ProfRepresentation : ParamUnivElt → ProfRepresentation
-    ParamUnivElt→ProfRepresentation U = PshFunctorRepresentation→ProfRepresentation (ParamUniversalElement→PshFunctorRepresentation (ParamUnivElt→ParamUniversalElement U)) 
+  -- ProfRepresentation → ParamUniversalElement
+  ProfRepresentation→ParamUniversalElement : ProfRepresentation → ParamUniversalElement
+  ProfRepresentation→ParamUniversalElement R = ParamUnivElt→ParamUniversalElement (ProfRepresentation→ParamUnivElt R)
+
+  -- PshFunctorRepresentation → ParamUniversalElement
+  PshFunctorRepresentation→ParamUniversalElement : PshFunctorRepresentation → ParamUniversalElement
+  PshFunctorRepresentation→ParamUniversalElement R = ParamUnivElt→ParamUniversalElement (PshFunctorRepresentation→ParamUnivElt R)
+
+  -- ParamUnivElt → ProfRepresentation
+  ParamUnivElt→ProfRepresentation : ParamUnivElt → ProfRepresentation
+  ParamUnivElt→ProfRepresentation U = PshFunctorRepresentation→ProfRepresentation (ParamUnivElt→PshFunctorRepresentation U)
+
+  -- ParamUniversalElement → ProfRepresentation
+  ParamUniversalElement→ProfRepresentation : ParamUniversalElement → ProfRepresentation
+  ParamUniversalElement→ProfRepresentation U = ParamUnivElt→ProfRepresentation (ParamUniversalElement→ParamUnivElt U)
+
+  -- ParamUniversalElement → PshFunctorRepresentation
+  ParamUniversalElement→PshFunctorRepresentation : ParamUniversalElement → PshFunctorRepresentation
+  ParamUniversalElement→PshFunctorRepresentation U = ParamUnivElt→PshFunctorRepresentation (ParamUniversalElement→ParamUnivElt U)
