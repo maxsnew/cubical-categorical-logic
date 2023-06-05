@@ -43,9 +43,9 @@ open import Cubical.Tactics.FunctorSolver.Reflection
 
 
 private
-  variable ℓC ℓC' ℓD ℓD' ℓs : Level
+  variable ℓC ℓC' ℓD ℓD' ℓS : Level
 
-module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o D) where
+module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o D) where
 
   open Category
   open NatIso
@@ -58,17 +58,38 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
     record {
      fun = (ProfRepresentation→PshFunctorRepresentation C D R) ;
      inv = (PshFunctorRepresentation→ProfRepresentation C D R) ;
-     rightInv = (λ (G , η) →
+     rightInv = Psh→Prof→Psh ;
+     leftInv = Prof→Psh→Prof
+    }
+    where
+    Psh→Prof→Psh : (Psh : PshFunctorRepresentation C D R)
+      → (ProfRepresentation→PshFunctorRepresentation C D R)
+        ((PshFunctorRepresentation→ProfRepresentation C D R) Psh)
+        ≡ Psh
+    Psh→Prof→Psh (G , η) =
       ΣPathP (
         refl ,
         makeNatIsoPathP
           refl
+          refl
+          (funExt (λ c → makeNatTransPath (funExt (λ d → refl))))
+      )
+
+    Prof→Psh→Prof : (Prof : ProfRepresentation C D R)
+      → (PshFunctorRepresentation→ProfRepresentation C D R)
+        ((ProfRepresentation→PshFunctorRepresentation C D R) Prof)
+        ≡ Prof
+    Prof→Psh→Prof (G , η) =
+      ΣPathP (
+        refl ,
+        ΣPathP (
+        -- TODO to show this we need to prove that two ProfHomos are path
+        -- equal, but I don't think we have a nonrefl way to do this
+        -- (and its not a refl)
+          {!!} ,
           {!!}
-          (funExt (λ c → {!!}))
         )
-      ) ;
-      leftInv = {!!}
-    }
+      )
 
   -- TODO port over Equiv23.agda
   -- 2 sleepy to do rn
@@ -80,6 +101,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓs ]-o
       rightInv = {!!} ;
       leftInv = {!!}
     }
+
 
   ParamUnivElt≅ParamUniversalElement : Iso (ParamUnivElt C D R) (ParamUniversalElement C D R)
   ParamUnivElt≅ParamUniversalElement =
