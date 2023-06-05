@@ -5,7 +5,7 @@
 {-# OPTIONS --safe #-}
 module Cubical.Categories.Profunctor.Equiv23 where
 
-open import Cubical.Categories.Profunctor.AsBifunctor
+open import Cubical.Categories.Profunctor.General
 open import Cubical.Categories.Bifunctor.Base
 
 open import Cubical.Foundations.Prelude hiding (Path)
