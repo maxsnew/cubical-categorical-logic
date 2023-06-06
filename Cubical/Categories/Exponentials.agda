@@ -5,6 +5,7 @@ module Cubical.Categories.Exponentials where
 open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Category
 open import Cubical.Categories.Constructions.BinProduct
+open import Cubical.Categories.Bifunctor hiding (Fst; Snd)
 open import Cubical.Categories.Functor
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functors.HomFunctor
@@ -28,9 +29,9 @@ module _ (C : Category ℓC ℓC') where
 
   module _ (bp : BinProducts C) where
     ExpProf : C o-[ ℓC' ]-* (C ^op ×C C)
-    ExpProf = HomFunctor C ∘F
+    ExpProf = Functor→Bifunctor (HomFunctor C ∘F
       (  (BinProductF C bp ∘F (Fst C (C ×C C ^op) ,F Fst C (C ^op) ∘F Snd C (C ×C C ^op)) ^opF)
-      ,F Snd (C ^op) C ∘F Snd (C ^op) (C ^op ×C C))
+      ,F Snd (C ^op) C ∘F Snd (C ^op) (C ^op ×C C)))
 
     Exponentials : Type _
     Exponentials = ParamUnivElt (C ^op ×C C) C ExpProf
