@@ -12,7 +12,7 @@ open import Cubical.Categories.Constructions.BinProduct.More
 open import Cubical.Categories.Functors.HomFunctor
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functor
-open import Cubical.Categories.Profunctor.AsBifunctor
+open import Cubical.Categories.Profunctor.General
 open import Cubical.Categories.Isomorphism
 open import Cubical.Categories.Limits.BinProduct
 open import Cubical.Categories.Presheaf.Representable
