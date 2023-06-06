@@ -53,3 +53,13 @@ module _ (C : Category ℓC ℓC') where
 
       app' : ∀ {Γ c d} → C [ Γ , c ⇒ d ] → C [ Γ , c ] → C [ Γ , d ]
       app' f x = app ∘⟨ C ⟩ (f ,p x)
+
+      _⇒F_ : ∀ {c c' d d'} (f : C [ c' , c ])(g : C [ d , d' ])
+           → C [ c ⇒ d , c' ⇒ d' ]
+      f ⇒F g = lda (g ∘⟨ C ⟩ (app' π₁ (f ∘⟨ C ⟩ π₂)))
+
+      -- private
+        -- The following should ideally follow by refl but both definitions have more ids than expected
+        -- bad : ∀ {c c' d d'} (f : C [ c' , c ])(g : C [ d , d' ])
+        --     → f ⇒F g ≡ ExponentialF exp ⟪ f , g ⟫
+        -- bad f g = {!refl!}
