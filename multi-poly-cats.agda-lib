@@ -1,4 +1,4 @@
 name: multi-poly-cats
 include: .
 depend: cubical
-flags: --cubical
+flags: --cubical --postfix-projections
