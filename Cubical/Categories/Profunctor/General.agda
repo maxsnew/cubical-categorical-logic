@@ -1,6 +1,8 @@
 {-# OPTIONS --safe #-}
 module Cubical.Categories.Profunctor.General where
 
+open import Cubical.Reflection.RecordEquiv
+
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -38,7 +40,8 @@ open UnivElt
 open isUniversal
 open Bifunctor
 
---TODO put this somewhere better
+-- Convenient notation for function composition in the same order as ⋆⟨ C ⟩ in a category C
+-- i.e. for ⋆⟨ SET _ ⟩ without having to prove that everything indeed lives SET _.
 _⋆f_ : {ℓ : Level} {A : Type ℓ } → {B : A → Type ℓ} → {C : (a : A) → B a → Type ℓ} →
        (f : (a : A) → B a) → (g : {a : A} → (b : B a) → C a b) → (a : A) → C a (f a)
 f ⋆f g = λ x → (g ∘f f) x
@@ -78,6 +81,58 @@ module _  {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} (R : C o-[ ℓR ]-*
               → PH-ob ((R ⟪ g ⟫r) r) ≡ (S ⟪ g ⟫r) (PH-ob r)
 
   open ProfHomo
+
+  -- A definition of profunctor homomorphism without implicit arguments
+  -- so that it'll work with the reflection library
+  record ProfHomo' : Type ℓmaxCDSR where
+    field
+      PH-ob : ∀ c d → (r : ⟨ R ⟅ c , d ⟆b ⟩) → ⟨ S ⟅ c , d ⟆b ⟩
+      PH-natL : ∀ c c' d (f : C [ c , c' ]) (r : ⟨ R ⟅ c' , d ⟆b ⟩)
+              → PH-ob c d ((R ⟪ f ⟫l) r) ≡ (S ⟪ f ⟫l) (PH-ob c' d r)
+      PH-natR : ∀ c d d' (r : ⟨ R ⟅ c , d ⟆b ⟩) (g : D [ d , d' ])
+              → PH-ob c d' ((R ⟪ g ⟫r) r) ≡ (S ⟪ g ⟫r) (PH-ob c d r)
+
+  isProp-natL : (PH' : ProfHomo') → isProp (∀ c c' d (f : C [ c , c' ]) (r : ⟨ R ⟅ c' , d ⟆b ⟩)
+              → ProfHomo'.PH-ob PH' c d ((R ⟪ f ⟫l) r) ≡ (S ⟪ f ⟫l) (ProfHomo'.PH-ob PH' c' d r))
+  isProp-natL PH' =
+    isPropΠ5
+    (λ x y z w v →
+      str (S ⟅ x , z ⟆b)
+        (ProfHomo'.PH-ob PH' x z ((R ⟪ w ⟫l) v))
+        ((S ⟪ w ⟫l) (ProfHomo'.PH-ob PH' y z v))
+    )
+
+  isProp-natR : (PH' : ProfHomo') → isProp (∀ c d d' (r : ⟨ R ⟅ c , d ⟆b ⟩) (g : D [ d , d' ])
+              → ProfHomo'.PH-ob PH' c d' ((R ⟪ g ⟫r) r) ≡ (S ⟪ g ⟫r) (ProfHomo'.PH-ob PH' c d r))
+  isProp-natR PH' =
+    isPropΠ5
+    (λ x y z w v →
+      str (S ⟅ x , z ⟆b)
+        (ProfHomo'.PH-ob PH' x z ((R ⟪ v ⟫r) w))
+        ((S ⟪ v ⟫r) (ProfHomo'.PH-ob PH' x y w))
+    )
+
+  -- Use reflection to reason about equivalence of ProfHomo' and an iterated Σ type
+  -- We can then use this Σ type to define paths between instances of ProfHomo'
+  unquoteDecl ProfHomo'IsoΣ = declareRecordIsoΣ ProfHomo'IsoΣ (quote (ProfHomo'))
+
+  -- The explicit and implicit versions of ProfHomo are indeed the same
+  isoProfHomoProfHomo' : Iso ProfHomo ProfHomo'
+  isoProfHomoProfHomo' =
+    iso
+    (λ x → record {
+      PH-ob = λ c d r → x .PH-ob {c = c} {d = d} r ;
+      PH-natL = λ c c' d f r → x .PH-natL {c = c} {c' = c'} {d = d} f r ;
+      PH-natR = λ c d d' r g → x .PH-natR {c = c} {d = d} {d' = d'} r g
+    })
+    (λ x → record {
+      PH-ob = λ {c} {d} r → ProfHomo'.PH-ob x c d r ;
+      PH-natL = λ {c}{c'}{d} f r → ProfHomo'.PH-natL x c c' d f r ;
+      PH-natR = λ {c}{d}{d'} r g → ProfHomo'.PH-natR x c d d' r g
+    })
+    (λ _ → refl)
+    (λ _ → refl)
+
   ProfIso : Type _
   ProfIso = Σ[ ϕ ∈ ProfHomo ] ∀ c d → isIso (ϕ .PH-ob {c}{d})
 
