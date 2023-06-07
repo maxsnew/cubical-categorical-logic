@@ -5,7 +5,7 @@ module Cubical.Categories.Adjoint.UniversalElements where
 open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Category
 open import Cubical.Categories.Functor
-open import Cubical.Categories.Profunctor.AsBifunctor
+open import Cubical.Categories.Profunctor.General
 
 private
   variable

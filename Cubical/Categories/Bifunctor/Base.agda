@@ -14,8 +14,10 @@ open import Cubical.Foundations.Prelude hiding (Path)
 
 open import Cubical.Categories.Category
 open import Cubical.Categories.Functor
+open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.Constructions.BinProduct hiding (Fst; Snd)
 open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Instances.Functors
 
 open import Cubical.Data.Sigma
 open import Cubical.Tactics.CategorySolver.Reflection
@@ -26,11 +28,16 @@ private
 
 open Category
 open Functor
+open NatTrans
 
-record Bifunctor (C : Category ℓc ℓc') (D : Category ℓd ℓd') (E : Category ℓe ℓe') : Type (ℓ-max ℓc (ℓ-max ℓc' (ℓ-max ℓd (ℓ-max ℓd' (ℓ-max ℓe ℓe'))))) where
+record Bifunctor (C : Category ℓc ℓc')
+                 (D : Category ℓd ℓd')
+                 (E : Category ℓe ℓe')
+       : Type (ℓ-max ℓc (ℓ-max ℓc' (ℓ-max ℓd (ℓ-max ℓd' (ℓ-max ℓe ℓe'))))) where
   field
     Bif-ob : C .ob → D .ob → E .ob
-    Bif-homL : ∀ {c c'} → (f : C [ c , c' ]) → ∀ d → E [ Bif-ob c d , Bif-ob c' d ]
+    Bif-homL : ∀ {c c'} → (f : C [ c , c' ]) → ∀ d
+             → E [ Bif-ob c d , Bif-ob c' d ]
     Bif-homR : ∀ {d d'} c → (g : D [ d , d' ]) → E [ Bif-ob c d , Bif-ob c d' ]
     Bif-idL : ∀ {c d} → Bif-homL (C .id {c}) d ≡ E .id
     Bif-idR : ∀ {c d} → Bif-homR c (D .id {d}) ≡ E .id
@@ -42,7 +49,8 @@ record Bifunctor (C : Category ℓc ℓc') (D : Category ℓd ℓd') (E : Catego
     -- Note: if we drop the following condition we get a sensible
     -- notion of "separately functorial operation"
     Bif-assoc : ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
-              → Bif-homL f d ⋆⟨ E ⟩ Bif-homR c' g ≡ Bif-homR c g ⋆⟨ E ⟩ Bif-homL f d'
+              → Bif-homL f d ⋆⟨ E ⟩ Bif-homR c' g
+              ≡ Bif-homR c g ⋆⟨ E ⟩ Bif-homL f d'
 
 open Bifunctor
 
@@ -96,6 +104,16 @@ Snd .Bif-idR = refl
 Snd {D = D} .Bif-seqL f f' = sym (D .⋆IdL _)
 Snd .Bif-seqR g g' = refl
 Snd {D = D} .Bif-assoc f g = D .⋆IdL _ ∙ sym (D .⋆IdR _)
+
+Sym : Bifunctor C D E → Bifunctor D C E
+Sym F .Bif-ob d c = F ⟅ c , d ⟆b
+Sym F .Bif-homL g c = F ⟪ g ⟫r
+Sym F .Bif-homR d f = F ⟪ f ⟫l
+Sym F .Bif-idL = F .Bif-idR
+Sym F .Bif-idR = F .Bif-idL
+Sym F .Bif-seqL = F .Bif-seqR
+Sym F .Bif-seqR = F .Bif-seqL
+Sym F .Bif-assoc f g = sym (F .Bif-assoc g f)
 
 pAppL : (F : Bifunctor C D E) → C .ob → Functor D E
 pAppL F c .F-ob d = F ⟅ c , d ⟆b
@@ -163,9 +181,13 @@ UniversalBifunctor {D = D} .Bif-homL f d = f , D .id
 UniversalBifunctor {C = C} .Bif-homR c g = C .id , g
 UniversalBifunctor .Bif-idL = refl
 UniversalBifunctor .Bif-idR = refl
-UniversalBifunctor {D = D} .Bif-seqL f f' = cong₂ _,_ refl (sym (D .⋆IdR _))
-UniversalBifunctor {C = C} .Bif-seqR g g' = cong₂ _,_ (sym (C .⋆IdR _)) refl
-UniversalBifunctor {C = C}{D = D} .Bif-assoc f g = cong₂ _,_ (C .⋆IdR _ ∙ sym (C .⋆IdL _)) (D .⋆IdL _ ∙ sym (D .⋆IdR _))
+-- Weirdly cong₂ goes yellow here so let's just do it explicitly
+UniversalBifunctor {C = C} {D = D} .Bif-seqL f f' i =
+  seq' C f f' , D .⋆IdR (D .id) (~ i)
+UniversalBifunctor {C = C}{D = D} .Bif-seqR g g' i =
+  (C .⋆IdR (C .id) (~ i)) , seq' D g g'
+UniversalBifunctor {C = C} {D = D} .Bif-assoc f g i =
+  (idTrans (Id {C = C}) .N-hom f i) , idTrans (Id {C = D}) .N-hom g (~ i)
 
 Bifunctor→Functor : Bifunctor C D E → Functor (C ×C D) E
 Bifunctor→Functor F .F-ob p = F ⟅ p ⟆b
@@ -186,5 +208,25 @@ Bifunctor→Functor {E = E} F .F-seq (f , g) (f' , g') =
 
 Functor→Bifunctor : Functor (C ×C D) E → Bifunctor C D E
 Functor→Bifunctor {C = C}{D = D} F = F ∘Fb UniversalBifunctor {C = C}{D = D}
-
 -- -- TODO: above is an Iso
+
+λFR : Bifunctor C D E → Functor C (FUNCTOR D E)
+λFR F .F-ob x .F-ob y = F ⟅ x , y ⟆b
+λFR F .F-ob x .F-hom g = F ⟪ g ⟫r
+λFR F .F-ob x .F-id = Bif-idR F
+λFR F .F-ob x .F-seq = Bif-seqR F
+λFR F .F-hom f .N-ob y = F ⟪ f ⟫l
+λFR F .F-hom f .N-hom g = sym (Bif-assoc F f g)
+λFR F .F-id = makeNatTransPath (funExt (λ x → Bif-idL F))
+λFR F .F-seq f f' = makeNatTransPath (funExt (λ x → Bif-seqL F f f'))
+
+appR : Bifunctor (FUNCTOR D E) D E
+appR .Bif-ob F x = F ⟅ x ⟆
+appR .Bif-homL α d = α ⟦ d ⟧
+appR .Bif-idL = refl
+appR .Bif-seqL f f' = refl
+appR .Bif-homR F g = F ⟪ g ⟫
+appR .Bif-idR {c = F} = F .F-id
+appR .Bif-seqR {c = F} g g' = F .F-seq g g'
+appR .Bif-assoc α g = sym (α .N-hom g)
+
