@@ -40,7 +40,7 @@ module _ (Q : Quiver ℓg ℓg') where
   mkAx Eq funs .equation = Eq
   mkAx Eq funs .dom eq = funs eq .fst
   mkAx Eq funs .cod eq = funs eq .snd .fst
-  mkAx Eq funs .lhs eq = funs eq .snd .snd .fst 
+  mkAx Eq funs .lhs eq = funs eq .snd .snd .fst
   mkAx Eq funs .rhs eq = funs eq .snd .snd .snd
 
   module _ (Ax : Axioms ℓj) where
@@ -55,7 +55,7 @@ module _ (Q : Quiver ℓg ℓg') where
       ⋆ₑIdR : ∀ {A B} (e : FQ [ A , B ]) → (e ⋆ₑ idₑ) ≈ e
       ⋆ₑAssoc : ∀ {A B C D} (e : FQ [ A , B ])(f : FQ [ B , C ])(g : FQ [ C , D ])
               → ((e ⋆ₑ f) ⋆ₑ g) ≈ (e ⋆ₑ (f ⋆ₑ g))
-      
+
     compQ : ∀ {A B C} → ([f] : (FQ [ A , B ]) / _≈_) ([g] : (FQ [ B , C ]) / _≈_)
           → (FQ [ A , C ]) / _≈_
     compQ =

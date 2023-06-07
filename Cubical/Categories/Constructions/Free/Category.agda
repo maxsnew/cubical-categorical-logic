@@ -32,7 +32,7 @@ record Interp (Q : Quiver ℓg ℓg') (𝓒 : Category ℓc ℓc')
               : Type (ℓ-max (ℓ-max ℓg ℓg') (ℓ-max ℓc ℓc')) where
   field
     I-ob : Q .ob → 𝓒 .ob
-    I-hom : ∀ e → 𝓒 [ I-ob (Q .dom e) , I-ob (Q .cod e) ] 
+    I-hom : ∀ e → 𝓒 [ I-ob (Q .dom e) , I-ob (Q .cod e) ]
 
 open Interp
 
@@ -52,7 +52,7 @@ module _ (Q : Quiver ℓg ℓg') where
     ⋆ₑAssoc : ∀ {A B C D} (e : Exp A B)(f : Exp B C)(g : Exp C D)
             → (e ⋆ₑ f) ⋆ₑ g ≡ e ⋆ₑ (f ⋆ₑ g)
     isSetExp : ∀ {A B} → isSet (Exp A B)
-    
+
   FreeCat : Category _ _
   FreeCat .ob = Q .ob
   FreeCat .Hom[_,_] = Exp

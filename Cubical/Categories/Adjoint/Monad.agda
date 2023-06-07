@@ -19,7 +19,8 @@ private
   variable
     ℓC ℓC' ℓD ℓD' : Level
 
-module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (L : Functor C D) (R : Functor D C) where
+module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}
+         (L : Functor C D) (R : Functor D C) where
   open UnitCounit
   open IsMonad
   open _⊣_
@@ -41,7 +42,7 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (L : Functor C D) (
     makeNatTransPathP
       (λ i → F-lUnit i)
       (λ i → funcComp R L)
-      (funExt (λ c → 
+      (funExt (λ c →
         compTrans (μ (MonadFromAdjunction L⊣R)) (funcComp R L ∘ʳ L⊣R .η) .N-ob c
           ≡⟨ refl ⟩
         (funcComp R L) ⟪ L⊣R .η ⟦ c ⟧ ⟫ ⋆⟨ C ⟩ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫
@@ -55,13 +56,16 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (L : Functor C D) (
     makeNatTransPathP
       (λ i → F-assoc i)
       (λ i → funcComp R L)
-      (funExt (λ c → 
+      (funExt (λ c →
         (funcComp R L) ⟪ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ⟫
           ⋆⟨ C ⟩ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫
-          ≡⟨ sym (R .F-seq (L ⟪ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ⟫) (L⊣R .ε ⟦ L ⟅ c ⟆ ⟧)) ⟩
+          ≡⟨ sym (R .F-seq (L ⟪ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ⟫)
+             (L⊣R .ε ⟦ L ⟅ c ⟆ ⟧)) ⟩
         R ⟪ (L ⟪ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ⟫) ⋆⟨ D ⟩ (L⊣R .ε ⟦ L ⟅ c ⟆ ⟧) ⟫
           ≡⟨ (λ i → R ⟪ L⊣R .ε .N-hom (L⊣R .ε .N-ob (L ⟅ c ⟆)) i ⟫) ⟩
         R ⟪ L⊣R .ε ⟦ L ⟅ funcComp R L ⟅ c ⟆ ⟆ ⟧ ⋆⟨ D ⟩ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫
-          ≡⟨ R .F-seq (L⊣R .ε ⟦ L ⟅ funcComp R L ⟅ c ⟆ ⟆ ⟧) (L⊣R .ε ⟦ L ⟅ c ⟆ ⟧) ⟩
-        R ⟪ L⊣R .ε ⟦ L ⟅ funcComp R L ⟅ c ⟆ ⟆ ⟧ ⟫ ⋆⟨ C ⟩ R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ∎
+          ≡⟨ R .F-seq (L⊣R .ε ⟦ L ⟅ funcComp R L ⟅ c ⟆ ⟆ ⟧)
+            (L⊣R .ε ⟦ L ⟅ c ⟆ ⟧) ⟩
+        R ⟪ L⊣R .ε ⟦ L ⟅ funcComp R L ⟅ c ⟆ ⟆ ⟧ ⟫ ⋆⟨ C ⟩
+          R ⟪ L⊣R .ε ⟦ L ⟅ c ⟆ ⟧ ⟫ ∎
       ))
