@@ -15,6 +15,7 @@ open import Cubical.Data.Graph.Base
 open import Cubical.Data.Sum as Sum
 open import Cubical.Data.Sigma
 
+import Cubical.Categories.Constructions.BinProduct as BP
 open import Cubical.Categories.Constructions.Free.Category as Free
 open import Cubical.Categories.Constructions.Presented as Presented
 open import Cubical.Categories.Bifunctor hiding (Bifunctor→Functor; UniversalBifunctor)
@@ -99,6 +100,52 @@ module _ (C : Category ℓc ℓc') (D : Category ℓd ℓd') where
   ×r d .F-hom f = ηP Q Ax .I-hom (f ×id d)
   ×r d .F-id {c} = ηEq Q Ax (×id-Id c d)
   ×r d .F-seq f f' = ηEq Q Ax (×id-Comp f' f d)
+
+  ×lr : ∀ {c c' d d'}(f : C [ c , c' ])(g : D [ d , d' ])
+      → (×r d ⟪ f ⟫) ⋆⟨ _×C_ ⟩ (×l c' ⟪ g ⟫)
+      ≡ ×l c ⟪ g ⟫ ⋆⟨ _×C_ ⟩ ×r d' ⟪ f ⟫
+  ×lr f g = ηEq Q Ax (combine-id×id f g) ∙ sym (ηEq Q Ax (combine-×id× f g))
+
+  -- C.id c ×ₑ D.id d
+  -- ≡ (C.id ⋆ C.id) ×ₑ (D.id ⋆ D.id)
+  -- ≡ (c × D .id) ⋆ (C .id × d)
+  -- ≡ id ⋆ id
+  simul-id : ∀ {c d} → ηP Q Ax .I-hom (C .id {c} ×ₑ D .id {d}) ≡ _×C_ .id {c , d}
+  simul-id {c}{d} =
+    sym (ηEq Q Ax (combine-×id× (C .id) (D .id)))
+    ∙ cong₂ (comp' _×C_) (ηEq Q Ax (×id-Id c d)) ((ηEq Q Ax (id×-Id c d)))
+    ∙ _×C_ .⋆IdR (_×C_ .id)
+
+  simul-comp : ∀ {c c' c'' d d' d''}
+             → (f : C [ c , c' ])(f' : C [ c' , c'' ])
+             → (g : D [ d , d' ])(g' : D [ d' , d'' ])
+             → ηP Q Ax .I-hom ((f ⋆⟨ C ⟩ f') ×ₑ (g ⋆⟨ D ⟩ g'))
+             ≡ (ηP Q Ax .I-hom (f ×ₑ g))
+               ⋆⟨ _×C_ ⟩ (ηP Q Ax .I-hom (f' ×ₑ g'))
+  -- (f * f') × (g * g')
+  -- ≡ (f * f') × d ∘ c'' × (g ⋆ g')
+  -- ≡ ((f' × d) ∘ (f × d)) ∘ ((c'' × g') ∘ (c'' × g'))
+  -- ≡ ((f' × d) ∘ ((f × d) ∘ (c'' × g')) ∘ (c'' × g'))
+  -- ≡ ((f' × d) ∘ ((c' × g') ∘ (f × d')) ∘ (c'' × g'))
+  -- ≡ (f' × g') ∘ (f × g')
+  simul-comp f f' g g' =
+    sym (ηEq Q Ax (combine-id×id (f ⋆⟨ C ⟩ f') (g ⋆⟨ D ⟩ g') ))
+    ∙ cong₂ (seq' _×C_) (×r _ .F-seq f f') (×l _ .F-seq g g')
+    ∙ _×C_ .⋆Assoc (×r _ ⟪ f ⟫) (×r _ ⟪ f' ⟫) (×l _ ⟪ g ⟫ ⋆⟨ _×C_ ⟩ ×l _ ⟪ g' ⟫)
+    ∙ cong₂ (seq' _×C_) (refl {x = (×r _ ⟪ f ⟫)})
+      (sym (_×C_ .⋆Assoc (×r _ ⟪ f' ⟫) (×l _ ⟪ g ⟫) (×l _ ⟪ g' ⟫))
+      ∙ cong₂ (comp' _×C_) (refl {x = ×l _ ⟪ g' ⟫}) (×lr f' g)
+      ∙ (_×C_ .⋆Assoc (×l _ ⟪ g ⟫) (×r _ ⟪ f' ⟫) (×l _ ⟪ g' ⟫))
+      ∙ cong₂ (seq' _×C_) (refl {x = (×l _ ⟪ g ⟫)}) (ηEq Q Ax (combine-id×id f' g')))
+    ∙ sym (_×C_ .⋆Assoc (×r _ ⟪ f ⟫) (×l _ ⟪ g ⟫) (ηP Q Ax .I-hom (f' ×ₑ g')))
+    ∙ cong₂ (seq' _×C_) (ηEq Q Ax (combine-id×id f g)) (refl {x = (ηP Q Ax .I-hom (f' ×ₑ g'))})
+
+  -- todo: better name
+  ×× : Functor (C BP.×C D) _×C_
+  ×× .F-ob (c , d) = (c , d)
+  ×× .F-hom (f , g) = ηP Q Ax .I-hom (f ×ₑ g)
+  ×× .F-id = simul-id
+  ×× .F-seq (f , g) (f' , g') = simul-comp f f' g g'
 
   -- UniversalBifunctor : Bifunctor C D _×C_
   -- UniversalBifunctor .Bif-ob = _,_
