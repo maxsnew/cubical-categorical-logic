@@ -50,14 +50,14 @@ record Bifunctor (C : Category ℓc ℓc')
     Bif-homR : ∀ {d d'} c → (g : D [ d , d' ]) → E [ Bif-ob c d , Bif-ob c d' ]
     Bif-hom× : ∀ {c c' d d'} (f : C [ c , c' ])(g : D [ d , d' ])
              → E [ Bif-ob c d , Bif-ob c' d' ]
-    Bif-idL : ∀ {c d} → Bif-homL (C .id {c}) d ≡ E .id
-    Bif-seqL : ∀ {c c' c'' d} (f : C [ c , c' ])(f' : C [ c' , c'' ])
+    Bif-L-id : ∀ {c d} → Bif-homL (C .id {c}) d ≡ E .id
+    Bif-L-seq : ∀ {c c' c'' d} (f : C [ c , c' ])(f' : C [ c' , c'' ])
              → Bif-homL (f ⋆⟨ C ⟩ f') d ≡ Bif-homL f d ⋆⟨ E ⟩ Bif-homL f' d
-    Bif-idR : ∀ {c d} → Bif-homR c (D .id {d}) ≡ E .id
-    Bif-seqR : ∀ {c d d' d''} (g : D [ d , d' ])(g' : D [ d' , d'' ])
+    Bif-R-id : ∀ {c d} → Bif-homR c (D .id {d}) ≡ E .id
+    Bif-R-seq : ∀ {c d d' d''} (g : D [ d , d' ])(g' : D [ d' , d'' ])
              → Bif-homR c (g ⋆⟨ D ⟩ g') ≡ Bif-homR c g ⋆⟨ E ⟩ Bif-homR c g'
-    Bif-id× : ∀ {c d} → Bif-hom× (C .id {c}) (D .id {d}) ≡ E .id
-    Bif-seq× : ∀ {c c' c'' d d' d''}
+    Bif-×-id : ∀ {c d} → Bif-hom× (C .id {c}) (D .id {d}) ≡ E .id
+    Bif-×-seq : ∀ {c c' c'' d d' d''}
                (f : C [ c , c' ])(f' : C [ c' , c'' ])
                (g : D [ d , d' ])(g' : D [ d' , d'' ])
              → Bif-hom× (f ⋆⟨ C ⟩ f') (g ⋆⟨ D ⟩ g')
@@ -66,11 +66,11 @@ record Bifunctor (C : Category ℓc ℓc')
                  → Bif-homL f d ≡ Bif-hom× f (D .id)
     Bif-R×-agree : ∀ {c d d'} → (g : D [ d , d' ])
                  → Bif-homR c g ≡ Bif-hom× (C .id) g
-    Bif-assocL : ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
+    Bif-LR-fuse : ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
                → Bif-homL f d ⋆⟨ E ⟩ Bif-homR c' g
                ≡ Bif-hom× f g
 
-    Bif-assocR : ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
+    Bif-RL-fuse : ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
                → Bif-homR c g ⋆⟨ E ⟩ Bif-homL f d'
                ≡ Bif-hom× f g
 
@@ -85,8 +85,8 @@ record BifunctorParAx (C : Category ℓc ℓc')
     Bif-homR : ∀ {d d'} c → (g : D [ d , d' ]) → E [ Bif-ob c d , Bif-ob c d' ]
     Bif-hom× : ∀ {c c' d d'} (f : C [ c , c' ])(g : D [ d , d' ])
              → E [ Bif-ob c d , Bif-ob c' d' ]
-    Bif-id× : ∀ {c d} → Bif-hom× (C .id {c}) (D .id {d}) ≡ E .id
-    Bif-seq× : ∀ {c c' c'' d d' d''}
+    Bif-×-id : ∀ {c d} → Bif-hom× (C .id {c}) (D .id {d}) ≡ E .id
+    Bif-×-seq : ∀ {c c' c'' d d' d''}
                (f : C [ c , c' ])(f' : C [ c' , c'' ])
                (g : D [ d , d' ])(g' : D [ d' , d'' ])
              → Bif-hom× (f ⋆⟨ C ⟩ f') (g ⋆⟨ D ⟩ g')
@@ -105,21 +105,21 @@ record BifunctorSepAx (C : Category ℓc ℓc')
 
     Bif-homL : ∀ {c c'} → (f : C [ c , c' ]) → ∀ d
              → E [ Bif-ob c d , Bif-ob c' d ]
-    Bif-idL : ∀ {c d} → Bif-homL (C .id {c}) d ≡ E .id
-    Bif-seqL : ∀ {c c' c'' d} (f : C [ c , c' ])(f' : C [ c' , c'' ])
+    Bif-L-id : ∀ {c d} → Bif-homL (C .id {c}) d ≡ E .id
+    Bif-L-seq : ∀ {c c' c'' d} (f : C [ c , c' ])(f' : C [ c' , c'' ])
              → Bif-homL (f ⋆⟨ C ⟩ f') d ≡ Bif-homL f d ⋆⟨ E ⟩ Bif-homL f' d
 
     Bif-homR : ∀ {d d'} c → (g : D [ d , d' ]) → E [ Bif-ob c d , Bif-ob c d' ]
-    Bif-idR : ∀ {c d} → Bif-homR c (D .id {d}) ≡ E .id
-    Bif-seqR : ∀ {c d d' d''} (g : D [ d , d' ])(g' : D [ d' , d'' ])
+    Bif-R-id : ∀ {c d} → Bif-homR c (D .id {d}) ≡ E .id
+    Bif-R-seq : ∀ {c d d' d''} (g : D [ d , d' ])(g' : D [ d' , d'' ])
              → Bif-homR c (g ⋆⟨ D ⟩ g') ≡ Bif-homR c g ⋆⟨ E ⟩ Bif-homR c g'
 
     Bif-hom× : ∀ {c c' d d'} (f : C [ c , c' ])(g : D [ d , d' ])
              → E [ Bif-ob c d , Bif-ob c' d' ]
-    Bif-assocL : ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
+    Bif-LR-fuse : ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
                → Bif-homL f d ⋆⟨ E ⟩ Bif-homR c' g
                ≡ Bif-hom× f g
-    Bif-assocR : ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
+    Bif-RL-fuse : ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
                → Bif-homR c g ⋆⟨ E ⟩ Bif-homL f d'
                ≡ Bif-hom× f g
 private
@@ -135,36 +135,36 @@ mkBifunctorSepAx {C = C}{D = D}{E = E} F = G where
   G .Bif-homL = F .Bif-homL
   G .Bif-homR = F .Bif-homR
   G .Bif-hom× = F .Bif-hom×
-  G .Bif-idL = F .Bif-idL
-  G .Bif-seqL = F .Bif-seqL
-  G .Bif-idR = F .Bif-idR
-  G .Bif-seqR = F .Bif-seqR
-  G .Bif-assocL = F .Bif-assocL
-  G .Bif-assocR = F .Bif-assocR
-  G .Bif-id× = sym (F .Bif-assocL _ _)
-    ∙ cong₂ (seq' E) (F .Bif-idL) (F .Bif-idR)
+  G .Bif-L-id = F .Bif-L-id
+  G .Bif-L-seq = F .Bif-L-seq
+  G .Bif-R-id = F .Bif-R-id
+  G .Bif-R-seq = F .Bif-R-seq
+  G .Bif-LR-fuse = F .Bif-LR-fuse
+  G .Bif-RL-fuse = F .Bif-RL-fuse
+  G .Bif-×-id = sym (F .Bif-LR-fuse _ _)
+    ∙ cong₂ (seq' E) (F .Bif-L-id) (F .Bif-R-id)
     ∙ E .⋆IdR _
-  G .Bif-seq× f f' g g' =
-    sym (F .Bif-assocL _ _)
-    ∙ cong₂ (seq' E) (F .Bif-seqL _ _) (F .Bif-seqR _ _)
+  G .Bif-×-seq f f' g g' =
+    sym (F .Bif-LR-fuse _ _)
+    ∙ cong₂ (seq' E) (F .Bif-L-seq _ _) (F .Bif-R-seq _ _)
     ∙ E .⋆Assoc _ _ _
     ∙ cong₂ (seq' E) refl
           (sym (E .⋆Assoc _ _ _)
-          ∙ cong₂ (comp' E) refl (F .Bif-assocL _ _ ∙ sym (F .Bif-assocR _ _))
+          ∙ cong₂ (comp' E) refl (F .Bif-LR-fuse _ _ ∙ sym (F .Bif-RL-fuse _ _))
           ∙ E .⋆Assoc _ _ _
-          ∙ cong₂ (seq' E) refl (F .Bif-assocL _ _))
+          ∙ cong₂ (seq' E) refl (F .Bif-LR-fuse _ _))
           -- ∙ {!!})
     ∙ sym (E .⋆Assoc _ _ _)
-    ∙ cong₂ (comp' E) refl (F .Bif-assocL _ _)
+    ∙ cong₂ (comp' E) refl (F .Bif-LR-fuse _ _)
 
   G .Bif-L×-agree f =
     sym (E .⋆IdR _)
-    ∙ cong₂ (seq' E) refl (sym (F .Bif-idR))
-    ∙ F .Bif-assocL _ _
+    ∙ cong₂ (seq' E) refl (sym (F .Bif-R-id))
+    ∙ F .Bif-LR-fuse _ _
   G .Bif-R×-agree g =
     sym (E .⋆IdL _)
-    ∙ cong₂ (comp' E) refl (sym (F .Bif-idL))
-    ∙ F .Bif-assocL _ _
+    ∙ cong₂ (comp' E) refl (sym (F .Bif-L-id))
+    ∙ F .Bif-LR-fuse _ _
 
 mkBifunctorParAx : BifunctorParAx C D E → Bifunctor C D E
 mkBifunctorParAx {C = C}{D = D}{E = E} F = G where
@@ -175,29 +175,29 @@ mkBifunctorParAx {C = C}{D = D}{E = E} F = G where
   G .Bif-homL = F .Bif-homL
   G .Bif-homR = F .Bif-homR
   G .Bif-hom× = F .Bif-hom×
-  G .Bif-id× = F .Bif-id×
-  G .Bif-seq× = F .Bif-seq×
+  G .Bif-×-id = F .Bif-×-id
+  G .Bif-×-seq = F .Bif-×-seq
   G .Bif-L×-agree = F .Bif-L×-agree
   G .Bif-R×-agree = F .Bif-R×-agree
 
-  G .Bif-idL = F .Bif-L×-agree _ ∙ F .Bif-id×
-  G .Bif-seqL f f' = F .Bif-L×-agree _
+  G .Bif-L-id = F .Bif-L×-agree _ ∙ F .Bif-×-id
+  G .Bif-L-seq f f' = F .Bif-L×-agree _
     ∙ cong₂ (F .Bif-hom×) refl (sym (D .⋆IdR (D .id)))
-    ∙ F .Bif-seq× f f' (D .id) (D .id)
+    ∙ F .Bif-×-seq f f' (D .id) (D .id)
     ∙ cong₂ (seq' E) (sym (F .Bif-L×-agree _)) (sym (F .Bif-L×-agree _))
-  G .Bif-idR = F .Bif-R×-agree _ ∙ F .Bif-id×
-  G .Bif-seqR g g' = G .Bif-R×-agree _
+  G .Bif-R-id = F .Bif-R×-agree _ ∙ F .Bif-×-id
+  G .Bif-R-seq g g' = G .Bif-R×-agree _
     ∙ cong₂ (F .Bif-hom×) (sym (C .⋆IdR (C .id))) refl
-    ∙ F .Bif-seq× _ _ _ _
+    ∙ F .Bif-×-seq _ _ _ _
     ∙ cong₂ (seq' E) (sym (F .Bif-R×-agree _)) (sym (F .Bif-R×-agree _))
 
-  G .Bif-assocL f g =
+  G .Bif-LR-fuse f g =
     cong₂ (seq' E) (F .Bif-L×-agree _) (F .Bif-R×-agree _)
-    ∙ sym (F .Bif-seq× _ _ _ _)
+    ∙ sym (F .Bif-×-seq _ _ _ _)
     ∙ cong₂ (F .Bif-hom×) (C .⋆IdR _) (D .⋆IdL _)
-  G .Bif-assocR f g =
+  G .Bif-RL-fuse f g =
     cong₂ (seq' E) (F .Bif-R×-agree _) (F .Bif-L×-agree _)
-    ∙ sym (F .Bif-seq× _ _ _ _)
+    ∙ sym (F .Bif-×-seq _ _ _ _)
     ∙ cong₂ (F .Bif-hom×) (C .⋆IdL _) (D .⋆IdR _)
 
 open Bifunctor
@@ -236,10 +236,15 @@ _⟪_⟫× : (F : Bifunctor C D E)
       → E [ F ⟅ c , d ⟆b , F ⟅ c' , d' ⟆b ]
 F ⟪ f , g ⟫× = F .Bif-hom× f g
 
-Bif-assocRL
+Bif-RL-commute
   : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}{E : Category ℓe ℓe'}
   → (F : Bifunctor C D E)
   → ∀ {c c' d d'} → (f : C [ c , c' ]) (g : D [ d , d' ])
   → F ⟪ g ⟫r ⋆⟨ E ⟩ F ⟪ f ⟫l ≡ F ⟪ f ⟫l ⋆⟨ E ⟩ F ⟪ g ⟫r
-Bif-assocRL F f g =
-  F .Bif-assocR f g ∙ sym (F .Bif-assocL f g)
+Bif-RL-commute F f g =
+  F .Bif-RL-fuse f g ∙ sym (F .Bif-LR-fuse f g)
+
+-- Some universal bifunctors:
+-- app : Bifunctor (FUNCTOR C D) C D
+-- app : Bifunctor C (FUNCTOR C D) D
+-- pair : Bifunctor C D (C × D)
