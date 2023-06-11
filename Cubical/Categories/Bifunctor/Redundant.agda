@@ -201,6 +201,8 @@ mkBifunctorParAx {C = C}{D = D}{E = E} F = G where
     ∙ cong₂ (F .Bif-hom×) (C .⋆IdL _) (D .⋆IdR _)
 
 open Bifunctor
+open BifunctorParAx
+open BifunctorSepAx
 -- action on objects
 infix 30 _⟅_⟆b
 _⟅_⟆b : (F : Bifunctor C D E)
@@ -244,7 +246,114 @@ Bif-RL-commute
 Bif-RL-commute F f g =
   F .Bif-RL-fuse f g ∙ sym (F .Bif-LR-fuse f g)
 
--- Some universal bifunctors:
--- app : Bifunctor (FUNCTOR C D) C D
--- app : Bifunctor C (FUNCTOR C D) D
--- pair : Bifunctor C D (C × D)
+Bif-R×-fuse
+  : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}{E : Category ℓe ℓe'}
+  → (F : Bifunctor C D E)
+  → ∀ {c c' d d' d''} (f : C [ c , c' ])
+    (g : D [ d , d' ]) (g' : D [ d' , d'' ])
+  → F ⟪ g ⟫r ⋆⟨ E ⟩ F ⟪ f , g' ⟫×
+    ≡ F ⟪ f , (g ⋆⟨ D ⟩ g')⟫×
+Bif-R×-fuse {C = C}{E = E} F f g g' =
+  cong₂ (comp' E) refl (F .Bif-R×-agree g)
+  ∙ sym (F .Bif-×-seq _ f g g')
+  ∙ cong₂ (F .Bif-hom×) (C .⋆IdL f) refl
+
+Bif-×R-fuse
+  : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}{E : Category ℓe ℓe'}
+  → (F : Bifunctor C D E)
+  → ∀ {c c' d d' d''} (f : C [ c , c' ])
+    (g : D [ d , d' ]) (g' : D [ d' , d'' ])
+  → F ⟪ f , g ⟫× ⋆⟨ E ⟩ F ⟪ g' ⟫r
+    ≡ F ⟪ f , (g ⋆⟨ D ⟩ g')⟫×
+Bif-×R-fuse {C = C}{E = E} F f g g' =
+  cong₂ (seq' E) refl (F .Bif-R×-agree g')
+  ∙ sym (F .Bif-×-seq f _ g g')
+  ∙ cong₂ (F .Bif-hom×) (C .⋆IdR _) refl
+
+Fst : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
+    → Bifunctor C D C
+Fst {C = C}{D = D} = mkBifunctorSepAx Fst' where
+  Fst' : BifunctorSepAx C D C
+  Fst' .Bif-ob c d = c
+  Fst' .Bif-homL f d = f
+  Fst' .Bif-L-id = refl
+  Fst' .Bif-L-seq f f' = refl
+  Fst' .Bif-homR c g = C .id
+  Fst' .Bif-R-id = refl
+  Fst' .Bif-R-seq g g' = sym (C .⋆IdL _)
+  Fst' .Bif-hom× f g = f
+  Fst' .Bif-LR-fuse f g = C .⋆IdR f
+  Fst' .Bif-RL-fuse f g = C .⋆IdL f
+
+
+Snd : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
+    → Bifunctor C D D
+Snd {C = C}{D = D} = mkBifunctorSepAx Snd' where
+  Snd' : BifunctorSepAx C D D
+  Snd' .Bif-ob c d = d
+  Snd' .Bif-homL f d = D .id
+  Snd' .Bif-L-id = refl
+  Snd' .Bif-L-seq f f' = sym (D .⋆IdL _)
+  Snd' .Bif-homR c g = g
+  Snd' .Bif-R-id = refl
+  Snd' .Bif-R-seq g g' = refl
+  Snd' .Bif-hom× f g = g
+  Snd' .Bif-LR-fuse f g = D .⋆IdL g
+  Snd' .Bif-RL-fuse f g = D .⋆IdR g
+
+Sym : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}{E : Category ℓe ℓe'}
+    → Bifunctor C D E → Bifunctor D C E
+Sym {C = C}{D = D}{E = E} F = mkBifunctorParAx Sym' where
+  Sym' : BifunctorParAx D C E
+  Sym' .Bif-ob d c = F ⟅ c , d ⟆b
+  Sym' .Bif-homL g c = F ⟪ g ⟫r
+  Sym' .Bif-homR d f = F ⟪ f ⟫l
+  Sym' .Bif-hom× g f = F ⟪ f , g ⟫×
+  Sym' .Bif-×-id = F .Bif-×-id
+  Sym' .Bif-×-seq f f' g g' = F .Bif-×-seq g g' f f'
+  Sym' .Bif-L×-agree = F .Bif-R×-agree
+  Sym' .Bif-R×-agree = F .Bif-L×-agree
+
+private
+  variable
+    C' D' E' : Category ℓ ℓ'
+
+appL : (F : Bifunctor C D E) (c : C .ob) → Functor D E
+appL F c .F-ob d = F ⟅ c , d ⟆b
+appL F c .F-hom g = F ⟪ g ⟫r
+appL F c .F-id = F .Bif-R-id
+appL F c .F-seq g g' = F .Bif-R-seq g g'
+
+appR : (F : Bifunctor C D E) (d : D .ob) → Functor C E
+appR F d .F-ob c = F ⟅ c , d ⟆b
+appR F d .F-hom f = F ⟪ f ⟫l
+appR F d .F-id = F .Bif-L-id
+appR F d .F-seq f f' = F .Bif-L-seq f f'
+
+compL : (F : Bifunctor C' D E) (G : Functor C C') → Bifunctor C D E
+compL {D = D}{E = E}{C = C} F G = mkBifunctorSepAx B where
+  B : BifunctorSepAx C D E
+  B .Bif-ob c d = F ⟅ G ⟅ c ⟆  , d ⟆b
+  B .Bif-homL f d = F ⟪ G ⟪ f ⟫ ⟫l
+  B .Bif-L-id {d = d} = ((appR F d) ∘F G) .F-id
+  B .Bif-L-seq {d = d} f f' = ((appR F d) ∘F G) .F-seq f f'
+  B .Bif-homR c g = F ⟪ g ⟫r
+  B .Bif-R-id = F .Bif-R-id
+  B .Bif-R-seq = F .Bif-R-seq
+  B .Bif-hom× f g = F ⟪ G ⟪ f ⟫ , g ⟫×
+  B .Bif-LR-fuse f = F .Bif-LR-fuse (G ⟪ f ⟫)
+  B .Bif-RL-fuse f = F .Bif-RL-fuse (G ⟪ f ⟫)
+
+compR : (F : Bifunctor C D' E) (G : Functor D D') → Bifunctor C D E
+compR {C = C}{E = E}{D = D} F G = mkBifunctorSepAx B where
+  B : BifunctorSepAx C D E
+  B .Bif-ob c d = F ⟅ c , G ⟅ d ⟆ ⟆b
+  B .Bif-homL f d = F ⟪ f ⟫l
+  B .Bif-L-id = F .Bif-L-id
+  B .Bif-L-seq = F .Bif-L-seq
+  B .Bif-homR c g = F ⟪ G ⟪ g ⟫ ⟫r
+  B .Bif-R-id {c = c} = ((appL F c) ∘F G) .F-id
+  B .Bif-R-seq {c = c} = ((appL F c) ∘F G) .F-seq
+  B .Bif-hom× f g = F ⟪ f , G ⟪ g ⟫ ⟫×
+  B .Bif-LR-fuse f g = F .Bif-LR-fuse f (G ⟪ g ⟫)
+  B .Bif-RL-fuse f g = F .Bif-RL-fuse f (G ⟪ g ⟫)

@@ -27,8 +27,6 @@ open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.NaturalTransformation.Properties
 open import Cubical.Data.Sigma
 
-open import Cubical.Tactics.FunctorSolver.Reflection
-
 private
   variable
     ℓC ℓC' ℓD ℓD' ℓE ℓE' ℓ ℓ' : Level
@@ -86,7 +84,8 @@ module _ (C : Category ℓC ℓC')(D : Category ℓD ℓD') where
   FUNCTOR .⋆IdL (α , ϕ) = RedundNatTrans≡ (funExt (λ a → D .⋆IdL _))
   FUNCTOR .⋆IdR (α , _) = RedundNatTrans≡ (funExt (λ a → D .⋆IdR _))
   FUNCTOR .⋆Assoc f g h = RedundNatTrans≡ (funExt (λ a → D .⋆Assoc _ _ _))
-  FUNCTOR .isSetHom = isSetΣ isSetNatTrans (λ α → isProp→isSet (isContr→isProp (isContrRedundantStr α)))
+  FUNCTOR .isSetHom =
+    isSetΣ isSetNatTrans (λ α → isProp→isSet (isContr→isProp (isContrRedundantStr α)))
 
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {E : Category ℓE ℓE'} where
   Sym : Functor C (FUNCTOR D E) → Functor D (FUNCTOR C E)
@@ -101,3 +100,11 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {E : Category ℓE �
     ∙ (λ i → (F ⟪ f ⟫) .fst .N-hom g (~ i))
   Sym F .F-id = RedundNatTrans≡ (funExt (λ c → (F ⟅ c ⟆) .F-id ))
   Sym F .F-seq g g' = RedundNatTrans≡ (funExt λ c → (F ⟅ c ⟆) .F-seq g g')
+
+
+-- (C × D) × E → F
+-- ≅ (C × D) → (E → F)
+-- ≡ C → (D → (E → F))
+-- ≡ C → (D × E → F)
+-- ≡ C × (D × E) → F
+
