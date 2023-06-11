@@ -6,6 +6,7 @@ module Cubical.Categories.Constructions.Free.Category where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Path
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
 open import Cubical.Categories.Category.Base
 open import Cubical.Categories.Functor.Base
@@ -14,7 +15,7 @@ open import Cubical.Data.Sigma
 
 private
   variable
-    ℓc ℓc' ℓd ℓd' ℓg ℓg' ℓh ℓh' ℓj : Level
+    ℓc ℓc' ℓd ℓd' ℓg ℓg' ℓh ℓh' ℓj ℓ : Level
 
 open Category
 open Functor
@@ -35,6 +36,7 @@ record Interp (Q : Quiver ℓg ℓg') (𝓒 : Category ℓc ℓc')
     I-hom : ∀ e → 𝓒 [ I-ob (Q .dom e) , I-ob (Q .cod e) ]
 
 open Interp
+open Iso
 
 _∘I_ : {Q : Quiver ℓg ℓg'}{𝓒 : Category ℓc ℓc'}{𝓓 : Category ℓd ℓd'}
        (F : Functor 𝓒 𝓓) (ı : Interp Q 𝓒)
@@ -53,6 +55,41 @@ module _ (Q : Quiver ℓg ℓg') where
             → (e ⋆ₑ f) ⋆ₑ g ≡ e ⋆ₑ (f ⋆ₑ g)
     isSetExp : ∀ {A B} → isSet (Exp A B)
 
+  elimExpProp : ∀ {P : ∀ {a b} → Exp a b → Type ℓ}
+    → (∀ {a b} e → isProp (P {a} {b} e))
+    → (∀ g → P (↑ g))
+    → (∀ {a} → P (idₑ {a}))
+    → (∀ {a b c} e e' → P {a}{b} e → P {b = c} e' → P (e ⋆ₑ e'))
+    → ∀ {a b} e → P {a}{b} e
+  elimExpProp isPropP P↑ Pid P⋆ (↑ g) = P↑ g
+  elimExpProp isPropP P↑ Pid P⋆ idₑ = Pid
+  elimExpProp isPropP P↑ Pid P⋆ (e ⋆ₑ e') =
+    P⋆ e e' (elimExpProp isPropP P↑ Pid P⋆ e) (elimExpProp isPropP P↑ Pid P⋆ e')
+  elimExpProp isPropP P↑ Pid P⋆ (⋆ₑIdL e i) =
+    isProp→PathP (λ i → isPropP ((⋆ₑIdL e i)))
+      (P⋆ idₑ e Pid (elimExpProp isPropP P↑ Pid P⋆ e))
+      (elimExpProp isPropP P↑ Pid P⋆ e) i
+  elimExpProp isPropP P↑ Pid P⋆ (⋆ₑIdR e i) = isProp→PathP (λ i → isPropP (⋆ₑIdR e i))
+    (P⋆ e idₑ ((elimExpProp isPropP P↑ Pid P⋆ e)) Pid)
+    ((elimExpProp isPropP P↑ Pid P⋆ e))
+    i
+  elimExpProp isPropP P↑ Pid P⋆ (⋆ₑAssoc e e₁ e₂ i) = isProp→PathP (λ i → isPropP (⋆ₑAssoc e e₁ e₂ i))
+    (P⋆ (e ⋆ₑ e₁) e₂
+      (P⋆ e e₁ (elimExpProp isPropP P↑ Pid P⋆ e) (elimExpProp isPropP P↑ Pid P⋆ e₁))
+      (elimExpProp isPropP P↑ Pid P⋆ e₂))
+    (P⋆ e (e₁ ⋆ₑ e₂)
+      ((elimExpProp isPropP P↑ Pid P⋆ e))
+      (P⋆ e₁ e₂ ((elimExpProp isPropP P↑ Pid P⋆ e₁)) ((elimExpProp isPropP P↑ Pid P⋆ e₂))))
+    i
+  elimExpProp isPropP P↑ Pid P⋆ (isSetExp e e' p q i j) =
+    isOfHLevel→isOfHLevelDep 2 (λ x → isProp→isSet (isPropP x))
+      (elimExpProp isPropP P↑ Pid P⋆ e)
+      (elimExpProp isPropP P↑ Pid P⋆ e')
+      (λ j → elimExpProp isPropP P↑ Pid P⋆ (p j))
+      ((λ j → elimExpProp isPropP P↑ Pid P⋆ (q j)))
+      (isSetExp e e' p q)
+      i
+      j
   FreeCat : Category _ _
   FreeCat .ob = Q .ob
   FreeCat .Hom[_,_] = Exp
@@ -77,20 +114,15 @@ module _ (Q : Quiver ℓg ℓg') where
           aom-t : ∀ {c c'} (e : Exp c c') → Type _
           aom-t {c}{c'} e = PathP (λ i → 𝓒 [ aoo c i , aoo c' i ]) (F ⟪ e ⟫) (F' ⟪ e ⟫)
 
-          aom-id : ∀ {c} → aom-t (idₑ {c})
-          aom-id = F .F-id ◁ (λ i → 𝓒 .id) ▷ sym (F' .F-id)
-
-          aom-seq : ∀ {c c' c''} (e : Exp c c')(e' : Exp c' c'') → aom-t e → aom-t e' → aom-t (e ⋆ₑ e')
-          aom-seq e e' ihe ihe' = F .F-seq e e' ◁ (λ i → ihe i ⋆⟨ 𝓒 ⟩ ihe' i) ▷ sym (F' .F-seq e e')
+          isProp-aom-t : ∀ {c c'} (e : Exp c c') → isProp (aom-t e)
+          isProp-aom-t e = isPropRetract fromPathP toPathP
+            (PathPIsoPath _ _ _ .leftInv ) (𝓒 .isSetHom _ _)
 
           aom : ∀ {c c'} (e : Exp c c') → aom-t e
-          aom (↑ x) = λ i → agree-on-η i .I-hom x
-          aom idₑ = aom-id
-          aom (e ⋆ₑ e') = aom-seq e e' (aom e) (aom e')
-          aom (⋆ₑIdL e i) = isSet→SquareP (λ i j → 𝓒 .isSetHom) (aom-seq idₑ e aom-id (aom e)) (aom e) (λ i → F ⟪ ⋆ₑIdL e i ⟫) ((λ i → F' ⟪ ⋆ₑIdL e i ⟫)) i
-          aom (⋆ₑIdR e i) = isSet→SquareP (λ i j → 𝓒 .isSetHom) (aom-seq e idₑ (aom e) aom-id) (aom e) (λ i → F ⟪ ⋆ₑIdR e i ⟫) ((λ i → F' ⟪ ⋆ₑIdR e i ⟫)) i
-          aom (⋆ₑAssoc e e' e'' i) = isSet→SquareP (λ _ _ → 𝓒 .isSetHom) (aom-seq _ _ (aom-seq _ _ (aom e) (aom e')) (aom e'')) (aom-seq _ _ (aom e) (aom-seq _ _ (aom e') (aom e''))) ((λ i → F ⟪ ⋆ₑAssoc e e' e'' i ⟫)) (λ i → F' ⟪ ⋆ₑAssoc e e' e'' i ⟫) i
-          aom (isSetExp e e' x y i j) = isSet→SquareP {A = λ i j → aom-t (isSetExp e e' x y i j)} (λ i j → isOfHLevelPathP 2 (𝓒 .isSetHom) (F ⟪ isSetExp e e' x y i j ⟫) (F' ⟪ isSetExp e e' x y i j ⟫)) (λ j → aom (x j)) (λ j → aom (y j)) (λ i → aom e) (λ i → aom e') i j
+          aom = elimExpProp {P = aom-t} isProp-aom-t
+            (λ g i → agree-on-η i .I-hom g)
+            (F .F-id ◁ (λ i → 𝓒 .id) ▷ sym (F' .F-id))
+            λ e e' ihe ihe' → F .F-seq e e' ◁ (λ i → ihe i ⋆⟨ 𝓒 ⟩ ihe' i) ▷ sym (F' .F-seq e e')
 
         ind : F ≡ F'
         ind = Functor≡ aoo aom

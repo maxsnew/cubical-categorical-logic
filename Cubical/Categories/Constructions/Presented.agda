@@ -117,11 +117,30 @@ module _ (Q : Quiver ℓg ℓg') where
         rec .F-id = refl
         rec .F-seq = elimProp2 (λ _ _ → 𝓒 .isSetHom _ _) (λ _ _ → refl)
 
-    -- module _ {𝓒 : Category ℓc ℓc'}
-    --          (F F' : Functor PresentedCat 𝓒)
-    --          (agree-on-η : (F ∘F FreeToPresented) ∘I (η Q) ≡ (F' ∘F FreeToPresented) ∘I (η Q))
-    --          where
-    --   -- a functor that is full and id on objects is epi
-    --   ind : F ≡ F'
-    --   ind = Functor≡ (λ c i → agree-on-η i .I-ob c)
-    --     (elimProp (λ x → {!𝓒 .isSetHom!}) {!!})
+recNT : {Q : Quiver ℓg ℓg'}{Ax : Axioms Q ℓj} {𝓒 : Category ℓc ℓc'}
+        {F G : Functor (PresentedCat Q Ax) 𝓒}
+        (α : ∀ (a : Q .ob) → 𝓒 [ F ⟅ a ⟆ , G ⟅ a ⟆ ])
+        (p : ∀ (gen : Q .mor) →
+          F ⟪ ηP Q Ax .I-hom gen ⟫ ⋆⟨ 𝓒 ⟩ α (Q .cod gen)
+          ≡ α (Q .dom gen) ⋆⟨ 𝓒 ⟩ G ⟪ ηP Q Ax .I-hom gen ⟫)
+      → NatTrans F G
+recNT α p .N-ob = α
+recNT {Q = Q}{𝓒 = 𝓒}{F = F}{G = G} α p .N-hom = elimProp (λ _ → 𝓒 .isSetHom _ _) isNat where
+  isNatTy : ∀ {a b}(e : FQ Q [ a , b ]) → Type _
+  isNatTy e = F ⟪ [ e ]q ⟫ ⋆⟨ 𝓒 ⟩ α _ ≡ α _ ⋆⟨ 𝓒 ⟩ G ⟪ [ e ]q ⟫
+
+  isNat : ∀ {a b} e → isNatTy {a}{b} e
+  isNat = elimExpProp Q {P = isNatTy}
+    (λ e → 𝓒 .isSetHom _ _)
+    p
+    (λ {a} → cong₂ (seq' 𝓒)(F .F-id) refl
+      ∙ 𝓒 .⋆IdL _ ∙ sym (𝓒 .⋆IdR _)
+      ∙ cong₂ (seq' 𝓒) refl (sym (G .F-id)))
+    λ e e' nat-e nat-e' →
+      cong₂ (seq' 𝓒) (F .F-seq [ e ]q [ e' ]q) refl
+      ∙ (𝓒 .⋆Assoc _ _ _
+      ∙ cong₂ (seq' 𝓒) refl nat-e'
+      ∙ sym (𝓒 .⋆Assoc _ _ _)
+      ∙ cong₂ (seq' 𝓒) nat-e refl
+      ∙ 𝓒 .⋆Assoc _ _ _)
+      ∙ cong₂ (seq' 𝓒) refl (sym (G .F-seq [ e ]q [ e' ]q))
