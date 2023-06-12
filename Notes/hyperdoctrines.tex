@@ -1,0 +1,96 @@
+\documentclass{article}
+\usepackage{mathpartir}
+\usepackage{tikz-cd}
+\usepackage{enumitem}
+\usepackage{wrapfig}
+\usepackage{fancyvrb}
+\usepackage{comment}
+
+\usepackage{ stmaryrd }
+
+
+\newcommand{\Set}{\textrm{Set}}
+
+\begin{document}
+
+\title{First-order Hyperdoctrines}
+
+We give an alternate definition of first-order hyperdoctrines that
+makes the Beck-Chevalley condition follow naturally. The key is to
+formulate the definitions using the internal language of the category
+of presheaves. This is based on the fact that, like most algebraic
+structures a functor from $C$ to the category of Heyting algebras is
+equivalent to a Heyting algebra internal to the category of functors
+$C \to \Set$
+
+
+\section{Order-theory preliminaries}
+
+Let $f : P \to Q$ be a monotone function of posets. A \textbf{right
+  adjoint} to $f$ is a function $g : Q_0 \to P_0$ such that
+\[ p \leq g(q) \iff f(p) \leq q \]
+A \textbf{left adjoint} is defined dually as satisfying
+\[ g(q) \leq p \iff q \leq f(p) \]
+Note that in either case $g$ is unique if it exists. The analogous
+notion for preorders is unique up to order equivalence.
+
+For any poset $P$ and type $X$ we can define the poset $P^X$ of
+functions $X \to P_0$ with the pointwise ordering. We can define a
+monotone function $\Delta_X : P \to P^X$
+\[ \Delta_X(p)(x) = p \]
+which we could sensibly call ``weakening''.
+We say $P$ has \textbf{$X$-indexed meets} if $\Delta_X$ has a right
+adjoint and \textbf{$X$-indexed joins} if $\Delta_X$ has a left
+adjoint. Examples: binary meets and joins are indexed by a two-element
+set and top and bottom are indexed by the empty set.
+
+Not all properties are naturally formulated as adjoints. The following
+is a generalization.  Let $P$ be a poset. A \emph{downward-closed
+subset} or \emph{downset} is a subset $X \subseteq P$ such that if $p
+\leq q$ and $q \in X$ then $p \in X$. An upper closed set/upset is
+dual. A \emph{representing element} of a downset is a greatest element
+of the downset and a representing element of an upset is a least
+element of the upset. In this case we say the downset/upset is
+\emph{representable}, the idea is that if $x \in X$ is the greatest
+element of the downset $X$ .
+\[ p \in X \iff p \leq x \]
+so $x$ ``represents'' by its inequality predicate the subset.
+
+Let $P$ be a poset with a greatest element $\top$ and $X$ be a
+set. Then an \emph{equality function for $X$ in $P$} is a function $=$
+in $(P^X)^X$ satisfying
+\[ (\forall x,y. (x = y) \leq f(x,y)) \iff \forall x. \top \leq f(x,x) \]
+the Leibniz/Lawvere formulation of equality. This is a
+representability condition for the upset defined as
+\[ f(x,y) \in \textrm{U} \iff \forall x. \top \leq f(x,x) \]
+
+\section{Internal Order Theory}
+
+Let $C$ be a category, then the category of presheaves $\Set^{C^{op}}$
+inherits almost all nice properties of the category of sets. One way
+to say this is that it is always a \emph{topos}, a model of
+intuitionistic type theory. So order theory internal to presheaves
+means ``just'' interpret everything in the previous section in this
+model of intuitionistic type theory.
+
+TODO: explain internal order theory
+
+\section{First-Order Hyperdoctrines}
+
+A first-order hyperdoctrine over a cartesian category $C$ consists of
+\begin{enumerate}
+\item (Propositional Logic) A Heyting algebra $L$ internal to $\Set^{C^{op}}$
+\item (Universal Quantifiers) Such that for every $A \in C$, $L$ internally has $YA$-indexed meets
+\item (Existential Quantifiers) Such that for every $A \in C$, $L$ internally has $YA$-indexed joins
+\item (Equality) Such that $L$ has an internal equality function for $YA$
+\end{enumerate}
+
+\section{Syntax}
+
+TODO: this is all very syntactic...
+
+\section{Grothendieck Construction}
+
+TODO: logical relations...
+
+\end{document}
