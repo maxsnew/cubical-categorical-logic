@@ -9,6 +9,7 @@ open import Cubical.Data.Sigma hiding (_×_)
 open import Cubical.Categories.Category
 open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Constructions.BinProduct.More
+import Cubical.Categories.Constructions.BinProduct.Redundant.Base as R
 open import Cubical.Categories.Functors.HomFunctor
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functor
@@ -18,6 +19,7 @@ open import Cubical.Categories.Limits.BinProduct
 open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Categories.Adjoint.UniversalElements
 open import Cubical.Categories.Bifunctor.Base
+import Cubical.Categories.Bifunctor.Redundant as R
 
 private
   variable
@@ -149,9 +151,30 @@ module _ (C : Category ℓ ℓ') where
     _×p_ : C [ a , b ] → C [ c , d ] → C [ a × c , b × d ]
     f ×p g = (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂)
 
-    -- Demonstrating the definitional behavior of BinProductF
-    _ : (f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂) ≡ BinProductF bp ⟪ f , g ⟫
-    _ = refl
+    ×Bif : R.Bifunctor C C C
+    ×Bif = R.mkBifunctorParAx B where
+      open R.BifunctorParAx
+      B : R.BifunctorParAx C C C
+      B .Bif-ob = _×_
+      B .Bif-homL f d = (f ∘⟨ C ⟩ π₁) ,p π₂
+      B .Bif-homR c g = π₁ ,p (g ∘⟨ C ⟩ π₂)
+      B .Bif-hom× = _×p_
+      B .Bif-×-id = ×pF .F-id
+      B .Bif-×-seq f f' g g' = ×pF .F-seq (f , g) (f' , g')
+      B .Bif-L×-agree f = cong₂ _,p_ refl (sym (C .⋆IdR _))
+      B .Bif-R×-agree g = cong₂ _,p_ (sym (C .⋆IdR _)) refl
+
+    private
+      open R.Bifunctor
+      -- Demonstrating the definitional behavior of ×Bif
+      _ : ((f ∘⟨ C ⟩ π₁) ,p (g ∘⟨ C ⟩ π₂)) ≡ (Bif-hom× ×Bif f g)
+      _ = refl
+
+      _ : ((f ∘⟨ C ⟩ π₁) ,p π₂) ≡ (Bif-homL ×Bif f d)
+      _ = refl
+
+      _ : (π₁ ,p (g ∘⟨ C ⟩ π₂)) ≡ (Bif-homR ×Bif c g)
+      _ = refl
 
     ×β₁ : π₁ ∘⟨ C ⟩ (f ,p g) ≡ f
     ×β₁ {f = f}{g = g} = bp _ _ .univProp f g .fst .snd .fst
