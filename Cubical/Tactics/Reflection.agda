@@ -57,7 +57,8 @@ unapply-path : Term → TC (Maybe (Term × Term × Term))
 unapply-path red@(def (quote PathP) (l h∷ T v∷ x v∷ y v∷ [])) = do
   domain ← newMeta (def (quote Type) (l v∷ []))
   ty ← returnTC (def (quote Path) (domain v∷ x v∷ y v∷ []))
-  debugPrint "tactic" 50 (strErr "(no reduction) unapply-path: got a " ∷ termErr red ∷ strErr " but I really want it to be " ∷ termErr ty ∷ [])
+  debugPrint "tactic" 50 (strErr "(no reduction) unapply-path: got a "
+        ∷ termErr red ∷ strErr " but I really want it to be " ∷ termErr ty ∷ [])
   unify red ty
   returnTC (just (domain , x , y))
 unapply-path tm = reduce tm >>= λ where
@@ -72,7 +73,8 @@ unapply-path tm = reduce tm >>= λ where
   red@(def (quote PathP) (l h∷ T v∷ x v∷ y v∷ [])) → do
     domain ← newMeta (def (quote Type) (l v∷ []))
     ty ← returnTC (def (quote Path) (domain v∷ x v∷ y v∷ []))
-    debugPrint "tactic" 50 (strErr "unapply-path: got a " ∷ termErr red ∷ strErr " but I really want it to be " ∷ termErr ty ∷ [])
+    debugPrint "tactic" 50 (strErr "unapply-path: got a " ∷ termErr red ∷
+               strErr " but I really want it to be " ∷ termErr ty ∷ [])
     unify red ty
     returnTC (just (domain , x , y))
   _ → returnTC nothing
@@ -96,16 +98,19 @@ equation-solver don't-Reduce mk-call debug hole =
       just (lhs , rhs) ← get-boundary goal
         where
           nothing
-            → typeError(strErr "The functor solver failed to parse the goal" ∷ termErr goal ∷ [])
+            → typeError(strErr "The functor solver failed to parse the goal" ∷
+                        termErr goal ∷ [])
       -- | Then we invoke the solver
       -- | And we unify the result of the solver with the original hole.
       elhs ← normalise lhs
       erhs ← normalise rhs
       call ← mk-call elhs erhs
       let unify-with-goal = (unify hole call)
-      noConstraints (if debug then unify-with-goal else (unify-with-goal <|> typeError ((strErr "Could not equate the following expressions:\n  " ∷
-                                                         termErr elhs ∷
-                                                         strErr "\nAnd\n  " ∷
-                                                         termErr erhs ∷
-                                                         strErr "\nIn the call\n  " ∷
-                                                         termErr call ∷ []))))))
+      noConstraints (if debug then unify-with-goal else
+        (unify-with-goal <|> typeError
+        ((strErr "Could not equate the following expressions:\n  " ∷
+          termErr elhs ∷
+          strErr "\nAnd\n  " ∷
+          termErr erhs ∷
+          strErr "\nIn the call\n  " ∷
+          termErr call ∷ []))))))

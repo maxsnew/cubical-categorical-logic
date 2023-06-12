@@ -33,7 +33,9 @@ open Category
                (F : Bifunctor C D E) → Type _
 2VarRightAdjointR C D E F =
   ParamUnivElt ((C ^op) ×C E) D
-    (ForgetPar (assoc-bif (HomBif E ∘Fl (rec D C (Sym F) ^opF) ∘F ×-op-commute⁻ {C = D}{D = C})))
+    (ForgetPar (assoc-bif (HomBif E ∘Fl
+                           (rec D C (Sym F) ^opF) ∘F
+                           ×-op-commute⁻ {C = D}{D = C})))
 
 2VarRightAdjointL : (C : Category ℓC ℓC')
                (D : Category ℓD ℓD')
@@ -41,4 +43,6 @@ open Category
                (F : Bifunctor C D E) → Type _
 2VarRightAdjointL C D E F =
   ParamUnivElt ((D ^op) ×C E) C
-    (ForgetPar (assoc-bif (HomBif E ∘Fl (rec C D F ^opF) ∘F ×-op-commute⁻ {C = C}{D = D})))
+    (ForgetPar (assoc-bif (HomBif E ∘Fl
+                           (rec C D F ^opF) ∘F
+                           ×-op-commute⁻ {C = C}{D = D})))

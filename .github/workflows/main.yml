@@ -61,20 +61,43 @@ env:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   line-lengths:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-      # Runs a single command using the runners shell
-      - name: awk for line 80 chars wide
-        run: |
-          find . -type f -name "*.agda" -print0 | xargs -0 awk 'length($0) > 80 { print FILENAME ":" FNR ": line too long"; exit 1 }'
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install wcwidth
+
+    - name: Check line lengths
+      run: |
+        error=0
+        shopt -s globstar nullglob
+        for file in **/*.agda; do
+          python3 -c '
+        import sys
+        from wcwidth import wcswidth
+        filename = sys.argv[1]
+        try:
+            with open(filename, "r", encoding="utf-8") as file:
+                for lineno, line in enumerate(file, 1):
+                    if wcswidth(line.rstrip("\n")) > 80:
+                        print(f"{filename}:{lineno}: line too long")
+                        sys.exit(1)
+        except Exception as e:
+            print(f"Error processing {filename}: {e}")
+            sys.exit(1)
+          ' "${file}" || error=1
+        done
+        exit ${error}
 
   compile-agda:
     runs-on: ubuntu-latest
@@ -163,6 +186,14 @@ jobs:
 
       - name: Put cabal programs in PATH
         run: echo "~/.cabal/bin" >> $GITHUB_PATH
+
+      - name: Cache Agdai Files
+        uses: actions/cache@v3
+        with:
+          path: '**/*.agdai'
+          key: ${{ runner.os }}-agdai-${{ hashFiles('**/*.agda') }}
+          restore-keys: |
+            ${{ runner.os }}-agdai-
 
       - name: Test multi-poly-cats
         run: |

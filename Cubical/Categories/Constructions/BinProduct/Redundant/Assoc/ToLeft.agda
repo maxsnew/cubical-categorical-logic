@@ -37,7 +37,8 @@ private
 module _ {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
          {E : Category ℓe ℓe'} where
   Assoc : Functor (C ×C (D ×C E)) ((C ×C D) ×C E)
-  Assoc = rec C (D ×C E) (Bif.Sym (uncurry (rec D E (mkBifunctorParAx Assoc')))) where
+  Assoc = rec C (D ×C E)
+          (Bif.Sym (uncurry (rec D E (mkBifunctorParAx Assoc')))) where
     Assoc' : BifunctorParAx D E (FUNCTOR C ((C ×C D) ×C E))
     Assoc' .Bif-ob d e .F-ob c = (c , d) , e
     Assoc' .Bif-ob d e .F-hom f = ηBif _ _ ⟪ ηBif _ _ ⟪ f ⟫l ⟫l
@@ -47,9 +48,11 @@ module _ {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
     Assoc' .Bif-homR d h .snd .fst f = ηBif _ _ ⟪ ηBif _ _ ⟪ f ⟫l , h ⟫×
     Assoc' .Bif-hom× g h .fst .N-ob c = ηBif _ _ ⟪ ηBif _ _ ⟪ g ⟫r , h ⟫×
     Assoc' .Bif-hom× g h .snd .fst f = ηBif _ _ ⟪ ηBif _ _ ⟪ f , g ⟫× , h ⟫×
-    Assoc' .Bif-ob d e .F-id = cong₂ (ηBif (C ×C D) E .Bif-homL) (ηBif C D .Bif-L-id) refl
+    Assoc' .Bif-ob d e .F-id =
+      cong₂ (ηBif (C ×C D) E .Bif-homL) (ηBif C D .Bif-L-id) refl
       ∙ ηBif (C ×C D) E .Bif-L-id
-    Assoc' .Bif-ob d e .F-seq f f' = cong₂ (ηBif (C ×C D) E .Bif-homL) (ηBif C D .Bif-L-seq f f') refl
+    Assoc' .Bif-ob d e .F-seq f f' =
+      cong₂ (ηBif (C ×C D) E .Bif-homL) (ηBif C D .Bif-L-seq f f') refl
       ∙ ηBif (C ×C D) E .Bif-L-seq (ηBif _ _ ⟪ f ⟫l) (ηBif _ _ ⟪ f' ⟫l)
     Assoc' .Bif-homL g e .fst .N-hom f =
       sym (ηBif _ _ .Bif-L-seq _ _)
@@ -64,8 +67,10 @@ module _ {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
        sym (ηBif _ _ .Bif-RL-fuse ((ηBif _ _ ⟪ f ⟫l)) h)
     Assoc' .Bif-hom× g h .fst .N-hom f =
       Bif-L×-fuse ((ηBif (C ×C D) E)) (ηBif C D ⟪ f ⟫l) (ηBif C D ⟪ g ⟫r) h
-      ∙ cong₂ (ηBif (C ×C D) E .Bif-hom×) (sym (Bif-RL-commute (ηBif C D) f g)) refl
-      ∙ sym (Bif-×L-fuse (ηBif (C ×C D) E) (ηBif C D ⟪ g ⟫r) (ηBif C D ⟪ f ⟫l) h)
+      ∙ cong₂ (ηBif (C ×C D) E .Bif-hom×)
+              (sym (Bif-RL-commute (ηBif C D) f g)) refl
+      ∙ sym (Bif-×L-fuse (ηBif (C ×C D) E)
+            (ηBif C D ⟪ g ⟫r) (ηBif C D ⟪ f ⟫l) h)
     Assoc' .Bif-hom× g h .snd .snd f =
       (λ i → ηBif _ _ ⟪ ηBif _ _ .Bif-RL-fuse f g (~ i) , h ⟫×)
       ∙ sym (Bif-×L-fuse (ηBif _ _) (ηBif _ _ ⟪ g ⟫r) (ηBif _ _ ⟪ f ⟫l) h)

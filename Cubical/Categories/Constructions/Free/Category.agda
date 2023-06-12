@@ -69,17 +69,21 @@ module _ (Q : Quiver ℓg ℓg') where
     isProp→PathP (λ i → isPropP ((⋆ₑIdL e i)))
       (P⋆ idₑ e Pid (elimExpProp isPropP P↑ Pid P⋆ e))
       (elimExpProp isPropP P↑ Pid P⋆ e) i
-  elimExpProp isPropP P↑ Pid P⋆ (⋆ₑIdR e i) = isProp→PathP (λ i → isPropP (⋆ₑIdR e i))
+  elimExpProp isPropP P↑ Pid P⋆ (⋆ₑIdR e i) =
+    isProp→PathP (λ i → isPropP (⋆ₑIdR e i))
     (P⋆ e idₑ ((elimExpProp isPropP P↑ Pid P⋆ e)) Pid)
     ((elimExpProp isPropP P↑ Pid P⋆ e))
     i
-  elimExpProp isPropP P↑ Pid P⋆ (⋆ₑAssoc e e₁ e₂ i) = isProp→PathP (λ i → isPropP (⋆ₑAssoc e e₁ e₂ i))
+  elimExpProp isPropP P↑ Pid P⋆ (⋆ₑAssoc e e₁ e₂ i) =
+    isProp→PathP (λ i → isPropP (⋆ₑAssoc e e₁ e₂ i))
     (P⋆ (e ⋆ₑ e₁) e₂
-      (P⋆ e e₁ (elimExpProp isPropP P↑ Pid P⋆ e) (elimExpProp isPropP P↑ Pid P⋆ e₁))
+      (P⋆ e e₁ (elimExpProp isPropP P↑ Pid P⋆ e)
+      (elimExpProp isPropP P↑ Pid P⋆ e₁))
       (elimExpProp isPropP P↑ Pid P⋆ e₂))
     (P⋆ e (e₁ ⋆ₑ e₂)
       ((elimExpProp isPropP P↑ Pid P⋆ e))
-      (P⋆ e₁ e₂ ((elimExpProp isPropP P↑ Pid P⋆ e₁)) ((elimExpProp isPropP P↑ Pid P⋆ e₂))))
+      (P⋆ e₁ e₂ ((elimExpProp isPropP P↑ Pid P⋆ e₁))
+      ((elimExpProp isPropP P↑ Pid P⋆ e₂))))
     i
   elimExpProp isPropP P↑ Pid P⋆ (isSetExp e e' p q i j) =
     isOfHLevel→isOfHLevelDep 2 (λ x → isProp→isSet (isPropP x))
@@ -112,7 +116,8 @@ module _ (Q : Quiver ℓg ℓg') where
           aoo = (λ c i → agree-on-η i .I-ob c)
 
           aom-t : ∀ {c c'} (e : Exp c c') → Type _
-          aom-t {c}{c'} e = PathP (λ i → 𝓒 [ aoo c i , aoo c' i ]) (F ⟪ e ⟫) (F' ⟪ e ⟫)
+          aom-t {c}{c'} e =
+            PathP (λ i → 𝓒 [ aoo c i , aoo c' i ]) (F ⟪ e ⟫) (F' ⟪ e ⟫)
 
           isProp-aom-t : ∀ {c c'} (e : Exp c c') → isProp (aom-t e)
           isProp-aom-t e = isPropRetract fromPathP toPathP
@@ -122,7 +127,8 @@ module _ (Q : Quiver ℓg ℓg') where
           aom = elimExpProp {P = aom-t} isProp-aom-t
             (λ g i → agree-on-η i .I-hom g)
             (F .F-id ◁ (λ i → 𝓒 .id) ▷ sym (F' .F-id))
-            λ e e' ihe ihe' → F .F-seq e e' ◁ (λ i → ihe i ⋆⟨ 𝓒 ⟩ ihe' i) ▷ sym (F' .F-seq e e')
+            λ e e' ihe ihe' →
+              F .F-seq e e' ◁ (λ i → ihe i ⋆⟨ 𝓒 ⟩ ihe' i) ▷ sym (F' .F-seq e e')
 
         ind : F ≡ F'
         ind = Functor≡ aoo aom

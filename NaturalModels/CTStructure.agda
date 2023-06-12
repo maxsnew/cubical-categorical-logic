@@ -24,7 +24,8 @@ open CartesianCategory
 open UnivElt
 open isUniversal
 
-record CTStructure (ℓ ℓ' ℓt : Level) : Type (ℓ-max (ℓ-suc ℓ) (ℓ-max (ℓ-suc ℓ') (ℓ-suc ℓt))) where
+record CTStructure (ℓ ℓ' ℓt : Level) : Type (ℓ-max (ℓ-suc ℓ)
+  (ℓ-max (ℓ-suc ℓ') (ℓ-suc ℓt))) where
   field
     B : CartesianCategory ℓ ℓ'
     Ty : Type ℓt
@@ -36,22 +37,27 @@ open CartesianFunctor
 
 record CT-Functor {ℓc ℓc' ℓct ℓd ℓd' ℓdt : Level}
        (C : CTStructure ℓc ℓc' ℓct)
-       (D : CTStructure ℓd ℓd' ℓdt) : Type (ℓ-max ℓc (ℓ-max ℓc' (ℓ-max ℓct (ℓ-max ℓd (ℓ-max ℓd' (ℓ-max ℓdt (ℓ-suc ℓ-zero))))))) where
+       (D : CTStructure ℓd ℓd' ℓdt) : Type (ℓ-max ℓc (ℓ-max ℓc'
+         (ℓ-max ℓct (ℓ-max ℓd (ℓ-max ℓd' (ℓ-max ℓdt (ℓ-suc ℓ-zero))))))) where
   field
     F-B  : CartesianFunctor (C .B) (D .B)
     F-Ty : C .Ty → D .Ty
-    F-agree : ∀ {A} → CatIso (D .B .cat) (D .sole (F-Ty A)) (F-B .func .F-ob (C .sole A)) -- D .sole (F-Ty A) ≡ F-B .func .F-ob (C .sole A)
+    F-agree : ∀ {A} → CatIso (D .B .cat) (D .sole (F-Ty A))
+      (F-B .func .F-ob (C .sole A)) -- D .sole (F-Ty A) ≡
+        -- F-B .func .F-ob (C .sole A)
 private
   variable
     ℓc ℓc' ℓt ℓt' ℓp : Level
 
 open CT-Functor
 
-CT-Trans : {ℓc ℓc' ℓct ℓd ℓd' ℓdt : Level} {C : CTStructure ℓc ℓc' ℓct} {D : CTStructure ℓd ℓd' ℓdt}
+CT-Trans : {ℓc ℓc' ℓct ℓd ℓd' ℓdt : Level} {C : CTStructure ℓc ℓc' ℓct}
+           {D : CTStructure ℓd ℓd' ℓdt}
            (F G : CT-Functor C D)
          → Type _
 CT-Trans F G = NatTrans (F .F-B .func) (G .F-B .func)
 
 -- representability by a type
-TypeRepr : ∀ (C : CTStructure ℓc ℓc' ℓt) → (P : Presheaf (C .B .cat) ℓp) → Type _
+TypeRepr : ∀ (C : CTStructure ℓc ℓc' ℓt) →
+           (P : Presheaf (C .B .cat) ℓp) → Type _
 TypeRepr C P = Σ[ A ∈ C .Ty ] PshIso (C .B .cat) (C .B .cat [-, C .sole A ]) P

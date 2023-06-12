@@ -41,15 +41,18 @@ module _ {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
     Assoc' : BifunctorParAx C D (FUNCTOR E (C ×C (D ×C E)))
     Assoc' .Bif-ob c d .F-ob e = c , d , e
     Assoc' .Bif-ob c d .F-hom h = ηBif _ _ ⟪ ηBif _ _ ⟪ h ⟫r ⟫r
-    Assoc' .Bif-ob c d .F-id = cong (ηBif C (D ×C E) .Bif-homR c) (ηBif D E .Bif-R-id)
+    Assoc' .Bif-ob c d .F-id =
+      cong (ηBif C (D ×C E) .Bif-homR c) (ηBif D E .Bif-R-id)
       ∙ ηBif C (D ×C E) .Bif-R-id
     Assoc' .Bif-ob c d .F-seq h h' = cong (ηBif C (D ×C E) .Bif-homR c)
       (ηBif D E .Bif-R-seq h h')
       ∙ ηBif C (D ×C E) .Bif-R-seq (ηBif _ _ ⟪ h ⟫r) (ηBif _ _ ⟪ h' ⟫r)
     Assoc' .Bif-homL f d .fst .N-ob e = ηBif _ _ ⟪ f ⟫l
-    Assoc' .Bif-homL f d .fst .N-hom h = Bif-RL-commute (ηBif _ _) f (ηBif _ _ ⟪ h ⟫r)
+    Assoc' .Bif-homL f d .fst .N-hom h =
+      Bif-RL-commute (ηBif _ _) f (ηBif _ _ ⟪ h ⟫r)
     Assoc' .Bif-homL f d .snd .fst h = ηBif _ _ ⟪ f , ηBif _ _ ⟪ h ⟫r ⟫×
-    Assoc' .Bif-homL f d .snd .snd h = sym (ηBif _ _ .Bif-LR-fuse f (ηBif _ _ ⟪ h ⟫r))
+    Assoc' .Bif-homL f d .snd .snd h =
+      sym (ηBif _ _ .Bif-LR-fuse f (ηBif _ _ ⟪ h ⟫r))
     Assoc' .Bif-homR c g .fst .N-ob e = ηBif _ _ ⟪ ηBif _ _ ⟪ g ⟫l ⟫r
     Assoc' .Bif-homR c g .fst .N-hom h =
       sym (ηBif _ _ .Bif-R-seq _ _)
@@ -66,7 +69,8 @@ module _ {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
     -- ≡ η ⟪ f , η ⟪ h ⟫r ⋆ η ⟪ g ⟫l ⟫×
       ∙ cong₂ (ηBif _ _ .Bif-hom×) refl (Bif-RL-commute (ηBif _ _) g h)
     -- ≡ η ⟪ f , η ⟪ g ⟫l ⋆ η ⟪ h ⟫r ⟫×
-      ∙ sym (Bif-×R-fuse ((ηBif _ _) ) f ((ηBif _ _ ⟪ g ⟫l)) ((ηBif _ _ ⟪ h ⟫r)))
+      ∙ sym (Bif-×R-fuse ((ηBif _ _) ) f
+        ((ηBif _ _ ⟪ g ⟫l)) ((ηBif _ _ ⟪ h ⟫r)))
     -- ≡ η ⟪ f , η ⟪ g ⟫l ⟫× ⋆ η ⟪ η ⟪ h ⟫r ⟫r
     Assoc' .Bif-hom× f g .snd .fst h = ηBif _ _ ⟪ f , ηBif _ _ ⟪ g , h ⟫× ⟫×
     Assoc' .Bif-hom× f g .snd .snd h =

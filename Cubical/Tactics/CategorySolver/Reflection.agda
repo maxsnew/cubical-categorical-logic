@@ -41,16 +41,22 @@ module ReflectionSolver where
     -- Parse the input into an exp
     buildExpression : Term → Term
     buildExpression “id” = con (quote FreeCategory.idₑ) []
-    buildExpression (“⋆” f g) = con (quote FreeCategory._⋆ₑ_) (buildExpression f v∷ buildExpression g v∷ [])
-    buildExpression (“comp” f g) = con (quote FreeCategory._⋆ₑ_) (buildExpression f v∷ buildExpression g v∷ [])
+    buildExpression (“⋆” f g) =
+      con (quote FreeCategory._⋆ₑ_)
+          (buildExpression f v∷ buildExpression g v∷ [])
+    buildExpression (“comp” f g) =
+      con (quote FreeCategory._⋆ₑ_)
+          (buildExpression f v∷ buildExpression g v∷ [])
     buildExpression f = con (quote FreeCategory.↑_) (f v∷ [])
 
   solve-macro : Bool
               → Term -- ^ The term denoting the category
-              → Term -- ^ The hole whose goal should be an equality between morphisms in the category
+              → Term -- ^ The hole whose goal should be an equality
+                     --   between morphisms in the category
               → TC Unit
   solve-macro b category =
-    equation-solver (quote Category.id ∷ quote Category._⋆_ ∷ quote comp' ∷ []) mk-call b where
+    equation-solver
+    (quote Category.id ∷ quote Category._⋆_ ∷ quote comp' ∷ []) mk-call b where
       mk-call : Term → Term → TC Term
       mk-call lhs rhs = returnTC (def (quote solve)
                              (category v∷

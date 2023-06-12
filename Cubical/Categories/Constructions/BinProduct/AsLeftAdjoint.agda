@@ -18,7 +18,8 @@ open import Cubical.Data.Sigma
 import Cubical.Categories.Constructions.BinProduct as BP
 open import Cubical.Categories.Constructions.Free.Category as Free
 open import Cubical.Categories.Constructions.Presented as Presented
-open import Cubical.Categories.Bifunctor hiding (Bifunctor→Functor; UniversalBifunctor)
+open import Cubical.Categories.Bifunctor
+  hiding (Bifunctor→Functor; UniversalBifunctor)
 
 private
   variable
@@ -35,7 +36,8 @@ module _ (C : Category ℓc ℓc') (D : Category ℓd ℓd') where
   data ProdGenerator : Type (ℓ-max (ℓ-max ℓc ℓc') (ℓ-max ℓd ℓd')) where
     _id×_ : ∀ (c : C .ob) {d d' : D .ob} (g : D [ d , d' ]) → ProdGenerator
     _×id_ : ∀ {c c' : C .ob} (f : C [ c , c' ]) (d : D .ob) → ProdGenerator
-    _×ₑ_ : ∀ {c c' : C .ob}{d d' : D .ob} (f : C [ c , c' ]) (g : D [ d , d' ]) → ProdGenerator
+    _×ₑ_ : ∀ {c c' : C .ob}{d d' : D .ob}
+          (f : C [ c , c' ]) (g : D [ d , d' ]) → ProdGenerator
 
   data ProdAx : Type (ℓ-max (ℓ-max ℓc ℓc') (ℓ-max ℓd ℓd')) where
     combine-id×id : ∀ {c c' d d'} (f : C [ c , c' ])(g : D [ d , d' ])
@@ -110,7 +112,8 @@ module _ (C : Category ℓc ℓc') (D : Category ℓd ℓd') where
   -- ≡ (C.id ⋆ C.id) ×ₑ (D.id ⋆ D.id)
   -- ≡ (c × D .id) ⋆ (C .id × d)
   -- ≡ id ⋆ id
-  simul-id : ∀ {c d} → ηP Q Ax .I-hom (C .id {c} ×ₑ D .id {d}) ≡ _×C_ .id {c , d}
+  simul-id : ∀ {c d} →
+             ηP Q Ax .I-hom (C .id {c} ×ₑ D .id {d}) ≡ _×C_ .id {c , d}
   simul-id {c}{d} =
     sym (ηEq Q Ax (combine-×id× (C .id) (D .id)))
     ∙ cong₂ (comp' _×C_) (ηEq Q Ax (×id-Id c d)) ((ηEq Q Ax (id×-Id c d)))
@@ -136,9 +139,12 @@ module _ (C : Category ℓc ℓc') (D : Category ℓd ℓd') where
       (sym (_×C_ .⋆Assoc (×r _ ⟪ f' ⟫) (×l _ ⟪ g ⟫) (×l _ ⟪ g' ⟫))
       ∙ cong₂ (comp' _×C_) (refl {x = ×l _ ⟪ g' ⟫}) (×lr f' g)
       ∙ (_×C_ .⋆Assoc (×l _ ⟪ g ⟫) (×r _ ⟪ f' ⟫) (×l _ ⟪ g' ⟫))
-      ∙ cong₂ (seq' _×C_) (refl {x = (×l _ ⟪ g ⟫)}) (ηEq Q Ax (combine-id×id f' g')))
+      ∙ cong₂ (seq' _×C_)
+              (refl {x = (×l _ ⟪ g ⟫)}) (ηEq Q Ax (combine-id×id f' g')))
     ∙ sym (_×C_ .⋆Assoc (×r _ ⟪ f ⟫) (×l _ ⟪ g ⟫) (ηP Q Ax .I-hom (f' ×ₑ g')))
-    ∙ cong₂ (seq' _×C_) (ηEq Q Ax (combine-id×id f g)) (refl {x = (ηP Q Ax .I-hom (f' ×ₑ g'))})
+    ∙ cong₂ (seq' _×C_)
+            (ηEq Q Ax (combine-id×id f g))
+            (refl {x = (ηP Q Ax .I-hom (f' ×ₑ g'))})
 
   -- todo: better name
   ×× : Functor (C BP.×C D) _×C_

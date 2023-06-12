@@ -21,7 +21,8 @@ module Examples (𝓒 : Category ℓ ℓ') where
   _ : ∀ {A B}{f : 𝓒 [ A , B ]} → id ∘ (id ∘ id ∘ f) ∘ id ≡ id ∘ id ∘ (id ∘ f)
   _ = solveCat! 𝓒
 
-  _ : ∀ {A B C}{f : 𝓒 [ A , B ]}{g : 𝓒 [ B , C ]} → f ⋆ g ≡ g ∘ (id ∘ f) ∘⟨ 𝓒 ⟩ id
+  _ : ∀ {A B C}{f : 𝓒 [ A , B ]}{g : 𝓒 [ B , C ]} →
+      f ⋆ g ≡ g ∘ (id ∘ f) ∘⟨ 𝓒 ⟩ id
   _ = solveCat! 𝓒
 
   ex : ∀ {A B C}(f : 𝓒 [ A , B ])(g : 𝓒 [ B , C ])(h : 𝓒 [ A , C ])

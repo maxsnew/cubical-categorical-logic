@@ -52,7 +52,8 @@ isContrRedundantStr : {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}
                {F G : Functor C D}
                (α : NatTrans F G)
              → isContr (RedundantStr α)
-isContrRedundantStr {C = C} {D = D} {F = F} {G = G} α .fst .fst f = α ⟦ _ ⟧ ⋆⟨ D ⟩ G ⟪ f ⟫
+isContrRedundantStr {C = C} {D = D} {F = F} {G = G} α .fst .fst f =
+  α ⟦ _ ⟧ ⋆⟨ D ⟩ G ⟪ f ⟫
 isContrRedundantStr {C = C} {D = D} {F = F} {G = G} α .fst .snd f = refl
 isContrRedundantStr {C = C} {D = D} {F = F} {G = G} α .snd (ϕ , p) =
   Σ≡Prop (λ x → isPropImplicitΠ2 λ _ _ → isPropΠ (λ _ → D .isSetHom _ _))
@@ -75,7 +76,8 @@ module _ (C : Category ℓC ℓC')(D : Category ℓD ℓD') where
   FUNCTOR .id {x = F} .snd .fst = F .F-hom
   FUNCTOR .id {x = F} .snd .snd f = sym (D .⋆IdL _)
   FUNCTOR ._⋆_ (α , ϕ) (β , ψ) .fst = β ∘ᵛ α
-  FUNCTOR ._⋆_ {x = F}{y = G}{z = H} (α , ϕ) (β , ψ) .snd .fst f = ϕ .fst f ⋆⟨ D ⟩ β ⟦ _ ⟧
+  FUNCTOR ._⋆_ {x = F}{y = G}{z = H} (α , ϕ) (β , ψ) .snd .fst f =
+    ϕ .fst f ⋆⟨ D ⟩ β ⟦ _ ⟧
   FUNCTOR ._⋆_ (α , ϕ) (β , _) .snd .snd f =
     cong₂ (seq' D) (ϕ .snd f) refl
     ∙ D .⋆Assoc _ _ _
@@ -85,7 +87,8 @@ module _ (C : Category ℓC ℓC')(D : Category ℓD ℓD') where
   FUNCTOR .⋆IdR (α , _) = RedundNatTrans≡ (funExt (λ a → D .⋆IdR _))
   FUNCTOR .⋆Assoc f g h = RedundNatTrans≡ (funExt (λ a → D .⋆Assoc _ _ _))
   FUNCTOR .isSetHom =
-    isSetΣ isSetNatTrans (λ α → isProp→isSet (isContr→isProp (isContrRedundantStr α)))
+    isSetΣ isSetNatTrans
+           (λ α → isProp→isSet (isContr→isProp (isContrRedundantStr α)))
 
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'} {E : Category ℓE ℓE'} where
   Sym : Functor C (FUNCTOR D E) → Functor D (FUNCTOR C E)

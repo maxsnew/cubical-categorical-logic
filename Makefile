@@ -10,7 +10,6 @@ AGDAI_FILES = $(AGDA_FILES:.agda=.agdai)
 all: $(AGDAI_FILES)
 
 test: check-whitespace $(AGDAI_FILES)
-	make clean
 
 test-and-report:
 	@failed=""; \

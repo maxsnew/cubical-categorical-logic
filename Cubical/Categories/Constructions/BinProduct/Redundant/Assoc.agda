@@ -12,8 +12,10 @@ open import Cubical.Data.Graph.Base
 open import Cubical.Data.Sum as Sum hiding (rec)
 open import Cubical.Data.Sigma
 
-import Cubical.Categories.Constructions.BinProduct.Redundant.Assoc.ToRight as ToRight
-import Cubical.Categories.Constructions.BinProduct.Redundant.Assoc.ToLeft as ToLeft
+import Cubical.Categories.Constructions.BinProduct.Redundant.Assoc.ToRight
+  as ToRight
+import Cubical.Categories.Constructions.BinProduct.Redundant.Assoc.ToLeft
+  as ToLeft
 open import Cubical.Categories.Constructions.BinProduct.Redundant.Base as BP
 open import Cubical.Categories.Constructions.Free.Category as Free hiding (rec)
 open import Cubical.Categories.Constructions.Presented as Presented hiding (rec)
@@ -36,6 +38,7 @@ private
   variable
     ℓe ℓe' ℓf ℓf' : Level
 
-module _ {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}{E : Category ℓe ℓe'}{F : Category ℓf ℓf'} where
+module _ {C : Category ℓc ℓc'}
+         {D : Category ℓd ℓd'}{E : Category ℓe ℓe'}{F : Category ℓf ℓf'} where
   assoc-bif : Bifunctor (C ×C D) E F → Bifunctor C (D ×C E) F
   assoc-bif G = Functor→Bifunctor (rec (C ×C D) E G ∘F ToLeft.Assoc)

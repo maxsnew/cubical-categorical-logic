@@ -27,4 +27,5 @@ self C .Tm-repr A .vertex = A
 self C .Tm-repr A .element = C .cat .id
 self C .Tm-repr A .universal .coinduction f = f
 self C .Tm-repr A .universal .commutes f = C .cat .⋆IdR _
-self C .Tm-repr A .universal .is-uniq g f fid≡g = f ≡⟨ sym (C .cat .⋆IdR f) ⟩ fid≡g
+self C .Tm-repr A .universal .is-uniq g f fid≡g =
+  f ≡⟨ sym (C .cat .⋆IdR f) ⟩ fid≡g

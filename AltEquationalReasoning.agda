@@ -2,7 +2,7 @@
 
 module AltEquationalReasoning where
 
-open import Cubical.Foundations.Prelude hiding (≡⟨⟩-syntax; _∎; _≡⟨_⟩_)
+open import Cubical.Foundations.Prelude hiding (≡⟨⟩-syntax; _∎; _≡⟨⟩_)
 
 private
   variable
@@ -16,4 +16,3 @@ private
 infixr 2 ≡⟨⟩-syntax ≡i⟨⟩-syntax
 syntax ≡⟨⟩-syntax x q p = x ≡⟨ p ⟩ q
 syntax ≡i⟨⟩-syntax x q (λ i → m)  = x ≡[ i ]⟨ m ⟩ q
-

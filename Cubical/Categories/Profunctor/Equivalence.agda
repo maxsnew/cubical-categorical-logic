@@ -60,7 +60,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
   open isUniversal
   open Bifunctor
 
-  ProfRepresentation≅PshFunctorRepresentation : Iso (ProfRepresentation C D R) (PshFunctorRepresentation C D R)
+  ProfRepresentation≅PshFunctorRepresentation : Iso (ProfRepresentation C D R)
+                                                (PshFunctorRepresentation C D R)
   ProfRepresentation≅PshFunctorRepresentation =
     record {
      fun = (ProfRepresentation→PshFunctorRepresentation C D R) ;
@@ -101,7 +102,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
           (λ X → isoProfHomoProfHomo' R R' .inv (ProfHomo'IsoΣ R R' .inv X))
           -- Turn the records into Σ types, then prove we have a path between
           -- the Σ-tized versions of η and η'
-          -- There is definitely a shorter way to do this with Σ≡Prop but I couldn't get it to work
           (ΣPathP
             (refl ,
               (ΣPathP (
@@ -112,7 +112,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
                 ) ,
                 (isProp-natR R R'
                   ((isoProfHomoProfHomo' R R' .fun (η .fst)))
-                  ((ProfHomo'.PH-natR (isoProfHomoProfHomo' R R' .fun (η' .fst))))
+                  ((ProfHomo'.PH-natR (isoProfHomoProfHomo' R R'
+                    .fun (η' .fst))))
                   (λ c d d' r g i → PH-natR (fst η) r g i)
                 )
               ))
@@ -122,7 +123,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
         )
       )
 
-  PshFunctorRepresentation≅ParamUnivElt : Iso (PshFunctorRepresentation C D R) (ParamUnivElt C D R)
+  PshFunctorRepresentation≅ParamUnivElt : Iso (PshFunctorRepresentation C D R)
+                                              (ParamUnivElt C D R)
   PshFunctorRepresentation≅ParamUnivElt =
     record {
       fun = PshFunctorRepresentation→ParamUnivElt C D R ;
@@ -172,7 +174,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
           G'≡G = (Functor≡
                     -- object map is same
                     (λ c → refl)
-                    -- morphisms are the same due to the uniqueness of coinduction
+                    -- morphisms are the same due to the
+                    -- uniqueness of coinduction
                     (λ {x} {y} ϕ →
                       let dx = U' x .vertex
                           εx = U' x .element
@@ -186,23 +189,29 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
                         ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx)
                         (G ⟪ ϕ ⟫)
                         {-
-                          nested proof that G ⟪ ϕ ⟫ also satisfies this coinduction
-                          this works by the following diagram between the presheafs R⟅-,a⟆ and D[-,Ga]
+                          nested proof that G ⟪ ϕ ⟫ also satisfies this
+                          coinduction
+                          this works by the following diagram between
+                            the presheafs R⟅-,a⟆ and D[-,Ga]
                                    ηx
                              R⟅-,x⟆ ==> D[-,Gx]
                            λR(ϕ)  ∥         ∥ (G(ϕ) ∘ -)
                                   ⇓    ηy   ⇓
                              R⟅-,y⟆ ==> D[-,Gy]
 
-                          These are presheafs D ^op ⟶ SET, and we consider the slice of this diagram at G ⟅ x ⟆
+                          These are presheafs D ^op ⟶ SET, and we consider
+                            the slice of this diagram at G ⟅ x ⟆
                                         ηxᴳˣ
                                  R⟅Gx,x⟆ --→ D[Gx,Gx]
                           λR(ϕ)ᴳˣ  |            |  (G(ϕ) ∘ -)
                                   ↓            ↓
                                  R⟅Gx,y⟆ --→ D[Gx,Gy]
                                         ηyᴳˣ
-                          Note that by construction, the η and G here define the coinduction and εx ⋆ maps (these are what form the NatIso)
-                          Thus the equality of the 2 expressions below follows from the fact that η is a natural transformation
+                          Note that by construction, the η and G here define
+                          the coinduction and εx ⋆ maps
+                            (these are what form the NatIso)
+                          Thus the equality of the 2 expressions below follows
+                            from the fact that η is a natural transformation
 
                                               εx ⋆
                                     D[Gx,Gx] ---→ R⟅Gx,x⟆
@@ -215,39 +224,66 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
                         (
                           (D [ εy ∘ᴾ⟨ R⟅-,y⟆ ⟩ (G ⟪ ϕ ⟫) ])
                             ≡⟨ refl ⟩
-                          lower (((LiftF ∘F R⟅-,y⟆) ⟪ G ⟪ ϕ ⟫ ⟫) ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
-                            ≡⟨ (λ i → lower (((LiftF ∘Fb R ) .Bif-idR (~ i)) (((LiftF ∘Fb R) .Bif-homL (G ⟪ ϕ ⟫) _) ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id)))))) ⟩
-                          lower ((((Prof*-o→Functor C D (LiftF ∘Fb R )) ⟅ y ⟆) ⟪ G ⟪ ϕ ⟫ ⟫) ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
-                            -- since εy is defined in terms of R(Gy, y), we first use naturality
-                            -- to consider the relevant component of the εy ⋆ map, namely the component at Gx
-                            ≡⟨ (λ i → lower (((η⁻¹ .trans .N-ob y .N-hom (G ⟪ ϕ ⟫)) (~ i)) (lift (D .id)) ) ) ⟩
-                            -- next, we use some recombining of G ϕ to see it as an application
-                            -- of a different Hom Functor applied to id at Gx instead of Gy:
-                          lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆)) (((Bifunctor→Functor (LiftF ∘Fb (HomBif D))) ⟪ G ⟪ ϕ ⟫ , G ⟪ C .id ⟫ ⟫) (lift (D .id))))
-                            ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆))
-                              (lift (((Bifunctor→Functor (HomBif D)) ⟪ G ⟪ ϕ ⟫ , G .F-id i ⟫) (D .id))))
+                          lower (((LiftF ∘F R⟅-,y⟆) ⟪ G ⟪ ϕ ⟫ ⟫)
+                          ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ y ⟆)) (lift (D .id))))
+                            ≡⟨ (λ i → lower (((LiftF ∘Fb R ) .Bif-idR (~ i))
+                               (((LiftF ∘Fb R) .Bif-homL (G ⟪ ϕ ⟫) _)
+                                ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ y ⟆))
+                                  (lift (D .id)))))) ⟩
+                          lower ((((Prof*-o→Functor C D (LiftF ∘Fb R )) ⟅ y ⟆)
+                            ⟪ G ⟪ ϕ ⟫ ⟫) ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ y ⟆))
+                              (lift (D .id))))
+                            -- since εy is defined in terms of R(Gy, y), we
+                              -- first use naturality
+                            -- to consider the relevant component of the εy ⋆
+                              -- map, namely the component at Gx
+                            ≡⟨ (λ i → lower (((η⁻¹ .trans .N-ob y
+                              .N-hom (G ⟪ ϕ ⟫)) (~ i)) (lift (D .id)) ) ) ⟩
+                            -- next, we use some recombining of G ϕ to see
+                              -- it as an application
+                            -- of a different Hom Functor applied to id at
+                              -- Gx instead of Gy:
+                              lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆))
+                                (((Bifunctor→Functor (LiftF ∘Fb (HomBif D)))
+                                  ⟪ G ⟪ ϕ ⟫ , G ⟪ C .id ⟫ ⟫) (lift (D .id))))
+                            ≡⟨ (λ i → lower ((η⁻¹ .trans
+                              .N-ob y .N-ob (G ⟅ x ⟆))
+                              (lift (((Bifunctor→Functor (HomBif D))
+                                ⟪ G ⟪ ϕ ⟫ , G .F-id i ⟫) (D .id))))
                             )⟩
-                          lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift (((Bifunctor→Functor (HomBif D)) ⟪ G ⟪ ϕ ⟫ , D .id ⟫) (D .id))))
-                            ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift (((HomBif D) .Bif-idR (i) ∘f (HomBif D) ⟪ G ⟪ ϕ ⟫ ⟫l ) (D .id))))) ⟩
-                          lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift (G ⟪ ϕ ⟫ ⋆⟨ D ⟩ D .id)))
-                            ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆)) (lift (D .⋆IdL (D .⋆IdR (G ⟪ ϕ ⟫) (i)) (~ i))))) ⟩
-                          lower (((η⁻¹ .trans .N-ob y) .N-ob (G ⟅ x ⟆)) (lift ((D .id) ⋆⟨ D ⟩ G ⟪ ϕ ⟫)))
+                          lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆))
+                            (lift (((Bifunctor→Functor (HomBif D)) ⟪ G ⟪ ϕ ⟫ ,
+                              D .id ⟫) (D .id))))
+                            ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob y .N-ob
+                              (G ⟅ x ⟆)) (lift (((HomBif D) .Bif-idR (i) ∘f
+                                (HomBif D) ⟪ G ⟪ ϕ ⟫ ⟫l ) (D .id))))) ⟩
+                          lower ((η⁻¹ .trans .N-ob y .N-ob (G ⟅ x ⟆))
+                            (lift (G ⟪ ϕ ⟫ ⋆⟨ D ⟩ D .id)))
+                            ≡⟨ (λ i → lower ((η⁻¹ .trans .N-ob y .N-ob
+                              (G ⟅ x ⟆)) (lift (D .⋆IdL (D .⋆IdR (G ⟪ ϕ ⟫)
+                                (i)) (~ i))))) ⟩
+                          lower (((η⁻¹ .trans .N-ob y) .N-ob (G ⟅ x ⟆))
+                            (lift ((D .id) ⋆⟨ D ⟩ G ⟪ ϕ ⟫)))
                             ≡⟨ (λ i → lower (
                                 ((η⁻¹ .trans .N-ob y) .N-ob (G ⟅ x ⟆))
-                                  (lift (((HomBif D) ⟪ G ⟪ ϕ ⟫ ⟫r ∘f ((HomBif D) .Bif-idL (~ i))) (D .id)))
+                                  (lift (((HomBif D) ⟪ G ⟪ ϕ ⟫ ⟫r ∘f
+                                    ((HomBif D) .Bif-idL (~ i))) (D .id)))
                             )) ⟩
                           lower (
                             ((η⁻¹ .trans .N-ob y) .N-ob (G ⟅ x ⟆))
-                              (lift (((Bifunctor→Functor (HomBif D)) ⟪ D .id , G ⟪ ϕ ⟫ ⟫) (D .id)))
+                              (lift (((Bifunctor→Functor (HomBif D))
+                                ⟪ D .id , G ⟪ ϕ ⟫ ⟫) (D .id)))
                           )
                             ≡⟨ refl ⟩
                           lower (
-                            ((((Prof*-o→Functor C D (LiftF ∘Fb (Functor→Prof*-o C D G))) ⟪ ϕ ⟫)
+                            ((((Prof*-o→Functor C D (LiftF ∘Fb
+                              (Functor→Prof*-o C D G))) ⟪ ϕ ⟫)
                               ⋆⟨ FUNCTOR (D ^op) (SET _) ⟩
                             η⁻¹ .trans .N-ob y) .N-ob (G ⟅ x ⟆))
                             (lift (D .id))
                           )
-                            -- now, since we are operating of the section of Gx as described above, we
+                            -- now, since we are operating of the section of Gx
+                              -- as described above, we
                             -- can use the above argument to port over to εx
                             ≡⟨ (λ i → lower (
                               (((η⁻¹ .trans .N-hom ϕ) (i)) .N-ob (G ⟅ x ⟆))
@@ -262,7 +298,8 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
                           )
                             ≡⟨ (λ i → (R .Bif-assoc (D .id) ϕ (i)) εx) ⟩
                           (R .Bif-homL (D .id) _) ((R .Bif-homR (G ⟅ x ⟆) ϕ) εx)
-                            ≡⟨ ( λ i → (R .Bif-idL i) ((R .Bif-homR (G ⟅ x ⟆) ϕ) εx))⟩
+                            ≡⟨ ( λ i → (R .Bif-idL i)
+                              ((R .Bif-homR (G ⟅ x ⟆) ϕ) εx))⟩
                           ((R⟅dx,-⟆ ⟪ ϕ ⟫) εx) ∎
                         )
                        )⟩
@@ -272,11 +309,13 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
         G'≡G ,
         (makeNatIsoPathP
           refl
-          (cong′ (λ X → Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb Functor→Prof*-o C D X)) G'≡G)
+          (cong′ (λ X → Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb
+            Functor→Prof*-o C D X)) G'≡G)
           (funExt (λ (c : C .ob) →
             (makeNatTransPathP
               refl
-              (cong′ (λ X → (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb Functor→Prof*-o C D X)) .F-ob c) G'≡G)
+              (cong′ (λ X → (Prof*-o→Functor C D (LiftF {ℓD'}{ℓS} ∘Fb
+                Functor→Prof*-o C D X)) .F-ob c) G'≡G)
               (funExt (λ (d : D .ob) →
                 (funExt λ _ → refl)
               ))
@@ -285,19 +324,30 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') (R : C *-[ ℓS ]-o
         )
       )
 
-  ParamUnivElt≅ParamUniversalElement : Iso (ParamUnivElt C D R) (ParamUniversalElement C D R)
+  ParamUnivElt≅ParamUniversalElement : Iso (ParamUnivElt C D R)
+                                           (ParamUniversalElement C D R)
   ParamUnivElt≅ParamUniversalElement =
     iso
       (ParamUnivElt→ParamUniversalElement C D R)
       (ParamUniversalElement→ParamUnivElt C D R)
-      (λ U → funExt λ c → Σ≡Prop (isPropIsTerminal (∫ᴾ_ {C = D} (pAppR R c))) refl)
+      (λ U → funExt λ c → Σ≡Prop
+        (isPropIsTerminal (∫ᴾ_ {C = D} (pAppR R c))) refl)
       λ U → refl
 
-  ProfRepresentation≅ParamUnivElt : Iso (ProfRepresentation C D R) (ParamUnivElt C D R)
-  ProfRepresentation≅ParamUnivElt = compIso ProfRepresentation≅PshFunctorRepresentation PshFunctorRepresentation≅ParamUnivElt
+  ProfRepresentation≅ParamUnivElt : Iso (ProfRepresentation C D R)
+                                        (ParamUnivElt C D R)
+  ProfRepresentation≅ParamUnivElt = compIso
+                                    ProfRepresentation≅PshFunctorRepresentation
+                                    PshFunctorRepresentation≅ParamUnivElt
 
-  ProfRepresentation≅ParamUniversalElement : Iso (ProfRepresentation C D R) (ParamUniversalElement C D R)
-  ProfRepresentation≅ParamUniversalElement = compIso ProfRepresentation≅ParamUnivElt ParamUnivElt≅ParamUniversalElement
+  ProfRepresentation≅ParamUniversalElement : Iso (ProfRepresentation C D R)
+                                                 (ParamUniversalElement C D R)
+  ProfRepresentation≅ParamUniversalElement = compIso
+                                             ProfRepresentation≅ParamUnivElt
+                                             ParamUnivElt≅ParamUniversalElement
 
-  PshFunctorRepresentation≅ParamUniversalElement : Iso (PshFunctorRepresentation C D R) (ParamUniversalElement C D R)
-  PshFunctorRepresentation≅ParamUniversalElement = compIso PshFunctorRepresentation≅ParamUnivElt ParamUnivElt≅ParamUniversalElement
+  PshFunctorRepresentation≅ParamUniversalElement : Iso
+    (PshFunctorRepresentation C D R) (ParamUniversalElement C D R)
+  PshFunctorRepresentation≅ParamUniversalElement =
+    compIso PshFunctorRepresentation≅ParamUnivElt
+            ParamUnivElt≅ParamUniversalElement

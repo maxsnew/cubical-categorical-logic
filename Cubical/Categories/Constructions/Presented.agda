@@ -12,9 +12,11 @@ open import Cubical.Categories.Functor.Base hiding (Id)
 open import Cubical.Categories.NaturalTransformation hiding (_⟦_⟧)
 open import Cubical.Data.Sigma
 open import Cubical.HITs.PropositionalTruncation hiding (rec)
-open import Cubical.HITs.SetQuotients as Quotient renaming ([_] to [_]q) hiding (rec)
+open import Cubical.HITs.SetQuotients as Quotient
+  renaming ([_] to [_]q) hiding (rec)
 
-open import Cubical.Categories.Constructions.Free.Category as Free hiding (rec; ind)
+open import Cubical.Categories.Constructions.Free.Category as Free
+  hiding (rec; ind)
 private
   variable
     ℓc ℓc' ℓd ℓd' ℓg ℓg' ℓj : Level
@@ -36,7 +38,10 @@ module _ (Q : Quiver ℓg ℓg') where
       lhs rhs : ∀ eq → FQ [ dom eq , cod eq ]
 
   open Axioms
-  mkAx : (Equation : Type ℓj) → (Equation → Σ[ A ∈ FQ .ob ] Σ[ B ∈ FQ .ob ] FQ [ A , B ] × FQ [ A , B ]) → Axioms ℓj
+  mkAx : (Equation : Type ℓj) →
+         (Equation →
+           Σ[ A ∈ FQ .ob ] Σ[ B ∈ FQ .ob ] FQ [ A , B ] × FQ [ A , B ]) →
+         Axioms ℓj
   mkAx Eq funs .equation = Eq
   mkAx Eq funs .dom eq = funs eq .fst
   mkAx Eq funs .cod eq = funs eq .snd .fst
@@ -44,19 +49,23 @@ module _ (Q : Quiver ℓg ℓg') where
   mkAx Eq funs .rhs eq = funs eq .snd .snd .snd
 
   module _ (Ax : Axioms ℓj) where
-    data _≈_ : ∀ {A B} → FQ [ A , B ] → FQ [ A , B ] → Type (ℓ-max (ℓ-max ℓg ℓg') ℓj) where
+    data _≈_ : ∀ {A B} → FQ [ A , B ] → FQ [ A , B ] →
+               Type (ℓ-max (ℓ-max ℓg ℓg') ℓj) where
       ↑_ : ∀ eq → Ax .lhs eq ≈ Ax .rhs eq
       _⋆ₑr_ : ∀ {A B C} → (e₁ : FQ [ A , B ]) → {e₂ e₂' : FQ [ B , C ]}
             → e₂ ≈ e₂'
             → (e₁ ⋆ₑ e₂) ≈ (e₁ ⋆ₑ e₂')
-      _⋆ₑl_ : ∀ {A B C} → {e₁ e₁' : FQ [ A , B ]} → (e₁ ≈ e₁') → (e₂ : FQ [ B , C ])
+      _⋆ₑl_ : ∀ {A B C} → {e₁ e₁' : FQ [ A , B ]}
+            → (e₁ ≈ e₁') → (e₂ : FQ [ B , C ])
             → (e₁ ⋆ₑ e₂) ≈ (e₁' ⋆ₑ e₂)
       ⋆ₑIdL : ∀ {A B} (e : FQ [ A , B ]) → (idₑ ⋆ₑ e) ≈ e
       ⋆ₑIdR : ∀ {A B} (e : FQ [ A , B ]) → (e ⋆ₑ idₑ) ≈ e
-      ⋆ₑAssoc : ∀ {A B C D} (e : FQ [ A , B ])(f : FQ [ B , C ])(g : FQ [ C , D ])
+      ⋆ₑAssoc : ∀ {A B C D} (e : FQ [ A , B ])
+               (f : FQ [ B , C ])(g : FQ [ C , D ])
               → ((e ⋆ₑ f) ⋆ₑ g) ≈ (e ⋆ₑ (f ⋆ₑ g))
 
-    compQ : ∀ {A B C} → ([f] : (FQ [ A , B ]) / _≈_) ([g] : (FQ [ B , C ]) / _≈_)
+    compQ : ∀ {A B C}
+          → ([f] : (FQ [ A , B ]) / _≈_) ([g] : (FQ [ B , C ]) / _≈_)
           → (FQ [ A , C ]) / _≈_
     compQ =
       Quotient.rec2 squash/
@@ -100,7 +109,8 @@ module _ (Q : Quiver ℓg ℓg') where
     module _ (𝓒 : Category ℓc ℓc') (ı : Interp Q 𝓒) where
       Frec = Free.rec Q 𝓒 ı
 
-      module _ (satisfies-axioms : ∀ eq → Frec ⟪ Ax .lhs eq ⟫ ≡ Frec ⟪ Ax .rhs eq ⟫) where
+      module _ (satisfies-axioms : ∀ eq →
+        Frec ⟪ Ax .lhs eq ⟫ ≡ Frec ⟪ Ax .rhs eq ⟫) where
         rec-respects-≈ : ∀ {A B} {e e' : FQ [ A , B ]}
                        → e ≈ e'
                        → Frec ⟪ e ⟫ ≡ Frec ⟪ e' ⟫
@@ -113,7 +123,8 @@ module _ (Q : Quiver ℓg ℓg') where
 
         rec : Functor PresentedCat 𝓒
         rec .F-ob = ı .I-ob
-        rec .F-hom = Quotient.rec (𝓒 .isSetHom) (Frec .F-hom) (λ _ _ → rec-respects-≈)
+        rec .F-hom =
+          Quotient.rec (𝓒 .isSetHom) (Frec .F-hom) (λ _ _ → rec-respects-≈)
         rec .F-id = refl
         rec .F-seq = elimProp2 (λ _ _ → 𝓒 .isSetHom _ _) (λ _ _ → refl)
 
@@ -125,7 +136,8 @@ recNT : {Q : Quiver ℓg ℓg'}{Ax : Axioms Q ℓj} {𝓒 : Category ℓc ℓc'}
           ≡ α (Q .dom gen) ⋆⟨ 𝓒 ⟩ G ⟪ ηP Q Ax .I-hom gen ⟫)
       → NatTrans F G
 recNT α p .N-ob = α
-recNT {Q = Q}{𝓒 = 𝓒}{F = F}{G = G} α p .N-hom = elimProp (λ _ → 𝓒 .isSetHom _ _) isNat where
+recNT {Q = Q}{𝓒 = 𝓒}{F = F}{G = G} α p .N-hom =
+  elimProp (λ _ → 𝓒 .isSetHom _ _) isNat where
   isNatTy : ∀ {a b}(e : FQ Q [ a , b ]) → Type _
   isNatTy e = F ⟪ [ e ]q ⟫ ⋆⟨ 𝓒 ⟩ α _ ≡ α _ ⋆⟨ 𝓒 ⟩ G ⟪ [ e ]q ⟫
 
