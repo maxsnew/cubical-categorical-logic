@@ -119,3 +119,36 @@ module _ (C : Category ℓc ℓc') (D : Category ℓd ℓd') where
   ×-ob d .F-id = ηBif .Bif-L-id
   ×-ob d .F-seq f f' = ηBif .Bif-L-seq f f'
 
+Functor→Bifunctor : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}{E : Category ℓe ℓe'}
+  → Functor (C ×C D) E → Bifunctor C D E
+Functor→Bifunctor G = G ∘Fb ηBif _ _
+
+×-op-commute : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
+             → Functor ((C ×C D) ^op) ((C ^op) ×C (D ^op))
+×-op-commute {C = C}{D = D} = rec C D (mkBifunctorParAx G) ^opF where
+  open Bifunctor
+  open BifunctorParAx
+  G : BifunctorParAx C D (((C ^op) ×C (D ^op)) ^op)
+  G .Bif-ob c d = c , d
+  G .Bif-homL f d = ηBif (C ^op) (D ^op) ⟪ f ⟫l
+  G .Bif-homR c g = ηBif (C ^op) (D ^op) ⟪ g ⟫r
+  G .Bif-hom× f g = ηBif (C ^op) (D ^op) ⟪ f , g ⟫×
+  G .Bif-×-id = ηBif (C ^op) (D ^op) .Bif-×-id
+  G .Bif-×-seq f f' g g' = ηBif (C ^op) (D ^op) .Bif-×-seq f' f g' g
+  G .Bif-L×-agree f = ηBif (C ^op) (D ^op) .Bif-L×-agree f
+  G .Bif-R×-agree g = ηBif (C ^op) (D ^op) .Bif-R×-agree g
+
+×-op-commute⁻ : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
+             → Functor ((C ^op) ×C (D ^op)) ((C ×C D) ^op)
+×-op-commute⁻ {C = C}{D = D} = rec (C ^op) (D ^op) (mkBifunctorParAx G) where
+  open Bifunctor
+  open BifunctorParAx
+  G : BifunctorParAx (C ^op) (D ^op) ((C ×C D) ^op)
+  G .Bif-ob c d = c , d
+  G .Bif-homL f d = ηBif C D ⟪ f ⟫l
+  G .Bif-homR c g = ηBif C D ⟪ g ⟫r
+  G .Bif-hom× f g = ηBif C D ⟪ f , g ⟫×
+  G .Bif-×-id = ηBif C D .Bif-×-id
+  G .Bif-×-seq f f' g g' = ηBif C D .Bif-×-seq f' f g' g
+  G .Bif-L×-agree f = ηBif C D .Bif-L×-agree f
+  G .Bif-R×-agree g = ηBif C D .Bif-R×-agree g
