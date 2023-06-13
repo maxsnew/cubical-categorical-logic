@@ -7,9 +7,16 @@
 \usepackage{comment}
 
 \usepackage{ stmaryrd }
+\usepackage{ amsmath }
 
 
+\newcommand{\pipe}{\,|\,}
+\newcommand{\rep}{\mathop{\textrm{rep}}}
+\newcommand{\downsets}{\mathcal P^{\downarrow}}
+\newcommand{\upsets}{\mathcal P^{\uparrow}}
+\newcommand{\Poset}{\textrm{Poset}}
 \newcommand{\Set}{\textrm{Set}}
+\newcommand{\Prop}{\textrm{Prop}}
 
 \begin{document}
 
@@ -73,13 +80,150 @@ intuitionistic type theory. So order theory internal to presheaves
 means ``just'' interpret everything in the previous section in this
 model of intuitionistic type theory.
 
-TODO: explain internal order theory
+But here I'll unravel some of the definitions with an eye to how they
+could be formalized in Agda. The definitions in this chapter should
+all be interpreted with the modifier ``internal to presheaves on
+$C$''.
+
+A \textbf{poset} $X$ consists of
+\begin{enumerate}
+\item A presheaf $X_0 \in \Set^{C^{op}}$. Below I'll write the
+  presheaf operation $X_0 \gamma x$ as $x \circ \gamma$ or simply
+  $x\gamma$.
+\item A relation $\leq_X : \forall \Gamma \to X_0 \Gamma \to X_0
+  \Prop$ such that for any $\gamma : \Delta \to \Gamma$, if $x
+  \leq_\Gamma y$ then $x\gamma \leq_\Delta y\gamma$.
+\item Reflexivity and transitivity at each fixed $\Gamma$.
+\item Antireflexivity/univalence at each fixed $\Gamma$.
+\end{enumerate}
+Note that this is definitionally isomorphic to a functor $C^{op}$ to
+$\Poset$.
+
+A monotone function from $X$ to $Y$ is
+\begin{enumerate}
+\item A family of functions $f_\Gamma : X_\Gamma \to Y_\Gamma$
+\item that is monotone for each $\Gamma$: if $x \leq_\Gamma x'$ then $f(x) \leq_\Gamma f(x')$
+\item that commutes with reindexing: $f(x)\gamma = f(x\gamma)$
+\end{enumerate}
+Viewing the posets as functors this is definitionally isomorphic to a
+natural transformation.
+
+For each poset we can define the opposite poset, the terminal poset
+and the product poset all by performing the operation on posets
+point-wise.
+
+A more interesting operation is \emph{powering}\footnote{Note that
+technically terminal and product posets could be defined this way by
+using the discrete presheaves $0_\Gamma = \emptyset$ and $2_\Gamma =
+\{ 0,1\}$ but the definition simplifies considerably if we define them
+directly} a presheaf-internal poset $X$ by a presheaf $A$. We call
+this internal poset $X^A$ and it is defined as
+\begin{enumerate}
+\item The elements are given by the internal hom in the presheaf
+  category. This can be defined explicitly as
+
+  \[ X^A(\Gamma) = \Set^{C^{op}}(Y\Gamma \times A, X) \]
+\item We give this a point-wise ordering:
+  \[ f \leq_{\Gamma} g \iff \forall \Delta, \gamma : C(\Delta,\Gamma), a \in A_\Delta.
+  f_\Delta(\gamma,a) \leq_{\Delta} g_\Delta(\gamma,a)
+  \]
+  Which satisfies the reindexing condition because if $f\leq_\Gamma g$ then
+  \begin{align*}
+    f \gamma \leq_{\Delta} g\gamma
+    &\iff \forall \Theta, \delta : C(\Theta,\Delta), a \in A_\Theta.
+    (f\gamma)(\delta, a) \leq_\Theta (g\gamma)(\delta,a)\\
+    &\iff \forall \Theta, \delta : C(\Theta,\Delta), a \in A_\Theta.
+    f(\gamma\delta, a) \leq_\Theta (g)(\gamma\delta,a)\\
+    &\Leftarrow \forall \Theta, \gamma' : C(\Theta,\Gamma), a \in A_\Theta.
+    f(\gamma', a) \leq_\Theta (g)(\gamma',a)\\
+    &\iff f\leq_\Gamma g
+  \end{align*}
+\end{enumerate}
+
+A downset\footnote{This could also be defined by defining a poset of propositions and an internal hom of posets} $S$ on a poset $X$ consists of
+\begin{enumerate}
+\item $S : \forall \Gamma \to X \Gamma \to \Prop$. We write this
+  suggestively as $x \in_{\Gamma} S$ or just $x \in S$.
+\item that is down closed for each $\Gamma$: if $x \in_\Gamma S$ and
+  $y \leq_\Gamma x$ then $y \in_\Gamma S$.
+\item and closed under reindexing $\Gamma$, i.e. if $\gamma : \Delta
+  \to \Gamma$ and $x \in_\Gamma S$ then $x\gamma \in_\Delta S$
+\end{enumerate}
+This definition is simple to adapt to Agda. On paper a more abstract
+definition in terms of functors would be that it's a functor from
+$C^{op}$ to a category of Downsets such that each downset is over the
+appropriate poset. Unfortunately I don't see how to do that in such a
+way that the downset is definitionally ``over'' the right poset.
+
+Downsets over $X$ define a poset $\downsets X$ with ordering given by
+implication. We can define the Yoneda embedding $Y : X \to \downsets X$ by
+\[ y \in_\Gamma Y x \iff y \leq_\Gamma x \]
+
+We say that a monotone function $f : X \to \downsets Y$ is
+\textbf{representable} if there exists $f' : X \to Y$ such that $f = Y
+\circ f'$. Because the Yoneda embedding is mono, such an $f'$ is
+unique if it exists. Furthermore, each $f'_\Gamma(x)$ is characterized
+by the following unique existence property:
+\[ f'_\Gamma(x) \in_\Gamma f(x) \wedge \forall y \in Y. y \in_\Gamma f(x) \Rightarrow y \leq_\Gamma f'(x)\]
+So we can equivalently say that $f$ is representable when for every $\Gamma, x : X_\Gamma$ that there exists a (necessarily unique) $r$ such that
+\[ r \in_\Gamma f(x) \wedge \forall y \in Y. y \in_\Gamma f(x) \Rightarrow y \leq_\Gamma r \]
+The only thing to prove is that such $r$s are necessarily monotone in $x$ (exercise)\footnote{this is the analogue of the representability to functoriality proof Pranav and Steven showed}.
+
+Given a monotone function $f : Y \to X$ we can define a monotone
+function\footnote{names here are not bad and should not be used in
+Agda code} $\widetilde f : X \to \downsets Y$ by $y \in_\Gamma
+\widetilde f(x) \iff f(y) \leq_\Gamma x$. We say $f$ has a
+\textbf{right adjoint} when $\widetilde f(x)$ is representable.
+Given a presheaf $A$, we say $X$ has \textbf{$A$-indexed meets} when the monotone function
+\[ \Delta : X \to X^A \]
+defined by
+\[ \Delta_\Gamma(x)(\gamma,a) = x\gamma \]
+has a right adjoint.
+We can similarly define that $X$ has \textbf{a top element, or nullary meet} when the unique
+\[ ! : X \to 1 \]
+has a right adjoint. Note that this gives a morphism $\top : 1 \to X$ which externally is what we might call a \emph{section}
+\[ \top : \forall \Gamma \to X_\Gamma \]
+satisfying
+\[ \top_\Gamma\gamma = \top_\Delta \]
+and representability says that each $\top$ is a top element of
+$X_\Gamma$. So requiring that $X$ has a top element is equivalent to
+defining $X$ to be a functor form $C^{op}$ to the category of posets
+with a top elements and morphisms that preserve them.
+
+And define that $X$ has \textbf{binary meets} when
+\[ \Delta : X \to X \times X \]
+defined by
+\[ \Delta_\Gamma(x) = (x,x) \]
+has a right adjoint. Externally this is similar to the case for top,
+we get a meet in each poset that is preserved by reindexing.
+
+Now we can take all the above definitions about downsets and
+representability and reformulate them dually for upsets. Or we can define
+\[ \upsets X = (\downsets X^{op})^{op} \]
+And with some careful op-ing re-use all the theory of representability
+shown above. For instance we immediately get dual noitons of
+$A$-indexed joins, nullary and binary joins.
+
+Finally, let $A$ be a presheaf and $X$ be a poset with a top
+element. Define a monotone function
+\[ c : (X^{A \times A}) \to X^A \]
+by
+\[ c_\Gamma(f)(\gamma, a) = f_\Gamma(\gamma , (a, a)) \]
+This should be easy to prove monotone. Note that the product presheaf
+$A \times A$ is constructed pointwise.
+
+% = : 1 → 𝓟↑ ((X^A) ^ A) that represents the upset P(x,y) is good when ∀ x. P(x,x)
+Then we get $\widetilde c : X^A \to \upsets X^{A\times A}$. Further if $X$
+has a top element then $X^A$ does as well which we call $\top : 1 \to
+X^A$. We say $X$ has an $A$-equality predicate when
+\[ \widetilde c \circ \top : 1 \to \upsets X^{A\times A} \]
+is representable.
 
 \section{First-Order Hyperdoctrines}
 
 A first-order hyperdoctrine over a cartesian category $C$ consists of
 \begin{enumerate}
-\item (Propositional Logic) A Heyting algebra $L$ internal to $\Set^{C^{op}}$
+\item (Propositional Logic) A biHeyting algebra $L$ internal to $\Set^{C^{op}}$.
 \item (Universal Quantifiers) Such that for every $A \in C$, $L$ internally has $YA$-indexed meets
 \item (Existential Quantifiers) Such that for every $A \in C$, $L$ internally has $YA$-indexed joins
 \item (Equality) Such that $L$ has an internal equality function for $YA$
@@ -87,10 +231,94 @@ A first-order hyperdoctrine over a cartesian category $C$ consists of
 
 \section{Syntax}
 
-TODO: this is all very syntactic...
+We can give a type theoretic syntax for first-order hyperdoctrines by
+a combination of a simple type theory with terms $\Gamma \vdash M : A$
+as well as intuitionistic propositional logic parameterized by a
+context $\Gamma$ i.e. formulae $\Gamma \pipe \phi$ and proofs $\Gamma
+\pipe \Phi \vdash \phi$. The universal quantifiers are presented as
+follows:
 
-\section{Grothendieck Construction}
+\begin{mathpar}
+  \inferrule{\Gamma,x:A \pipe \phi}{\Gamma \pipe \forall x:A. \phi}
 
-TODO: logical relations...
+  (\forall x:A. \phi)[\gamma] = \forall x:A. \phi[\gamma]
+  
+  \inferrule
+  {\Gamma , x:A \pipe \Phi \vdash \phi}
+  {\Gamma \pipe \Phi \vdash \forall x:A. \phi}
+
+  \inferrule
+  {\Gamma \vdash M : A}
+  {\Gamma \pipe \forall x:A. \phi \vdash \phi[M/x]}
+\end{mathpar}
+
+Existential quantification is similar but you can eliminate it in any
+context. Note that this relies on the model being a Heyting algebra,
+we need some kind of CT structure thing to directly model these rules
+
+\begin{mathpar}
+  \inferrule{\Gamma,x:A \pipe \phi}{\Gamma \pipe \exists x:A. \phi}
+
+  (\exists x:A. \phi)[\gamma] = \exists x:A. \phi[\gamma]
+  
+  \inferrule
+  {\Gamma , x:A \pipe \Phi,\phi \vdash \psi}
+  {\Gamma \pipe \Phi,\exists x:A.\phi \vdash \psi}
+
+  \inferrule
+  {\Gamma \vdash M : A}
+  {\Gamma \pipe \phi[M/x] \vdash \exists x. \phi}
+\end{mathpar}
+
+Finally we have equality:
+
+\begin{mathpar}
+  \inferrule
+  {\Gamma \vdash M : A \and \Gamma \vdash N : A}
+  {\Gamma \pipe M =_A N}
+
+  (M =_A N)[\gamma] = M[\gamma] =_A N[\gamma]
+
+  \inferrule
+  {}
+  {\Gamma ,x:A \pipe \cdot \vdash x =_A x}
+
+  \inferrule
+  {\Gamma,x:A \pipe \Phi[y/x] \vdash \psi[y/x]}
+  {\Gamma,x:A,y:A \pipe \Phi, x =_A y \vdash \psi}
+\end{mathpar}
+
+\section{Grothendieck Construction/Logical Relations}
+
+Given a poset $X$ internal to presheaves on $C$ we can define a
+category $\Sigma_C X$ as follows:
+\begin{enumerate}
+\item The objects are dependent pairs of $\Gamma \in C$ and $x \in X_\Gamma$
+\item A morphism from $\Delta , y$ to $\Gamma , x$ is a $\gamma :
+  C(\Delta,\Gamma)$ such that
+  \[ y \leq_\Delta x\gamma \]
+\item identity and composition are given by id/comp in $C$, verifying
+  that the side-condition is preserved.
+\end{enumerate}
+We also clearly have a ``first-projection'' functor $\pi : \Sigma_C X \to C$.
+
+Then we have the following theorems:
+\begin{enumerate}
+\item If $C$ has a terminal object and the poset $X$ internally has a
+  terminal object then $\Sigma_C X$ has a terminal objects and $\pi$
+  preserves it. Similarly for binary products/binary meets.
+\item If $C$ has exponentials and the poset $X$ internally has Heyting
+  implications and universal quantifiers over objects of $C$ then
+  $\Sigma_C X$ has exponentials and $\pi$ preserves them.
+\item If $C$ has an initial object and the poset $X$ internally has a
+  bottom element then $\Sigma_C X$ has an initial object and $\pi$
+  preserves is.
+\item If $C$ has binary coproducts and the poset $X$ has internal
+  binary joins and $X$ has existential quantifiers and equality for
+  objects of $C$ then $\Sigma_C X$ has binary coproducts and $\pi$
+  preserves them.
+\end{enumerate}
+Additionally in each of these cases the functor $\pi$ preserves the
+structure (products/coproducts/exponentials).
 
 \end{document}
