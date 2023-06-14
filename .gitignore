@@ -1,1 +1,6 @@
 /_build/
+*.auctex-auto
+*.aux
+*.log
+*.pdf
+*.synctex.gz
