@@ -8,9 +8,15 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'README.org'
+      - 'Notes/*'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - 'README.org'
+      - 'Notes/*'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
