@@ -89,10 +89,12 @@ A \textbf{poset} $X$ consists of
 \begin{enumerate}
 \item A presheaf $X_0 \in \Set^{C^{op}}$. Below I'll write the
   presheaf operation $X_0 \gamma x$ as $x \circ \gamma$ or simply
-  $x\gamma$.
-\item A relation $\leq_X : \forall \Gamma \to X_0 \Gamma \to X_0
-  \Prop$ such that for any $\gamma : \Delta \to \Gamma$, if $x
-  \leq_\Gamma y$ then $x\gamma \leq_\Delta y\gamma$.
+  $x\gamma$. We typically suppress the $0$ subscript.
+\item A relation $\leq^X : \forall \Gamma \to X_0 \Gamma \to X_0\Gamma
+  \to \Prop$ which we write infix as $x \leq^X_\Gamma x'$ (and
+  typicall suppress the $X$ superscript) such that for any $\gamma :
+  \Delta \to \Gamma$, if $x \leq_\Gamma^X y$ then $x\gamma
+  \leq_\Delta^X y\gamma$.
 \item Reflexivity and transitivity at each fixed $\Gamma$.
 \item Antireflexivity/univalence at each fixed $\Gamma$.
 \end{enumerate}
@@ -101,7 +103,8 @@ $\Poset$.
 
 A monotone function from $X$ to $Y$ is
 \begin{enumerate}
-\item A family of functions $f_\Gamma : X_\Gamma \to Y_\Gamma$
+\item A family of functions $f_\Gamma : X_\Gamma \to Y_\Gamma$ where
+  we suppress the subscript if it's clear from context.
 \item that is monotone for each $\Gamma$: if $x \leq_\Gamma x'$ then $f(x) \leq_\Gamma f(x')$
 \item that commutes with reindexing: $f(x)\gamma = f(x\gamma)$
 \end{enumerate}
