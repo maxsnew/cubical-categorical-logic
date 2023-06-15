@@ -10,8 +10,17 @@
 \usepackage{ amsmath }
 
 
+\newcommand{\ctx}{\,\,\textrm{ctx}}
+\newcommand{\ty}{\,\,\textrm{type}}
+\newcommand{\pctx}{\,\,\textrm{pctx}}
+\newcommand{\form}{\,\,\textrm{formula}}
+\newcommand{\wk}{\textrm{wk}}
+\newcommand{\var}{\textrm{var}}
+\newcommand{\el}{\textrm{tm}}
+\newcommand{\pf}{\textrm{pf}}
 \newcommand{\pipe}{\,|\,}
 \newcommand{\rep}{\mathop{\textrm{rep}}}
+\newcommand{\psh}{\mathcal P^{o}}
 \newcommand{\downsets}{\mathcal P^{\downarrow}}
 \newcommand{\upsets}{\mathcal P^{\uparrow}}
 \newcommand{\Poset}{\textrm{Poset}}
@@ -232,6 +241,156 @@ A first-order hyperdoctrine over a cartesian category $C$ consists of
 \item (Equality) Such that $L$ has an internal equality function for $YA$
 \end{enumerate}
 
+\section{Making Hyperdoctrines more Compositional}
+
+The definition above is not a modular definition in that certain
+elements (distributivity of joins, existentials, equality?) follow
+automatically only because we assume we are working with a Heyting
+algebra. Instead, let's describe everything in a modular fashion,
+which also means describing something very close to the syntax itself.
+
+A \textbf{simple category with families} consists of
+\begin{enumerate}
+\item A category $C$ with a terminal object
+\item A type $T$ of \emph{types}, and a function assigning a presheaf
+  on $C$ to each type $\el : T \to \psh C$.
+\item For each $\Gamma \in C$ and $A \in T$, an object $\Gamma \times
+  A \in C$ representing
+  \[ \Delta \to (\Gamma \times A) \cong \Delta \to \Gamma \times \el(A)_\Delta \]
+\end{enumerate}
+A \textbf{hyperdoctrine} extends this with the following
+\begin{enumerate}
+\item A poset $P$ with a top element internal to $\psh C$
+\item A presheaf $F$ of \emph{formulae} with a morphism
+  $\pf : F \to \downsets P$
+\item A morphism $\wedge : P \times F \to P$ satisfying (in the internal language)
+  \[ \Psi \leq \Phi \wedge \phi \iff \Psi \leq \Phi \wedge \pf(\phi)_\Psi \]
+\end{enumerate}
+
+This corresponds precisely to the following explicit substitution
+calculus, presented in traditional type theoretic notation. This felt
+like a total waste of time to me so please let me know if you found it
+helpful.
+%
+First there are $8$ judgments, whose formation rules are given as
+follows
+
+\begin{mathpar}
+  \inferrule {} {\Gamma \ctx}\and
+  \inferrule{\Delta \ctx \and \Gamma \ctx}{\Delta \vdash \gamma : \Gamma}\\
+
+  \inferrule {} {A \ty}\and
+  \inferrule{\Gamma \ctx \and A \ty}{\Gamma \vdash M : A}\\
+
+  \inferrule{\Gamma \ctx}{\Gamma \pipe \Phi \pctx}\and
+  \inferrule{\Gamma \ctx\and \Gamma\pipe\Psi \pctx \and \Gamma\pipe\Phi \pctx}{\Gamma\pipe \Psi \vdash \Phi}\\
+
+  \inferrule{\Gamma \ctx}{\Gamma\pipe \phi \form}\and
+  \inferrule{\Gamma \ctx \and \Gamma\pipe \Phi \pctx \and \Gamma\pipe\phi \form}{\Gamma\pipe \Phi \vdash \phi}
+\end{mathpar}
+
+And the following basic constructions on contexts, substitutions and terms
+\begin{mathpar}
+  \inferrule{}{\cdot \ctx}
+
+  \inferrule{\Gamma \ctx \and A \ty}{\Gamma,A \ctx}
+
+  \inferrule
+  {\Delta \vdash \gamma : \Gamma \and
+    \Theta \vdash \delta : \Delta
+  }
+  {\Theta \vdash \gamma[\delta] : \Gamma}
+
+  \inferrule
+  {}
+  {\Gamma \vdash \Gamma : \Gamma}
+
+  \inferrule
+  {}
+  {\Delta \vdash \cdot : \cdot}
+
+  \inferrule
+  {}
+  {\Gamma,A \vdash \wk : \Gamma}
+
+  \inferrule
+  {\Delta \vdash \gamma : \Gamma \and \Delta \vdash M : A}
+  {\Delta \vdash (\gamma, M) : \Gamma,A}
+
+  \inferrule
+  {\Gamma \vdash M : A \and \Delta \vdash \gamma : \Gamma}
+  {\Delta \vdash M[\gamma] : A}
+
+  \inferrule
+  {}
+  {\Gamma,A \vdash \var : A}
+\end{mathpar}
+
+And the analogous constructs for the logic:
+\begin{mathpar}
+  \inferrule
+  {}
+  {\Gamma \pipe \cdot \pctx}
+
+  \inferrule
+  {\Gamma \pipe \Phi \pctx \and \Gamma \pipe \phi \form}
+  {\Gamma \pipe \Phi,\phi \pctx}
+
+  \inferrule
+  {}
+  {\Gamma \pipe \Phi \vdash \Phi}
+
+  \inferrule
+  {\Gamma \pipe \Chi \vdash \Phi \and \Gamma \pipe \Psi \vdash \Phi\}
+  {\Gamma \pipe \Chi \vdash \Phi}
+
+  \inferrule
+  {}
+  {\Gamma \pipe \Phi \vdash \cdot}
+
+  \inferrule
+  {\Gamma \pipe \Psi \vdash \Phi \and
+   \Gamma \pipe \Psi \vdash \phi}
+  {\Gamma \pipe \Psi \vdash \Phi,\phi}
+
+  \inferrule
+  {}
+  {\Gamma \pipe \Phi,\phi \vdash \Phi}
+
+  \inferrule
+  {}
+  {\Gamma \pipe \Phi,\phi \vdash \phi}
+\end{mathpar}
+
+Subject to the following equations on the substitutions and terms.
+\begin{mathpar}
+  \Gamma[\gamma] = \gamma
+
+  \gamma[\Gamma] = \gamma
+
+  \gamma[\delta][\theta] = \gamma[\delta[\theta]]
+
+  \inferrule
+  {\Delta \vdash \gamma : \cdot}
+  {\gamma = \cdot}
+
+  \inferrule
+  {\Delta \vdash \gamma : \Gamma,A}
+  {\gamma = (\wk[\gamma],\var[\gamma])}
+
+  \wk[\gamma,M] = \gamma
+
+  M[\Gamma] = M
+
+  M[\gamma][\delta] = M[\gamma[\delta]]
+
+  \var[\gamma,M] = M
+\end{mathpar}
+
+\subsection{Connectives, Modularly}
+
+TODO
+
 \section{Syntax}
 
 We can give a type theoretic syntax for first-order hyperdoctrines by
@@ -245,7 +404,7 @@ follows:
   \inferrule{\Gamma,x:A \pipe \phi}{\Gamma \pipe \forall x:A. \phi}
 
   (\forall x:A. \phi)[\gamma] = \forall x:A. \phi[\gamma]
-  
+
   \inferrule
   {\Gamma , x:A \pipe \Phi \vdash \phi}
   {\Gamma \pipe \Phi \vdash \forall x:A. \phi}
@@ -263,7 +422,7 @@ we need some kind of CT structure thing to directly model these rules
   \inferrule{\Gamma,x:A \pipe \phi}{\Gamma \pipe \exists x:A. \phi}
 
   (\exists x:A. \phi)[\gamma] = \exists x:A. \phi[\gamma]
-  
+
   \inferrule
   {\Gamma , x:A \pipe \Phi,\phi \vdash \psi}
   {\Gamma \pipe \Phi,\exists x:A.\phi \vdash \psi}
