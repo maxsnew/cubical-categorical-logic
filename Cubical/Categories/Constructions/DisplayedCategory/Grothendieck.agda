@@ -63,21 +63,23 @@ module _ {ℓC ℓC' : Level} {ℓP : Level} (C : Category ℓC ℓC') where
 
   open Functor
 
-  GrothendieckForgetful : {D : DisplayedCategory {_} {_} {ℓP} C} →
+  -- The first projection from the Grothendieck construction to the original
+  -- category
+  Fst : {D : DisplayedCategory {_} {_} {ℓP} C} →
                           Functor (Grothendieck D) C
-  GrothendieckForgetful .F-ob = fst
-  GrothendieckForgetful .F-hom = fst
-  GrothendieckForgetful .F-id = refl
-  GrothendieckForgetful {D} .F-seq =
+  Fst .F-ob = fst
+  Fst .F-hom = fst
+  Fst .F-id = refl
+  Fst {D} .F-seq =
     λ f g → cong {x = f ⋆⟨ Grothendieck D ⟩ g} fst refl
 
   open DisplayedPoset
 
-  GrothendieckForgetfulIsFaithful : (D : DisplayedPoset {_} {_} {ℓP} C) →
+  -- The first projection is faithful in the case of a displayed poset
+  FstIsForgetful : (D : DisplayedPoset {_} {_} {ℓP} C) →
                                     isFaithful
-                                    (GrothendieckForgetful
-                                      {DisplayedPoset→Cat C D})
-  GrothendieckForgetfulIsFaithful D x y f g p =
+                                    (Fst {DisplayedPoset→Cat C D})
+  FstIsForgetful D x y f g p =
     ΣPathP (p , isProp→PathP (λ i → D .isPropHomf {f = p i}) (f .snd) (g .snd))
 
 >>>>>>> e3fa876 (Grothendieck forgetful functor)
