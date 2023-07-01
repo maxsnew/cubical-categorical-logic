@@ -13,7 +13,8 @@ module _ {ℓC ℓC' : Level} (C : Category ℓC ℓC') where
 
   open Category
 
-  record DisplayedCategory (ℓP : Level) : Type (ℓ-max (ℓ-max ℓC ℓC') (ℓ-suc ℓP)) where
+  record DisplayedCategory (ℓP : Level) : Type (ℓ-max (ℓ-max ℓC ℓC') (ℓ-suc ℓP))
+    where
     field
       D-ob : C .ob → Type ℓP
       D-Hom_[_,_] : {a b : C .ob} → (f : C [ a , b ])
@@ -66,4 +67,5 @@ module _ {C : Category ℓC ℓC'} (D : DisplayedCategory C ℓP) where
       S-id  : ∀ {c} d → S-hom (C .id {c}) d d ≡ D .D-id
       S-seq : ∀ {c c' c''} {d d' d''}
               (f : C [ c , c' ])(f' : C [ c' , c'' ])
-            → S-hom (f ⋆⟨ C ⟩ f') d d'' ≡ D ._D-⋆_ (S-hom f d d') (S-hom f' d' d'')
+            → S-hom (f ⋆⟨ C ⟩ f') d d''
+            ≡ D ._D-⋆_ (S-hom f d d') (S-hom f' d' d'')
