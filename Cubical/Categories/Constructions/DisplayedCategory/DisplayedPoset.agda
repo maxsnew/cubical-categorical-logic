@@ -39,7 +39,7 @@ module _ {ℓC ℓC' : Level} {ℓP : Level} (C : Category ℓC ℓC') where
             → (k : D-Hom f [ x , y ]) → (l : D-Hom g [ y , z ])
             → D-Hom (f ⋆⟨ C ⟩ g) [ x , z ]
 
-  DisplayedPoset→Cat : (D : DisplayedPoset) → (DisplayedCategory {_} {_} {ℓP} C)
+  DisplayedPoset→Cat : (D : DisplayedPoset) → (DisplayedCategory C ℓP)
   DisplayedPoset→Cat D = record
     { D-ob = D-ob
     ; D-Hom_[_,_] = D-Hom_[_,_]
