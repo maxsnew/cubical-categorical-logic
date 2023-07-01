@@ -21,7 +21,7 @@ module _ {ℓC ℓC' : Level} {ℓP : Level} (C : Category ℓC ℓC') where
 
   -- the Grothendieck construction, or the generalized construction
   -- for a subcategory
-  Grothendieck : DisplayedCategory {_} {_} {ℓP} C → Category _ _
+  Grothendieck : DisplayedCategory C ℓP → Category _ _
   Grothendieck D = record
     { ob =  Σ[ x ∈ C .ob ] D-ob x
     ; Hom[_,_] = λ (x , Dx) (y , Dy) →  Σ[ f ∈ C [ x , y ] ] D-Hom f [ Dx , Dy ]
