@@ -28,3 +28,4 @@ SCwF ℓ ℓ' ℓ'' ℓ''' =
   (∀ (Γ : C .ob) (A : Ty)
   → UnivElt C (×Sets ∘F (LiftF {ℓ' = ℓ'''} ∘F ((C [-, Γ ])) ,F
                          LiftF {ℓ' = ℓ'} ∘F Tm A))))
+
