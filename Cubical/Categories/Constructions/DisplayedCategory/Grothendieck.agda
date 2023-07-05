@@ -37,6 +37,7 @@ module _ {ℓC ℓC' : Level} {ℓP : Level} (C : Category ℓC ℓC') where
     ; isSetHom =  isSetΣ (C .isSetHom) (λ _ → isSetHomf)
     } where
       open DisplayedCategory D
+<<<<<<< HEAD
 
   open Functor
 
@@ -58,3 +59,25 @@ module _ {ℓC ℓC' : Level} {ℓP : Level} (C : Category ℓC ℓC') where
                                     (Fst {DisplayedPoset→Cat C D})
   isFaithfulFst D x y f g p =
    ΣPathP (p , isProp→PathP (λ i → D .isPropHomf {f = p i}) (f .snd) (g .snd))
+=======
+
+  open Functor
+
+  GrothendieckForgetful : {D : DisplayedCategory {_} {_} {ℓP} C} →
+                          Functor (Grothendieck D) C
+  GrothendieckForgetful .F-ob = fst
+  GrothendieckForgetful .F-hom = fst
+  GrothendieckForgetful .F-id = refl
+  GrothendieckForgetful {D} .F-seq =
+    λ f g → cong {x = f ⋆⟨ Grothendieck D ⟩ g} fst refl
+
+  open DisplayedPoset
+
+  GrothendieckForgetfulIsFaithful : (D : DisplayedPoset {_} {_} {ℓP} C) →
+                                    isFaithful
+                                    (GrothendieckForgetful
+                                      {DisplayedPoset→Cat C D})
+  GrothendieckForgetfulIsFaithful D x y f g p =
+    ΣPathP (p , isProp→PathP (λ i → D .isPropHomf {f = p i}) (f .snd) (g .snd))
+
+>>>>>>> e3fa876 (Grothendieck forgetful functor)
