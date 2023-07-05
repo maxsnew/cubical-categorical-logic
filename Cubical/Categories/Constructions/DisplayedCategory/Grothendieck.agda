@@ -53,9 +53,9 @@ module _ {ℓC ℓC' : Level} {ℓP : Level} (C : Category ℓC ℓC') where
   open DisplayedPoset
 
   -- The first projection is faithful in the case of a displayed poset
-  FstIsForgetful : (D : DisplayedPoset {_} {_} {ℓP} C) →
+  isFaithfulFst : (D : DisplayedPoset {_} {_} {ℓP} C) →
                                     isFaithful
                                     (Fst {DisplayedPoset→Cat C D})
-  FstIsForgetful D x y f g p =
+  isFaithfulFst D x y f g p =
     ΣPathP (p , isProp→PathP (λ i → D .isPropHomf {f = p i}) (f .snd) (g .snd))
 
