@@ -42,7 +42,7 @@ module _ {ℓC ℓC' : Level} {ℓP : Level} (C : Category ℓC ℓC') where
 
   -- The first projection from the Grothendieck construction to the original
   -- category
-  Fst : {D : DisplayedCategory {_} {_} {ℓP} C} →
+  Fst : {D : DisplayedCategory C ℓP} →
                           Functor (Grothendieck D) C
   Fst .F-ob = fst
   Fst .F-hom = fst
@@ -57,5 +57,4 @@ module _ {ℓC ℓC' : Level} {ℓP : Level} (C : Category ℓC ℓC') where
                                     isFaithful
                                     (Fst {DisplayedPoset→Cat C D})
   isFaithfulFst D x y f g p =
-    ΣPathP (p , isProp→PathP (λ i → D .isPropHomf {f = p i}) (f .snd) (g .snd))
-
+   ΣPathP (p , isProp→PathP (λ i → D .isPropHomf {f = p i}) (f .snd) (g .snd))

@@ -13,7 +13,8 @@ open import Cubical.Categories.Presheaf.Representable
 
 open Category
 SCwF : (ℓ ℓ' ℓ'' ℓ''' : Level)
-     → Type (ℓ-max (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ')) (ℓ-suc ℓ'')) (ℓ-suc ℓ'''))
+     → Type (ℓ-max (ℓ-max (ℓ-max (ℓ-suc ℓ) (ℓ-suc ℓ'))
+            (ℓ-suc ℓ'')) (ℓ-suc ℓ'''))
 SCwF ℓ ℓ' ℓ'' ℓ''' =
   -- The category of contexts and substitutions
   Σ[ C ∈ Category ℓ ℓ' ]
@@ -25,4 +26,5 @@ SCwF ℓ ℓ' ℓ'' ℓ''' =
   Σ[ Tm ∈ (∀ (A : Ty) → Presheaf C ℓ''') ]
   -- Such that the base category has products with terms (context extension)
   (∀ (Γ : C .ob) (A : Ty)
-  → UnivElt C (×Sets ∘F (LiftF {ℓ' = ℓ'''} ∘F ((C [-, Γ ])) ,F LiftF {ℓ' = ℓ'} ∘F Tm A))))
+  → UnivElt C (×Sets ∘F (LiftF {ℓ' = ℓ'''} ∘F ((C [-, Γ ])) ,F
+                         LiftF {ℓ' = ℓ'} ∘F Tm A))))
