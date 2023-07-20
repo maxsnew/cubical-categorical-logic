@@ -17,14 +17,13 @@ open import Cubical.Reflection.RecordEquiv
 open import Cubical.Reflection.StrictEquiv
 
 open import Cubical.Displayed.Base
-open import Cubical.Displayed.Auto
+open import Cubical.Displayed.Auto hiding (univ)
 open import Cubical.Displayed.Record
 open import Cubical.Displayed.Universe
 
 open import Cubical.Relation.Binary.Base
 
 open Iso
-open BinaryRelation
 
 
 private
@@ -34,9 +33,8 @@ private
 record IsPreorder {A : Type ℓ} (_≤_ : A → A → Type ℓ') : Type (ℓ-max ℓ ℓ') where
   no-eta-equality
   constructor ispreorder
-
+  open BinaryRelation
   field
-    is-set : isSet A
     is-prop-valued : isPropValued _≤_
     is-refl : isRefl _≤_
     is-trans : isTrans _≤_
@@ -85,10 +83,13 @@ PreorderEquiv M N = Σ[ e ∈ ⟨ M ⟩ ≃ ⟨ N ⟩ ] IsPreorderEquiv (M .snd)
 isPropIsPreorder : {A : Type ℓ} (_≤_ : A → A → Type ℓ')
                     → isProp (IsPreorder _≤_)
 isPropIsPreorder _≤_ = isOfHLevelRetractFromIso 1 IsPreorderIsoΣ
-  (isPropΣ isPropIsSet
-    λ isSetA → isPropΣ (isPropΠ2 (λ _ _ → isPropIsProp))
-      λ isPropValued≤ -> isProp× (isPropΠ (λ _ -> isPropValued≤ _ _))
-                                 (isPropΠ5 (λ _ _ _ _ _ -> isPropValued≤ _ _)))
+    (isPropΣ
+      (isPropΠ2 (λ _ _ → isPropIsProp))
+      (λ isPropValued≤ -> isProp×
+        (isPropΠ (λ _ -> isPropValued≤ _ _))
+        (isPropΠ5 (λ _ _ _ _ _ -> isPropValued≤ _ _))
+      )
+    )
 
 𝒮ᴰ-Preorder : DUARel (𝒮-Univ ℓ) (PreorderStr ℓ') (ℓ-max ℓ ℓ')
 𝒮ᴰ-Preorder =
@@ -139,3 +140,51 @@ module PreorderReasoning (P' : Preorder ℓ ℓ') where
 
  infixr 0 _≤⟨_⟩_
  infix  1 _◾
+
+record OrderEquivalent (P : Preorder ℓ ℓ') (x y : ⟨ P ⟩) : Type ℓ' where
+  constructor orderequiv
+  open PreorderStr (snd P)
+  field
+    left  : x ≤ y
+    right : y ≤ x
+
+open OrderEquivalent
+open PreorderStr
+
+isPropOrderEquivalent : {P : Preorder ℓ ℓ'} {x y : ⟨ P ⟩}
+  → isProp (OrderEquivalent P x y)
+isPropOrderEquivalent  {P = P} {x = x} {y = y} x≥≤y x≥≤y' i .left =
+  ((snd P) .is-prop-valued x y (x≥≤y .left) (x≥≤y' .left)) i
+isPropOrderEquivalent  {P = P} {x = x} {y = y} x≥≤y x≥≤y' i .right =
+  ((snd P) .is-prop-valued y x (x≥≤y .right) (x≥≤y' .right)) i
+
+reflOrderEquiv : {P : Preorder ℓ ℓ'} {x : ⟨ P ⟩} → OrderEquivalent P x x
+reflOrderEquiv {P = P} {x = x} =
+  orderequiv ((snd P) .is-refl x) ((snd P) .is-refl x)
+
+pathToOrderEquiv : {P : Preorder ℓ ℓ'} {x y : ⟨ P ⟩} (p : x ≡ y)
+  → OrderEquivalent P x y
+pathToOrderEquiv {P = P} p = J (λ y _ → OrderEquivalent P _ y) reflOrderEquiv p
+
+
+-- Univalent Preorders (Posets)
+record isUnivalent (P : Preorder ℓ ℓ') : Type (ℓ-max ℓ ℓ') where
+  field
+    univ : (x y : ⟨ P ⟩ ) → isEquiv (pathToOrderEquiv {P = P} {x = x} {y = y})
+
+  univEquiv : ∀ (x y : ⟨ P ⟩ ) → (x ≡ y) ≃ (OrderEquivalent P x y)
+  univEquiv x y = pathToOrderEquiv , univ x y
+
+  -- utility to use Poset's Order Theoretic Properties
+  OrderEquivToPath : {x y : ⟨ P ⟩} (p : OrderEquivalent _ x y) → x ≡ y
+  OrderEquivToPath = invEq (univEquiv _ _)
+
+  posetAntisym : BinaryRelation.isAntisym ((snd P) ._≤_)
+  posetAntisym x y x≤y y≤x =  OrderEquivToPath (orderequiv x≤y y≤x)
+
+  isSetPoset : isSet ⟨ P ⟩
+  isSetPoset =
+    isOfHLevelPath'⁻ 1
+    (λ _ _ → isOfHLevelRespectEquiv 1
+      (invEquiv (univEquiv _ _)) isPropOrderEquivalent
+    )
