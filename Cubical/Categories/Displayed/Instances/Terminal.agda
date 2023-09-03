@@ -27,5 +27,5 @@ Unitᴰ C .⋆Assocᴰ fᴰ gᴰ hᴰ i = tt
 Unitᴰ C .isSetHomᴰ x y x₁ y₁ i i₁ = tt
 
 -- Terminal category over the terminal category
-UnitCᴰ : Categoryᴰ UnitC ℓ-zero ℓ-zero
-UnitCᴰ = Unitᴰ UnitC
+UnitCᴰ : Categoryᴰ (TerminalCategory {ℓ-zero}) ℓ-zero ℓ-zero
+UnitCᴰ = Unitᴰ TerminalCategory

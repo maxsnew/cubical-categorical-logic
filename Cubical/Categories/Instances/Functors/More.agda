@@ -20,6 +20,7 @@ open import Cubical.Categories.Category
 
 open import Cubical.Tactics.CategorySolver.Reflection
 open import Cubical.Categories.Equivalence.More
+open import Cubical.HITs.PropositionalTruncation
 
 private
   variable
@@ -229,12 +230,12 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     uncurryF .F-seq λη₁ λη₂ = makeNatTransPath (funExt (λ x → refl ))
 
 
-    open isEquivalence
+    open WeakInverse
     open NatIso
 
     -- curryF is an equivalence. Done using η ε isos constructed explicitly.
     -- most of the time, these are the identity
-    curryF-isEquivalence : isEquivalence curryF
+    curryF-isEquivalence : WeakInverse curryF
     curryF-isEquivalence =
       record { invFunc = uncurryF ; η = η-iso ; ε = ε-iso } where
       -- separate definition to sidestep Agda termination issue
@@ -282,7 +283,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 
     curryEquivalence : FUNCTOR (Γ ×C C) D ≃ᶜ FUNCTOR Γ (FUNCTOR C D)
     curryEquivalence .func = curryF
-    curryEquivalence ._≃ᶜ_.isEquiv = curryF-isEquivalence
+    curryEquivalence ._≃ᶜ_.isEquiv = ∣ curryF-isEquivalence ∣₁
 
     -- We also want a notion of currying out the left argument.
     -- We do this by composing
@@ -311,7 +312,7 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     swapArgs-inv .F-id = makeNatTransPath (funExt λ (γ , c) → refl)
     swapArgs-inv .F-seq η η' = makeNatTransPath (funExt λ (γ , c) → refl)
 
-    swapArgs-isEquivalence : isEquivalence swapArgs
+    swapArgs-isEquivalence : WeakInverse swapArgs
     swapArgs-isEquivalence =
       record { invFunc = swapArgs-inv ; η = the-η ; ε = the-ε } where
       η-morphisms : N-ob-Type 𝟙⟨ FUNCTOR (C ×C Γ) D ⟩
@@ -346,6 +347,6 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
     curryFl = curryF ∘F swapArgs
 
 
-    curryFl-isEquivalence : isEquivalence curryFl
+    curryFl-isEquivalence : WeakInverse curryFl
     curryFl-isEquivalence =
       isEquivalenceComp swapArgs-isEquivalence curryF-isEquivalence

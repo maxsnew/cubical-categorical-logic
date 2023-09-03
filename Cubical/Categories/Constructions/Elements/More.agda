@@ -34,9 +34,8 @@ module _ {ℓ ℓ'} {C : Category ℓ ℓ'} {ℓS}
   isUnivalent∫ .univ (c , f) (c' , f') = isIsoToIsEquiv
     ( isoToPath∫
     , (λ f≅f' → CatIso≡ _ _
-        (Σ≡Prop (λ _ → (F ⟅ _ ⟆) .snd f' _)
-          (cong fst
-          (secEq (univEquiv isUnivC _ _) (F-Iso {F = ForgetElements F} f≅f')))))
+        (Σ≡Prop (λ _ → (F ⟅ _ ⟆) .snd _ _)
+          ((cong fst (secEq (univEquiv isUnivC _ _) (F-Iso {F = ForgetElements F} f≅f'))))))
     , λ f≡f' → ΣSquareSet (λ x → snd (F ⟅ x ⟆))
       ( cong (CatIsoToPath isUnivC) (F-pathToIso {F = ForgetElements F} f≡f')
       ∙ retEq (univEquiv isUnivC _ _) (cong fst f≡f'))) where
@@ -50,4 +49,4 @@ module _ {ℓ ℓ'} {C : Category ℓ ℓ'} {ℓS}
                   (F-isoToPath {F = F} isUnivC isUnivalentSET
                     (F-Iso {F = ForgetElements F} f≅f') (~ j) i)) f)
                 ∙ univSetβ (F-Iso {F = F ∘F ForgetElements F} f≅f') f
-                ∙ sym (f≅f' .fst .snd)))
+                ∙ f≅f' .fst .snd))

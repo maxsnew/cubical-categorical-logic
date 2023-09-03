@@ -25,11 +25,11 @@ module _
   open Category
   open Functor
   open NatTrans
-  open isEquivalence
+  open WeakInverse
   open NatIso
   open isIso
 
-  isEquivalenceComp : isEquivalence F → isEquivalence G → isEquivalence (G ∘F F)
+  isEquivalenceComp : WeakInverse F → WeakInverse G → WeakInverse (G ∘F F)
   isEquivalenceComp Feq Geq = record { invFunc = F'∘G' ;
                                        η = η-iso ;
                                        ε = ε-iso } where
