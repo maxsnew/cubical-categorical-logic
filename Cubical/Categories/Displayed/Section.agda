@@ -11,12 +11,13 @@ open import Cubical.Categories.Category
 open import Cubical.Categories.Functor
 open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.Base.More
+open import Cubical.Categories.Displayed.Functor
 
 open import Cubical.Categories.Displayed.Preorder as Preorder hiding (Section)
 
 private
   variable
-    ℓC ℓC' ℓD ℓD' : Level
+    ℓB ℓB' ℓC ℓC' ℓD ℓD' ℓE ℓE' : Level
 
 open Category
 open Categoryᴰ
@@ -102,19 +103,11 @@ module _ (C : Category ℓC ℓC') (P : Preorderᴰ C ℓD ℓD') where
     Section≡ _ (λ c → refl) (λ f → refl)
   PreorderSectionIsoCatSection .leftInv a = refl
 
+-- | TODO: this should go somewhere else
 module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
-  weaken : Categoryᴰ C ℓD ℓD'
-  weaken .ob[_] x = D .ob
-  weaken .Hom[_][_,_] f d d' = D [ d , d' ]
-  weaken .idᴰ = D .id
-  weaken ._⋆ᴰ_ = D ._⋆_
-  weaken .⋆IdLᴰ = D .⋆IdL
-  weaken .⋆IdRᴰ = D .⋆IdR
-  weaken .⋆Assocᴰ = D .⋆Assoc
-  weaken .isSetHomᴰ = D .isSetHom
-
   open Iso
-  SectionToWkIsoFunctor : Iso (Section weaken) (Functor C D)
+  -- | TODO: better name
+  SectionToWkIsoFunctor : Iso (Section (weaken C D)) (Functor C D)
   SectionToWkIsoFunctor .fun F .F-ob = F .F-ob
   SectionToWkIsoFunctor .fun F .F-hom = F .F-hom
   SectionToWkIsoFunctor .fun F .F-id = F .F-id
