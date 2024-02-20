@@ -43,7 +43,8 @@ module _ {C : Category ℓ ℓ'} (M : ExtensionSystem C) where
   isPropIsAlgebraHom : ∀ {a b} →
                        (α : AlgebraFor a)(β : AlgebraFor b)
                        (ϕ : C [ a , b ]) → isProp (isAlgebraHom α β ϕ)
-  isPropIsAlgebraHom α β ϕ = isPropImplicitΠ λ _ → isPropΠ λ f → C .isSetHom _ _
+  isPropIsAlgebraHom α β ϕ =
+    isPropImplicitΠ λ _ → isPropΠ λ f → C .isSetHom _ _
 
   Algebra = Σ[ a ∈ C .ob ] AlgebraFor a
 
@@ -104,7 +105,7 @@ module _ {C : Category ℓ ℓ'} (M : ExtensionSystem C) where
   open import Cubical.Categories.Presheaf.Representable
   open UniversalElement
   open isEquiv
-  Free : LeftAdjoint ALGEBRA C Underlying
+  Free : LeftAdjoint Underlying
   Free c .vertex = FreeAlgebra c
   Free c .element = η
   Free c .universal β = isIsoToIsEquiv

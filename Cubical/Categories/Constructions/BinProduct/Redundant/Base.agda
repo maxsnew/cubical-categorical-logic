@@ -2,6 +2,7 @@
 
 {- The universal category C ⊗ D with a redundant bifunctor C , D → C ⊗ D -}
 {- Isomorphic (but not definitionally) to the cartesian product -}
+{- Credit to Andreas Nuyts for suggesting this approach -}
 
 module Cubical.Categories.Constructions.BinProduct.Redundant.Base where
 
@@ -19,11 +20,11 @@ import Cubical.Categories.Constructions.BinProduct as BP
 open import Cubical.Categories.Constructions.Free.Category.Quiver as Free
   hiding (rec)
 open import Cubical.Categories.Constructions.Presented as Presented
-open import Cubical.Categories.Bifunctor.Redundant
+open import Cubical.Categories.Bifunctor.Redundant as Bif hiding (Sym)
 
 private
   variable
-    ℓc ℓc' ℓd ℓd' ℓe ℓe' ℓ ℓ' : Level
+    ℓb ℓb' ℓc ℓc' ℓd ℓd' ℓe ℓe' ℓ ℓ' : Level
 
 open Category
 open Functor
@@ -96,6 +97,25 @@ module _ (C : Category ℓc ℓc') (D : Category ℓd ℓd') where
       η' .Bif-L×-agree f = ProdCat.ηEq (L×-agree f _)
       η' .Bif-R×-agree g = ProdCat.ηEq (R×-agree _ g)
 
+  ob-× : (c : C .ob) → Functor D _×C_
+  ob-× c .F-ob d = c , d
+  ob-× c .F-hom g = ηBif ⟪ g ⟫r
+  ob-× c .F-id = ηBif .Bif-R-id
+  ob-× c .F-seq g g' = ηBif .Bif-R-seq g g'
+
+  ×-ob : (d : D .ob) → Functor C _×C_
+  ×-ob d .F-ob c = c , d
+  ×-ob d .F-hom f = ηBif ⟪ f ⟫l
+  ×-ob d .F-id = ηBif .Bif-L-id
+  ×-ob d .F-seq f f' = ηBif .Bif-L-seq f f'
+
+  ProdToRedundant : Functor (C BP.×C D) _×C_
+  ProdToRedundant .F-ob (c , d) = c , d
+  ProdToRedundant .F-hom (f , g) = ηBif ⟪ f , g ⟫×
+  ProdToRedundant .F-id = ηBif .Bif-×-id
+  ProdToRedundant .F-seq (f , g) (f' , g') = ηBif .Bif-×-seq f f' g g'
+
+  -- | TODO: Is it possible to define an elimination principle?
   rec : {E : Category ℓ ℓ'}
         → Bifunctor C D E
         → Functor _×C_ E
@@ -110,23 +130,29 @@ module _ (C : Category ℓc ℓc') (D : Category ℓd ℓd') where
       ı <$g> homL f d = G ⟪ f ⟫l
       ı <$g> hom× f g = G ⟪ f , g ⟫×
 
-  ProdToRedundant : Functor (C BP.×C D) _×C_
-  ProdToRedundant .F-ob (c , d) = c , d
-  ProdToRedundant .F-hom (f , g) = ηBif ⟪ f , g ⟫×
-  ProdToRedundant .F-id = ηBif .Bif-×-id
-  ProdToRedundant .F-seq (f , g) (f' , g') = ηBif .Bif-×-seq f f' g g'
+  RedundantToProd : Functor _×C_ (C BP.×C D)
+  RedundantToProd =
+    rec (mkBifunctorParAx G1) BP.,F rec (mkBifunctorParAx G2) where
+      open BifunctorParAx
+      G1 : BifunctorParAx C D C
+      G1 .Bif-ob c d = c
+      G1 .Bif-homL f d = f
+      G1 .Bif-homR c g = C .id
+      G1 .Bif-hom× f g = f
+      G1 .Bif-×-id = refl
+      G1 .Bif-×-seq _ _ _ _ = refl
+      G1 .Bif-L×-agree _ = refl
+      G1 .Bif-R×-agree _ = refl
 
-  ob-× : (c : C .ob) → Functor D _×C_
-  ob-× c .F-ob d = c , d
-  ob-× c .F-hom g = ηBif ⟪ g ⟫r
-  ob-× c .F-id = ηBif .Bif-R-id
-  ob-× c .F-seq g g' = ηBif .Bif-R-seq g g'
-
-  ×-ob : (d : D .ob) → Functor C _×C_
-  ×-ob d .F-ob c = c , d
-  ×-ob d .F-hom f = ηBif ⟪ f ⟫l
-  ×-ob d .F-id = ηBif .Bif-L-id
-  ×-ob d .F-seq f f' = ηBif .Bif-L-seq f f'
+      G2 : BifunctorParAx C D D
+      G2 .Bif-ob c d = d
+      G2 .Bif-homL f d = D .id
+      G2 .Bif-homR c g = g
+      G2 .Bif-hom× f g = g
+      G2 .Bif-×-id = refl
+      G2 .Bif-×-seq _ _ _ _ = refl
+      G2 .Bif-L×-agree _ = refl
+      G2 .Bif-R×-agree _ = refl
 
 Functor→Bifunctor : {C : Category ℓc ℓc'}
                     {D : Category ℓd ℓd'}{E : Category ℓe ℓe'}
@@ -162,3 +188,18 @@ Functor→Bifunctor G = G ∘Fb ηBif _ _
   G .Bif-×-seq f f' g g' = ηBif C D .Bif-×-seq f' f g' g
   G .Bif-L×-agree f = ηBif C D .Bif-L×-agree f
   G .Bif-R×-agree g = ηBif C D .Bif-R×-agree g
+
+Sym : {C : Category ℓc ℓc'}{D : Category ℓd ℓd'}
+    → Functor (C ×C D) (D ×C C)
+Sym {C = C}{D = D} = rec C D (Bif.Sym (ηBif D C))
+
+module _ {B : Category ℓb ℓb'}{C : Category ℓc ℓc'}
+         {D : Category ℓd ℓd'}{E : Category ℓe ℓe'}
+         where
+  _,⊗F_ : (F : Functor B D)(G : Functor C E)
+       → Bifunctor B C (D ×C E)
+  F ,⊗F G = ηBif D E ∘Flr (F , G)
+
+  _⊗F_ : (F : Functor B D)(G : Functor C E)
+       → Functor (B ×C C) (D ×C E)
+  F ⊗F G = rec B C (F ,⊗F G)

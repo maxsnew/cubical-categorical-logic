@@ -147,6 +147,25 @@ record BifunctorSep (C : Category ℓc ℓc')
                → Bif-homR c g ⋆⟨ E ⟩ Bif-homL f d'
                ≡ Bif-homL f d ⋆⟨ E ⟩ Bif-homR c' g
 
+-- A version of bifunctor that only requires the parallel action and
+-- constructs the joint acions using id. This is definitionally
+-- isomorphic to a functor out of the ordinary cartesian product of C
+-- and D.
+record BifunctorPar (C : Category ℓc ℓc')
+                  (D : Category ℓd ℓd')
+                  (E : Category ℓe ℓe')
+       : Type (ℓ-max ℓc (ℓ-max ℓc' (ℓ-max ℓd (ℓ-max ℓd' (ℓ-max ℓe ℓe'))))) where
+  field
+    Bif-ob : C .ob → D .ob → E .ob
+    Bif-hom× : ∀ {c c' d d'} (f : C [ c , c' ])(g : D [ d , d' ])
+             → E [ Bif-ob c d , Bif-ob c' d' ]
+    Bif-×-id : ∀ {c d} → Bif-hom× (C .id {c}) (D .id {d}) ≡ E .id
+    Bif-×-seq : ∀ {c c' c'' d d' d''}
+               (f : C [ c , c' ])(f' : C [ c' , c'' ])
+               (g : D [ d , d' ])(g' : D [ d' , d'' ])
+             → Bif-hom× (f ⋆⟨ C ⟩ f') (g ⋆⟨ D ⟩ g')
+             ≡ Bif-hom× f g ⋆⟨ E ⟩ Bif-hom× f' g'
+
 private
   variable
     C D E : Category ℓ ℓ'
@@ -242,9 +261,24 @@ mkBifunctorParAx {C = C}{D = D}{E = E} F = G where
     ∙ sym (F .Bif-×-seq _ _ _ _)
     ∙ cong₂ (F .Bif-hom×) (C .⋆IdL _) (D .⋆IdR _)
 
+mkBifunctorPar : BifunctorPar C D E → Bifunctor C D E
+mkBifunctorPar {C = C}{D = D}{E = E} F = mkBifunctorParAx G where
+  module F = BifunctorPar F
+  G : BifunctorParAx C D E
+  G .Bif-ob = F.Bif-ob
+  G .Bif-hom× = F.Bif-hom×
+  G .Bif-×-id = F.Bif-×-id
+  G .Bif-×-seq = F.Bif-×-seq
+  G .Bif-homL f d = F.Bif-hom× f (D .id)
+  G .Bif-homR c g = F.Bif-hom× (C .id) g
+  G .Bif-L×-agree f = refl
+  G .Bif-R×-agree g = refl
+
 open Bifunctor
 open BifunctorParAx
+open BifunctorPar
 open BifunctorSepAx
+open BifunctorSep
 -- action on objects
 infix 30 _⟅_⟆b
 _⟅_⟆b : (F : Bifunctor C D E)
@@ -438,13 +472,27 @@ compF {E = E}{E' = E'}{C = C}{D = D} F  G = mkBifunctorParAx B where
   B .Bif-L×-agree f = cong (F ⟪_⟫) (G .Bif-L×-agree f)
   B .Bif-R×-agree g = cong (F ⟪_⟫) (G .Bif-R×-agree g)
 
-infixr 30 compL
-infixr 30 compR
+infixl 30 compL
+infixl 30 compR
 infixr 30 compF
+infixl 30 compLR'
 
 syntax compL F G = F ∘Fl G
 syntax compR F G = F ∘Fr G
 syntax compF F G = F ∘Fb G
+
+-- | This includes an arbitrary choice, the action on objects should
+-- | be definitionally equal to the other order, but the proofs are
+-- | affected.
+compLR : (F : Bifunctor C' D' E) (G : Functor C C')(H : Functor D D')
+       → Bifunctor C D E
+compLR F G H = F ∘Fl G ∘Fr H
+
+compLR' : (F : Bifunctor C' D' E) (GH : Functor C C' × Functor D D')
+        → Bifunctor C D E
+compLR' F GH = compLR F (GH .fst) (GH .snd)
+
+syntax compLR' F GH = F ∘Flr GH
 
 -- For Hom we use the Seperate actions formulation because there is no
 -- "nice" way to do triple composition (at least with this definition
@@ -467,6 +515,25 @@ BifunctorToParFunctor F .F-hom (f , g) = F .Bif-hom× f g
 BifunctorToParFunctor F .F-id = F .Bif-×-id
 BifunctorToParFunctor F .F-seq f g = F .Bif-×-seq _ _ _ _
 
+CurriedToBifunctor : Functor C (FUNCTOR D E) → Bifunctor C D E
+CurriedToBifunctor F = mkBifunctorSep G where
+  G : BifunctorSep _ _ _
+  G .Bif-ob c d = F ⟅ c ⟆ ⟅ d ⟆
+  G .Bif-homL f d = F ⟪ f ⟫ ⟦ d ⟧
+  G .Bif-homR c g = F ⟅ c ⟆ ⟪ g ⟫
+  G .Bif-L-id {d = d} = (cong (_⟦ d ⟧) (F .F-id))
+  G .Bif-L-seq f f' = (cong (_⟦ _ ⟧) (F .F-seq f f'))
+  G .Bif-R-id = (F ⟅ _ ⟆) .F-id
+  G .Bif-R-seq g g' = (F ⟅ _ ⟆) .F-seq g g'
+  G .SepBif-RL-commute f g = (F ⟪ f ⟫) .N-hom g
+
+CurryBifunctor : Bifunctor C D E → Functor C (FUNCTOR D E)
+CurryBifunctor F .F-ob c = appL F c
+CurryBifunctor F .F-hom f .N-ob d = appR F d .F-hom f
+CurryBifunctor F .F-hom f .N-hom g = Bif-RL-commute F f g
+CurryBifunctor F .F-id = makeNatTransPath (funExt λ d → F .Bif-L-id)
+CurryBifunctor F .F-seq _ _ = makeNatTransPath (funExt λ d → F .Bif-L-seq _ _)
+
 open Separate.Bifunctor
 ForgetPar : Bifunctor C D E → Separate.Bifunctor C D E
 ForgetPar F .Bif-ob = F .Bif-ob
@@ -477,3 +544,17 @@ ForgetPar F .Bif-idR = F .Bif-R-id
 ForgetPar F .Bif-seqL = F .Bif-L-seq
 ForgetPar F .Bif-seqR = F .Bif-R-seq
 ForgetPar F .Bif-assoc f g = sym (Bif-RL-commute F f g)
+
+_^opBif : Bifunctor C D E
+        → Bifunctor (C ^op) (D ^op) (E ^op)
+_^opBif {C = C}{D = D}{E = E} F = mkBifunctorParAx G where
+  module F = Bifunctor F
+  G : BifunctorParAx (C ^op) (D ^op) (E ^op)
+  G .Bif-ob = F.Bif-ob
+  G .Bif-homL = F.Bif-homL
+  G .Bif-homR = F.Bif-homR
+  G .Bif-hom× = F.Bif-hom×
+  G .Bif-×-id = F.Bif-×-id
+  G .Bif-×-seq f f' g g' = F.Bif-×-seq f' f g' g
+  G .Bif-L×-agree = F.Bif-L×-agree
+  G .Bif-R×-agree = F.Bif-R×-agree

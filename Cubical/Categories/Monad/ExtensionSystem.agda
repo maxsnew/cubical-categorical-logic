@@ -83,7 +83,7 @@ module _ (C : Category ℓ ℓ') where
     open import Cubical.Categories.Presheaf.Representable
     open UniversalElement
     open isEquiv
-    F : LeftAdjoint _ _ G
+    F : LeftAdjoint G
     F c .vertex = c
     F c .element = η
     F c .universal d = isIsoToIsEquiv
@@ -227,7 +227,8 @@ module _ (C : Category ℓ ℓ') where
       lem0 : comp' C (comp' C (M .snd .IsMonad.μ ⟦ _ ⟧) (M .fst ⟪ f ⟫))
         (comp' C (M .snd .IsMonad.μ ⟦ _ ⟧) (M .fst ⟪ g ⟫))
            ≡ M .snd .IsMonad.μ ⟦ _ ⟧ ∘⟨ C ⟩
-             (M .fst ⟪ f ⟫ ∘⟨ C ⟩ M .snd .IsMonad.μ ⟦ _ ⟧) ∘⟨ C ⟩ (M .fst ⟪ g ⟫)
+             (M .fst ⟪ f ⟫ ∘⟨ C ⟩
+               M .snd .IsMonad.μ ⟦ _ ⟧) ∘⟨ C ⟩ (M .fst ⟪ g ⟫)
       lem0 = solveCat! C
 
       lem1 : (C ⋆ (C ⋆ F-hom (M .fst) g)
