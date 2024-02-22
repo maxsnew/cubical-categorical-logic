@@ -98,34 +98,36 @@ QUIVER .snd .QuiverOver.cod = cod
 FQ = FreeCat QUIVER
 module FQ = Category FQ
 
--- Let's canonicalize all of the morphisms with domain `a`
-data FromA : ∀ o → FQ [ a , o ] → Type ℓ-zero where
+-- We define normal forms inductively
+-- we can also think of this as a "property" that the given morphism
+-- has a normal form, but there's no reason to bother truncating it.
+data NormalForm {o1} : ∀ {o2} → FQ [ o1 , o2 ] → Type ℓ-zero where
   cons : ∀ gen
-       → ∀ {e} → FromA (dom gen) e
-       → FromA (cod gen) ((η QUIVER <$g> gen) ∘⟨ FQ ⟩ e)
-  nil  : FromA a FQ.id
+       → ∀ {e} → NormalForm e
+       → NormalForm ((η QUIVER <$g> gen) ∘⟨ FQ ⟩ e)
+  nil  : NormalForm FQ.id
 
-forget : ∀ {o} {e} → FromA o e → List MOR
+forget : ∀ {o1 o2} {e} → NormalForm {o1}{o2} e → List MOR
 forget (cons gen fA) = gen ∷ forget fA
 forget nil = []
 
 -- | I think someone made a macro for this in the 1lab recently?
-isSetFromA : ∀ {o e} → isSet (FromA o e)
-isSetFromA {o}{e} = isSetRetract {B = IW S P inX (o , e)}
+isSetNormalForm : ∀ {o1 o2 e} → isSet (NormalForm {o1} {o2} e)
+isSetNormalForm {o1}{o2}{e} = isSetRetract {B = IW S P inX (o2 , e)}
   encode
   decode
   retracts
-  (isOfHLevelSuc-IW 1 isSetS (o , e))
+  (isOfHLevelSuc-IW 1 isSetS _)
   where
     -- The Index
-    X = Σ[ o ∈ OB ] FQ [ a , o ]
+    X = Σ[ o ∈ OB ] FQ [ o1 , o ]
     -- The data in the constructors besides subtrees
     S : X → Type _
     S x =
       -- nil
-      ((a , FQ.id) ≡ x)
+      ((o1 , FQ.id) ≡ x)
       ⊎ -- cons
-      (Σ[ gen ∈ MOR ] Σ[ e' ∈ FQ [ a , dom gen ] ]
+      (Σ[ gen ∈ MOR ] Σ[ e' ∈ FQ [ o1 , dom gen ] ]
         (cod gen , ((η QUIVER <$g> gen) ∘⟨ FQ ⟩ e')) ≡ x)
     -- The type of subtrees of a constructor
     P : (x : X) → S x → Type _
@@ -137,20 +139,22 @@ isSetFromA {o}{e} = isSetRetract {B = IW S P inX (o , e)}
       λ (gen , (e' , _)) tt →
         (dom gen , e')
 
-    W : (o : OB) (e : FQ [ a , o ]) → Type _
+    W : (o : OB) (e : FQ [ o1 , o ]) → Type _
     W = λ o e → IW S P inX (o , e)
 
-    encode : ∀ {o}{e} → FromA o e → W o e
+    encode : ∀ {o2}{e} → NormalForm e → W o2 e
     encode nil = node (inl refl) Empty.elim
     encode (cons gen {e'} l) = node (inr (gen , (e' , refl))) λ _ → encode l
 
-    decode : ∀ {o}{e} → W o e → FromA o e
+    decode : ∀ {o2}{e} → W o2 e → NormalForm e
     decode (node (inl p) subtree) =
-      subst (λ (o , e) → FromA o e) p FromA.nil
+      subst (λ (o , e) → NormalForm e) p NormalForm.nil
     decode (node (inr (gen , (e' , q))) subtree) =
-      subst (λ (o , e) → FromA o e) q (cons gen {e = e'} (decode (subtree tt)))
+      subst (λ (o , e) → NormalForm e) q
+        (cons gen {e = e'} (decode (subtree tt)))
 
-    retracts : ∀ {o}{e} → (nf : FromA o e) → decode (encode nf) ≡ nf
+    retracts : ∀ {o2}{e} → (nf : NormalForm {o2 = o2} e)
+             → decode (encode nf) ≡ nf
     retracts nil = transportRefl nil
     retracts (cons gen nf) =
       transportRefl (cons gen (decode (encode nf)))
@@ -166,31 +170,38 @@ isSetFromA {o}{e} = isSetRetract {B = IW S P inX (o , e)}
             (λ _ → isOfHLevelPath 2 (isSetΣ isSetOB (λ _ → FQ.isSetHom)) _ _)))
 
 -- Here is our goal
-canonicalize : ∀ o → (e : FQ [ a , o ]) → FromA o e
-canonicalize = λ o e → subst (FromA o) (FQ.⋆IdL e) (S.F-hom e FQ.id nil) where
-  A-pts : Functor FQ (SET ℓ-zero)
-  A-pts = FQ [ a ,-]
+normalize : ∀ {o1}{o2} → (e : FQ [ o1 , o2 ]) → NormalForm e
+normalize {o1} = λ e → subst NormalForm (FQ.⋆IdL e) (S.F-hom e FQ.id nil)
+  where
+  o1-pts : Functor FQ (SET ℓ-zero)
+  o1-pts = FQ [ o1 ,-]
 
   LogFam : Categoryᴰ FQ _ _
-  LogFam = Disp.reindex (SETᴰ ℓ-zero ℓ-zero) A-pts
+  LogFam = Disp.reindex (SETᴰ ℓ-zero ℓ-zero) o1-pts
 
   S : Disp.Section LogFam
-  S = Free.elim QUIVER (record { F-ob = λ o e → (FromA o e) , isSetFromA
+  S = Free.elim QUIVER (record { F-ob = λ o e → (NormalForm e) , isSetNormalForm
                                ; F-hom = λ m e l → cons m l })
   module S = Disp.Section S
 
 private
-  _ : forget (canonicalize a FQ.id)
+  _ : forget (normalize {c} FQ.id)
       ≡ []
   _ = refl
 
   -- The following two should be refl without length, but length is
   -- enough.
-  _ : length (forget (canonicalize a (FQ.id ∘⟨ FQ ⟩ ↑ h)))
+  _ : length (forget (normalize (FQ.id ∘⟨ FQ ⟩ ↑ h)))
       ≡ length (h ∷ [])
   _ = refl
 
-  _ : length
-      (forget (canonicalize a ((↑ h ∘⟨ FQ ⟩ (↑ g ∘⟨ FQ ⟩ FQ.id)) ∘⟨ FQ ⟩ ↑ f)))
+  _ : length (forget (normalize
+             ((↑ h ∘⟨ FQ ⟩ (↑ g ∘⟨ FQ ⟩ FQ.id)) ∘⟨ FQ ⟩ ↑ f)))
       ≡ length (h ∷ g ∷ f ∷ [])
   _ = refl
+
+  non-triviality : ¬ (FQ.id ≡ ↑ h)
+  non-triviality p = 0≠1 (cong (λ e → length (forget (normalize e))) p)
+    where
+      0≠1 : ¬ (0 ≡ 1)
+      0≠1 = znots
