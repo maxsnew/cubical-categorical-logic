@@ -52,7 +52,6 @@ module _ (𝓒 : Category ℓc ℓc') where
   mkAx Eq funs .lhs eq = funs eq .snd .snd .fst
   mkAx Eq funs .rhs eq = funs eq .snd .snd .snd
 
-  -- TODO: make this a named module for a better API
   module QuoByAx (Ax : Axioms ℓj) where
     data _≈_ : ∀ {A B} → 𝓒 [ A , B ] → 𝓒 [ A , B ] →
                Type (ℓ-max (ℓ-max ℓc ℓc') ℓj) where
@@ -62,12 +61,6 @@ module _ (𝓒 : Category ℓc ℓc') where
            → (e e' : 𝓒 [ A , B ]) → (e ≈ e')
            → (f f' : 𝓒 [ B , C ]) → (f ≈ f')
            → (e ⋆⟨ 𝓒 ⟩ f) ≈ (e' ⋆⟨ 𝓒 ⟩ f')
-      ⋆ₑIdL : ∀ {A B} (e : 𝓒 [ A , B ]) → (𝓒 .id ⋆⟨ 𝓒 ⟩ e) ≈ e
-      ⋆ₑIdR : ∀ {A B} (e : 𝓒 [ A , B ]) → (e ⋆⟨ 𝓒 ⟩ 𝓒 .id) ≈ e
-      ⋆ₑAssoc : ∀ {A B C D} (e : 𝓒 [ A , B ])
-               (f : 𝓒 [ B , C ])(g : 𝓒 [ C , D ])
-              → ((e ⋆⟨ 𝓒 ⟩ f) ⋆⟨ 𝓒 ⟩ g) ≈ (e ⋆⟨ 𝓒 ⟩ (f ⋆⟨ 𝓒 ⟩ g))
-
     PresentedCat : Category _ _
     PresentedCat = QuotientCategory 𝓒 _≈_ reflₑ ⋆ₑ-cong
 
@@ -114,18 +107,6 @@ module _ (𝓒 : Category ℓc ℓc') where
           (F .F-seq e f ◁
           (λ i → F-respects-≈ p i 𝓓.⋆ᴰ F-respects-≈ q i)
           ▷ (sym (F .F-seq e' f')))
-        F-respects-≈ (⋆ₑIdL g) = R.≡[]-rectify
-          ( F .F-seq _ _
-          ∙ cong₂ 𝓓._⋆ᴰ_ (F .F-id) refl
-          ◁ 𝓓.⋆IdLᴰ (F .F-hom g))
-        F-respects-≈ {x}{y} (⋆ₑIdR g) = R.≡[]-rectify
-          ( F .F-seq _ _
-          ∙ cong₂ 𝓓._⋆ᴰ_ refl (F .F-id)
-          ◁ 𝓓.⋆IdRᴰ (F .F-hom g))
-        F-respects-≈ (⋆ₑAssoc e f g) = R.≡[]-rectify
-          ( F .F-seq _ _ ∙ cong₂ 𝓓._⋆ᴰ_ (F .F-seq _ _) refl
-          ◁ 𝓓.⋆Assocᴰ (F .F-hom e) (F .F-hom f) (F .F-hom g)
-          ▷ sym (F .F-seq _ _ ∙ cong₂ 𝓓._⋆ᴰ_ refl (F .F-seq _ _)))
 
     module _ (𝓓 : Category ℓd ℓd') (F : Functor 𝓒 𝓓)
       (F-satisfies-axioms : ∀ eq →

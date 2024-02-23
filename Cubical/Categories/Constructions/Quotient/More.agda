@@ -33,33 +33,33 @@ module _ (C : Category ℓ ℓ') where
       C/~ = QuotientCategory C _~_ ~refl ~cong
 
     open Categoryᴰ
-    module _ (D : Categoryᴰ C/~ ℓD ℓD') where
+    module _ (Dᴰ : Categoryᴰ C/~ ℓD ℓD') where
       private
-        module D = Categoryᴰ D
+        module Dᴰ = Categoryᴰ Dᴰ
 
-      -- TODO: Should define this for reindexing along an arbitrary
-      -- functor, but it leads to some transport hell
+      -- Ideally, this would just be defined as reindex Dᴰ QuoFunctor,
+      -- but unfortunately that leads to a some (transport refl)s
       reindexᴰQuo : Categoryᴰ C ℓD ℓD'
-      reindexᴰQuo .ob[_] c = D.ob[ c ]
-      reindexᴰQuo .Hom[_][_,_] f d d' = D.Hom[ ⟦ f ⟧ ][ d , d' ]
-      reindexᴰQuo .idᴰ = D.idᴰ
-      reindexᴰQuo ._⋆ᴰ_ = D._⋆ᴰ_
-      reindexᴰQuo .⋆IdLᴰ = D .⋆IdLᴰ
-      reindexᴰQuo .⋆IdRᴰ = D .⋆IdRᴰ
-      reindexᴰQuo .⋆Assocᴰ = D .⋆Assocᴰ
-      reindexᴰQuo .isSetHomᴰ = D .isSetHomᴰ
+      reindexᴰQuo .ob[_] c = Dᴰ.ob[ c ]
+      reindexᴰQuo .Hom[_][_,_] f d d' = Dᴰ.Hom[ ⟦ f ⟧ ][ d , d' ]
+      reindexᴰQuo .idᴰ = Dᴰ.idᴰ
+      reindexᴰQuo ._⋆ᴰ_ = Dᴰ._⋆ᴰ_
+      reindexᴰQuo .⋆IdLᴰ = Dᴰ.⋆IdLᴰ
+      reindexᴰQuo .⋆IdRᴰ = Dᴰ.⋆IdRᴰ
+      reindexᴰQuo .⋆Assocᴰ = Dᴰ.⋆Assocᴰ
+      reindexᴰQuo .isSetHomᴰ = Dᴰ.isSetHomᴰ
 
       open Section
       elim : (F : Section reindexᴰQuo)
            → (∀ {x y} → (f g : Hom[ x , y ]) → (p : f ~ g) →
-             PathP (λ i → D.Hom[ eq/ f g p i ][ F .F-ob x , F .F-ob y ])
+             PathP (λ i → Dᴰ.Hom[ eq/ f g p i ][ F .F-ob x , F .F-ob y ])
                    (F .F-hom f)
                    (F .F-hom g))
-           → Section D
+           → Section Dᴰ
       elim F F-resp-∼ .F-ob = F .F-ob
-      elim F F-resp-∼ .F-hom = SetQuotients.elim (λ _ → D.isSetHomᴰ)
+      elim F F-resp-∼ .F-hom = SetQuotients.elim (λ _ → Dᴰ.isSetHomᴰ)
         (F .F-hom)
         F-resp-∼
       elim F F-resp-∼ .F-id = F .F-id
       elim F F-resp-∼ .F-seq =
-        elimProp2 (λ [f] [g] → D.isSetHomᴰ _ _) (F .F-seq)
+        elimProp2 (λ [f] [g] → Dᴰ.isSetHomᴰ _ _) (F .F-seq)
