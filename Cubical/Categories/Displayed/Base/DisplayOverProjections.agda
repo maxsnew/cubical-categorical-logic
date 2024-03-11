@@ -9,9 +9,11 @@ open import Cubical.Data.Sigma
 open import Cubical.Categories.Category.Base
 open import Cubical.Categories.Constructions.BinProduct
   renaming (Fst to FstBP ; Snd to SndBP)
+open import Cubical.Categories.Constructions.BinProduct.More
 open import Cubical.Categories.Functor
 
 open import Cubical.Categories.Displayed.Base
+open import Cubical.Categories.Displayed.Reasoning
 open import Cubical.Categories.Displayed.Properties
 open import Cubical.Categories.Displayed.Functor
 open import Cubical.Categories.Displayed.Instances.Terminal
@@ -19,7 +21,7 @@ open import Cubical.Categories.Displayed.Base.More
 
 private
   variable
-    ℓC ℓC' ℓCᴰ ℓCᴰ' ℓD ℓD' ℓDᴰ ℓDᴰ' ℓE ℓE' ℓEᴰ ℓEᴰ' : Level
+    ℓB ℓB' ℓBᴰ ℓBᴰ' ℓC ℓC' ℓCᴰ ℓCᴰ' ℓD ℓD' ℓDᴰ ℓDᴰ' ℓE ℓE' ℓEᴰ ℓEᴰ' : Level
 
 open Categoryᴰ
 
@@ -53,25 +55,6 @@ module _
   Fstᴰsr .Functorᴰ.F-homᴰ = fst
   Fstᴰsr .Functorᴰ.F-idᴰ = refl
   Fstᴰsr .Functorᴰ.F-seqᴰ = λ fᴰ gᴰ → refl
-
-  -- s for "simple" because C is not dependent on D
-  -- l for "left" because C is on the left of the product
-  ∫Cᴰsl : Categoryᴰ D (ℓ-max ℓC ℓCᴰ) (ℓ-max ℓC' ℓCᴰ')
-  ∫Cᴰsl .ob[_] d = Σ[ c ∈ C .ob ] Cᴰ.ob[ c , d ]
-  ∫Cᴰsl .Hom[_][_,_] g (c , cᴰ) (c' , cᴰ') =
-    Σ[ f ∈ C [ c , c' ] ] Cᴰ.Hom[ f , g ][ cᴰ , cᴰ' ]
-  ∫Cᴰsl .idᴰ = (C .id) , Cᴰ.idᴰ
-  ∫Cᴰsl ._⋆ᴰ_ (f , fᴰ) (g , gᴰ) = (f ⋆⟨ C ⟩ g) , (fᴰ Cᴰ.⋆ᴰ gᴰ)
-  ∫Cᴰsl .⋆IdLᴰ (f , fᴰ) = ΣPathP (_ , Cᴰ.⋆IdLᴰ _)
-  ∫Cᴰsl .⋆IdRᴰ _ = ΣPathP (_ , Cᴰ.⋆IdRᴰ _)
-  ∫Cᴰsl .⋆Assocᴰ _ _ _ = ΣPathP (_ , Cᴰ.⋆Assocᴰ _ _ _)
-  ∫Cᴰsl .isSetHomᴰ = isSetΣ (C .isSetHom) (λ _ → Cᴰ .isSetHomᴰ)
-
-  Fstᴰsl : Functorᴰ Id ∫Cᴰsl (weaken D C)
-  Fstᴰsl .Functorᴰ.F-obᴰ = fst
-  Fstᴰsl .Functorᴰ.F-homᴰ = fst
-  Fstᴰsl .Functorᴰ.F-idᴰ = refl
-  Fstᴰsl .Functorᴰ.F-seqᴰ = λ _ _ → refl
 
   module _
     {E : Category ℓE ℓE'}
@@ -130,3 +113,86 @@ module _
     Assc' .F-homᴰ {_}{_}{f} _ = f .snd .snd
     Assc' .F-idᴰ = refl
     Assc' .F-seqᴰ _ _ = refl
+
+module _
+  {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}
+  (Cᴰ : Categoryᴰ (C ×C D) ℓCᴰ ℓCᴰ')
+  where
+  open Category
+
+  private
+    module Cᴰ = Categoryᴰ Cᴰ
+
+  private
+    -- can't use reindex bc transport hell
+    Cᴰ' : Categoryᴰ (D ×C C) _ _
+    ob[ Cᴰ' ] (d , c) = Cᴰ.ob[ c , d ]
+    Cᴰ' .Hom[_][_,_] (g , f) cᴰ cᴰ' = Cᴰ.Hom[ f , g ][ cᴰ , cᴰ' ]
+    Cᴰ' .idᴰ = Cᴰ.idᴰ
+    Cᴰ' ._⋆ᴰ_ = Cᴰ._⋆ᴰ_
+    Cᴰ' .⋆IdLᴰ = Cᴰ.⋆IdLᴰ
+    Cᴰ' .⋆IdRᴰ = Cᴰ.⋆IdRᴰ
+    Cᴰ' .⋆Assocᴰ = Cᴰ.⋆Assocᴰ
+    Cᴰ' .isSetHomᴰ = Cᴰ.isSetHomᴰ
+
+  -- s for "simple" because C is not dependent on D
+  -- l for "left" because C is on the left of the product
+  ∫Cᴰsl : Categoryᴰ D (ℓ-max ℓC ℓCᴰ) (ℓ-max ℓC' ℓCᴰ')
+  ∫Cᴰsl = ∫Cᴰsr {D = C} Cᴰ'
+
+  Fstᴰsl : Functorᴰ Id ∫Cᴰsl (weaken D C)
+  Fstᴰsl = Fstᴰsr Cᴰ'
+
+  module _
+    {E : Category ℓE ℓE'}
+    (F : Functor E D)
+    {Eᴰ : Categoryᴰ E ℓEᴰ ℓEᴰ'}
+    (Fᴰ : Functorᴰ F Eᴰ (weaken D C))
+    (Gᴰ : Functorᴰ (Sym {C = D}{D = C} ∘F ∫F Fᴰ) (Unitᴰ (∫C Eᴰ)) Cᴰ)
+    where
+
+    mk∫ᴰslFunctorᴰ : Functorᴰ F Eᴰ ∫Cᴰsl
+    mk∫ᴰslFunctorᴰ = mk∫ᴰsrFunctorᴰ Cᴰ' F Fᴰ Gᴰ' where
+      module Gᴰ = Functorᴰ Gᴰ
+      Gᴰ' : Functorᴰ (∫F Fᴰ) (Unitᴰ (∫C Eᴰ)) Cᴰ'
+      Gᴰ' .Functorᴰ.F-obᴰ  _ = Gᴰ.F-obᴰ _
+      Gᴰ' .Functorᴰ.F-homᴰ _ = Gᴰ.F-homᴰ _
+      Gᴰ' .Functorᴰ.F-idᴰ {x}{xᴰ} = ≡[]-rectify Cᴰ Gᴰ.F-idᴰ
+      Gᴰ' .Functorᴰ.F-seqᴰ _ _ = ≡[]-rectify Cᴰ (Gᴰ.F-seqᴰ _ _)
+  Assoc-sl⁻ : Functor (∫C ∫Cᴰsl) (∫C Cᴰ)
+  Assoc-sl⁻ = mk∫Functor Assc Assc' where
+    open Functor
+    open Functorᴰ
+    -- Might want this at the top level
+    Assc : Functor (∫C ∫Cᴰsl) (C ×C D)
+    Assc .F-ob (d , (c , _)) = c , d
+    Assc .F-hom (g , (f , _)) = f , g
+    Assc .F-id = refl
+    Assc .F-seq _ _ = refl
+
+    Assc' : Functorᴰ Assc _ Cᴰ
+    Assc' .F-obᴰ {x}        _ = x .snd .snd
+    Assc' .F-homᴰ {_}{_}{f} _ = f .snd .snd
+    Assc' .F-idᴰ = refl
+    Assc' .F-seqᴰ _ _ = refl
+
+module _
+  {B : Category ℓB ℓB'}{C : Category ℓC ℓC'}
+  {D : Category ℓD ℓD'}
+  {E : Category ℓE ℓE'}
+  {Bᴰ : Categoryᴰ (B ×C D) ℓBᴰ ℓBᴰ'}
+  {Cᴰ : Categoryᴰ (C ×C E) ℓCᴰ ℓCᴰ'}
+  {F : Functor D E}
+  {G : Functor B C}
+  (FGᴰ : Functorᴰ (G ×F F) Bᴰ Cᴰ)
+  where
+  private
+    module G = Functor G
+    module FGᴰ = Functorᴰ FGᴰ
+  -- ideally this would be implemented using mk∫ᴰslFunctorᴰ
+  ∫ᴰslF : Functorᴰ F (∫Cᴰsl {C = B}{D = D} Bᴰ) (∫Cᴰsl {C = C}{D = E} Cᴰ)
+  ∫ᴰslF .Functorᴰ.F-obᴰ {d} (b , bᴰ) = (G ⟅ b ⟆) , (FGᴰ.F-obᴰ bᴰ)
+  ∫ᴰslF .Functorᴰ.F-homᴰ {g} (f , fᴰ) = (G ⟪ f ⟫) , (FGᴰ.F-homᴰ fᴰ)
+  ∫ᴰslF .Functorᴰ.F-idᴰ = ΣPathP (G.F-id , (≡[]-rectify Cᴰ FGᴰ.F-idᴰ))
+  ∫ᴰslF .Functorᴰ.F-seqᴰ _ _ =
+    ΣPathP ((G.F-seq _ _) , (≡[]-rectify Cᴰ (FGᴰ.F-seqᴰ _ _)))
