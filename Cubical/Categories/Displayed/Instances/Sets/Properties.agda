@@ -13,13 +13,14 @@ open import Cubical.Data.Unit
 open import Cubical.Categories.Category
 open import Cubical.Categories.Instances.Sets
 open import Cubical.Categories.Instances.Sets.More
+open import Cubical.Categories.Instances.Sets.Properties
 open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.Functor
 open import Cubical.Categories.Displayed.Fibration.Base
-open import Cubical.Categories.Displayed.Fibration.Properties
 open import Cubical.Categories.Displayed.Instances.Sets.Base
 open import Cubical.Categories.Displayed.Presheaf
 open import Cubical.Categories.Displayed.Limits.Terminal
+open import Cubical.Categories.Displayed.Limits.BinProduct
 
 
 private
@@ -55,3 +56,17 @@ VerticalTerminalsSETᴰ dᴰ .universalᴰ .equiv-proof _ = uniqueExists
 LiftedTerminalSETᴰ : ∀{ℓ ℓ'} → LiftedTerminal (SETᴰ ℓ ℓ') terminal'SET
 LiftedTerminalSETᴰ {ℓ} {ℓ'} =
   Vertical/𝟙→LiftedTerm _ (VerticalTerminalsSETᴰ _)
+
+module _ {ℓSETᴰ ℓSETᴰ' : Level} where
+  VerticalBinProdsSETᴰ : VerticalBinProducts (SETᴰ ℓSETᴰ ℓSETᴰ')
+  VerticalBinProdsSETᴰ {d = X} (Xᴰ , Xᴰ') .vertexᴰ x =
+    ⟨ Xᴰ x ⟩ × ⟨ Xᴰ' x ⟩ , isSet× (Xᴰ x .snd) (Xᴰ' x .snd)
+  VerticalBinProdsSETᴰ {d = X} (Xᴰ , Xᴰ') .elementᴰ = (λ _ → fst) , (λ _ → snd)
+  VerticalBinProdsSETᴰ {d = X} (Xᴰ , Xᴰ') .universalᴰ {x = Y} {xᴰ = Yᴰ} {f = h}
+    .equiv-proof (f , g) =
+    uniqueExists (λ y yᴰ → f y yᴰ , g y yᴰ) refl
+    (λ _ → isSet×
+      (SETᴰ ℓSETᴰ ℓSETᴰ' .isSetHomᴰ {x = Y} {y = X} {xᴰ = Yᴰ} {yᴰ = Xᴰ})
+      (SETᴰ ℓSETᴰ ℓSETᴰ' .isSetHomᴰ {x = Y} {y = X} {xᴰ = Yᴰ} {yᴰ = Xᴰ'})
+      _ _)
+    λ _ p i y yᴰ → (sym p) i .fst y yᴰ , (sym p) i .snd y yᴰ
