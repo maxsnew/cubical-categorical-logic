@@ -42,13 +42,16 @@ module _ {C : Category ℓC ℓC'} (D : Categoryᴰ C ℓD ℓD') where
 
   -- Terminal object over a terminal object
   -- TODO: refactor using Constant Functorᴰ eventually
-  TerminalᴰSpec : Presheafᴰ D (TerminalPresheaf {C = C}) ℓ-zero
-  TerminalᴰSpec = TerminalPresheafᴰ _
+  LiftedTerminalᴰSpec : Presheafᴰ D (TerminalPresheaf {C = C}) ℓ-zero
+  LiftedTerminalᴰSpec = TerminalPresheafᴰ _
 
-  Terminalᴰ : (term : Terminal' C) → Type (ℓ-max (ℓ-max (ℓ-max ℓC ℓC') ℓD) ℓD')
-  Terminalᴰ term = UniversalElementᴰ _ TerminalᴰSpec term
+  LiftedTerminalᴰ : (term : Terminal' C) →
+    Type (ℓ-max (ℓ-max (ℓ-max ℓC ℓC') ℓD) ℓD')
+  LiftedTerminalᴰ term = UniversalElementᴰ _ LiftedTerminalᴰSpec term
 
-  module TerminalᴰNotation {term' : Terminal' C} (termᴰ : Terminalᴰ term') where
+  module LiftedTerminalᴰNotation {term' : Terminal' C}
+    (termᴰ : LiftedTerminalᴰ term') where
+
     open UniversalElement
     open UniversalElementᴰ
     open Terminal'Notation term'
@@ -72,19 +75,26 @@ module _ {C : Category ℓC ℓC'} (D : Categoryᴰ C ℓD ℓD') where
     -- TODO: Is this equivalent to the more "obvious" definition that
     -- Fiber c have a terminal object?
     -- No.
-    FibTerminalᴰSpec : Presheafᴰ D (C [-, c ]) ℓ-zero
-    FibTerminalᴰSpec = TerminalPresheafᴰ _
+    VerticalTerminalᴰSpec : Presheafᴰ D (C [-, c ]) ℓ-zero
+    VerticalTerminalᴰSpec = TerminalPresheafᴰ _
 
     -- This says that for every morphism f : c' → c in C and
     -- d ∈ D.ob[ c' ] there is a unique lift to fᴰ : D [ f ][ d' , 1c ]
     -- In program logic terms this is the "trivial postcondition"
-    FibTerminalᴰ : Type (ℓ-max (ℓ-max (ℓ-max ℓC ℓC') ℓD) ℓD')
-    FibTerminalᴰ = UniversalElementᴰ D FibTerminalᴰSpec (selfUnivElt C c)
+    VerticalTerminalAtᴰ : Type (ℓ-max (ℓ-max (ℓ-max ℓC ℓC') ℓD) ℓD')
+    VerticalTerminalAtᴰ =
+      UniversalElementᴰ D VerticalTerminalᴰSpec (selfUnivElt C c)
 
-    module FibTerminalᴰNotation (fibTermᴰ : FibTerminalᴰ) where
+    module VerticalTerminalAtᴰNotation (vt : VerticalTerminalAtᴰ) where
       open UniversalElementᴰ
       1ᴰ : D.ob[ c ]
-      1ᴰ = fibTermᴰ .vertexᴰ
+      1ᴰ = vt .vertexᴰ
 
       !tᴰ : ∀ {c'}(f : C [ c' , c ]) (d' : D.ob[ c' ]) → D [ f ][ d' , 1ᴰ ]
-      !tᴰ f d' = invIsEq (fibTermᴰ .universalᴰ) tt
+      !tᴰ f d' = invIsEq (vt .universalᴰ) tt
+
+      !tᴰ-unique : ∀ {c'}(f : C [ c' , c ]) (d' : D.ob[ c' ]) →
+        isContr (D [ f ][ d' , 1ᴰ ])
+      !tᴰ-unique f d' .fst = !tᴰ f d'
+      !tᴰ-unique f d' .snd fᴰ' =
+        cong (λ p → p .fst) (vt .universalᴰ .equiv-proof tt .snd (fᴰ' , refl))
