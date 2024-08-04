@@ -1,8 +1,6 @@
 {-# OPTIONS --safe --lossy-unification #-}
 module Cubical.Categories.Profunctor.General where
 
-open import Cubical.Reflection.RecordEquiv
-
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Isomorphism
@@ -39,12 +37,17 @@ open Category
 open Functor
 open UniversalElement
 open Bifunctor
+open NatTrans
 
 -- A profunctor, also called a distributor is a generalization of a
 -- functor where the values are not objects of the codomain, but
 -- instead presheaves
 Profunctor : (C : Category ℓC ℓC')(D : Category ℓD ℓD') → ∀ ℓS → Type _
 Profunctor C D ℓS = Functor C (PresheafCategory D ℓS)
+
+module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') ℓS where
+  PROFUNCTOR : Category _ _
+  PROFUNCTOR = FUNCTOR C (PresheafCategory D ℓS)
 
 module _ {C : Category ℓC ℓC'}
          {D : Category ℓD ℓD'}

@@ -15,7 +15,8 @@ open import Cubical.Categories.Category
 open import Cubical.Categories.Morphism
 open import Cubical.Categories.Functor
 open import Cubical.Categories.NaturalTransformation
-open import Cubical.Categories.Profunctor.Relator as Relator hiding (Hom)
+open import Cubical.Categories.Profunctor.Relator as Relator
+open import Cubical.Categories.Profunctor.Hom
 open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Constructions.BinProduct.More
 open import Cubical.Categories.Displayed.Base
@@ -35,10 +36,11 @@ private
     ℓC ℓC' ℓD ℓD' ℓS ℓR : Level
 
 module _ (C : Category ℓC ℓC') where
-  Hom : Categoryᴰ (C ×C C) ℓC' ℓC'
-  Hom = Graph {C = C}{D = C} (Relator.Hom C)
 
-  hasPropHomsHom = hasPropHomsGraph (Relator.Hom C)
+  Hom : Categoryᴰ (C ×C C) ℓC' ℓC'
+  Hom = Graph {C = C}{D = C} (HomR C)
+
+  hasPropHomsHom = hasPropHomsGraph (HomR C)
 
   Mono : Categoryᴰ (C ×C C) (ℓ-max ℓC' (ℓ-max ℓC ℓC')) (ℓ-max ℓC' ℓ-zero)
   Mono = ∫Cᴰ Hom (PropertyOver _ (λ (_ , f) → isMonic C f))
