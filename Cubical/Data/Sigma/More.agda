@@ -1,6 +1,3 @@
-{-
-
--}
 {-# OPTIONS --safe #-}
 module Cubical.Data.Sigma.More where
 

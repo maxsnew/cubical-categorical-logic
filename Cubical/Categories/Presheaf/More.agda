@@ -20,7 +20,6 @@ open import Cubical.Categories.Presheaf.Representable
 
 open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Isomorphism.More
-open import Cubical.Categories.Constructions.Elements.More
 
 open Category
 open Functor
@@ -117,12 +116,3 @@ module UniversalElementNotation {ℓo}{ℓh}
     ( (∘ᴾAssoc C P _ _ _
     ∙ cong (action C P _) β)
     ∙ sym β)
-
-module _
-  {C : Category ℓ ℓ'} (isUnivC : isUnivalent C) (P : Presheaf C ℓS) where
-  open Contravariant
-  isPropUniversalElement : isProp (UniversalElement C P)
-  isPropUniversalElement = isOfHLevelRetractFromIso 1
-    (invIso (TerminalElement≅UniversalElement C P))
-    (isPropTerminal (∫ᴾ_ {C = C} P)
-    (isUnivalentOp (isUnivalent∫ (isUnivalentOp isUnivC) P)))
