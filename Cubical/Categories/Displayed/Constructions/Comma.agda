@@ -25,15 +25,11 @@ open import Cubical.Categories.Isomorphism
 open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.HLevels
-open import Cubical.Categories.Displayed.HLevels.More
 open import Cubical.Categories.Displayed.Functor
 open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Constructions.TotalCategory as TotalCat
   hiding (intro)
-open import Cubical.Categories.Constructions.TotalCategory.More as TotalCat
 open import Cubical.Categories.Displayed.Constructions.TotalCategory
-  as TotalCatᴰ hiding (intro)
-open import Cubical.Categories.Displayed.Constructions.TotalCategory.More
   as TotalCatᴰ
 open import Cubical.Categories.Displayed.Constructions.SimpleTotalCategoryR
 open import Cubical.Categories.Displayed.Constructions.SimpleTotalCategoryL
@@ -205,7 +201,7 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}{E : Category ℓE �
          where
   open Functorᴰ
   intro : Functor B (Comma F G)
-  intro = TotalCat.intro' (H ,F K) αF where
+  intro = TotalCat.intro (H ,F K) αF where
     αF : Section _ _
     αF = mkPropHomsSection (hasPropHomsCommaᴰ _ _)
       (α ⟦_⟧)
@@ -245,7 +241,7 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}{E : Category ℓE �
   open NatIso
 
   mkIsoCommaFunctor : Functor B (IsoComma F G)
-  mkIsoCommaFunctor = TotalCat.intro' (H ,F K)
+  mkIsoCommaFunctor = TotalCat.intro (H ,F K)
     (TotalCatᴰ.introS _ _
       (mkPropHomsSection (hasPropHomsCommaᴰ _ _)
         (α .trans ⟦_⟧)

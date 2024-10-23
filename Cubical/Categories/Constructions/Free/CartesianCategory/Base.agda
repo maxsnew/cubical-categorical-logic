@@ -18,14 +18,14 @@ open import Cubical.Categories.Limits.BinProduct
 open import Cubical.Categories.Limits.BinProduct.More
 
 open import Cubical.Categories.Displayed.Base
+open import Cubical.Categories.Displayed.More
 open import Cubical.Categories.Displayed.Reasoning as HomᴰReasoning
 open import Cubical.Categories.Displayed.Limits.Cartesian
 open import Cubical.Categories.Displayed.Limits.Terminal
 open import Cubical.Categories.Displayed.Limits.BinProduct
 open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Displayed.Presheaf
-open import Cubical.Categories.Displayed.Properties
-open import Cubical.Categories.Displayed.Constructions.Reindex
+open import Cubical.Categories.Displayed.Constructions.Reindex.Base
 open import Cubical.Categories.Displayed.Constructions.Reindex.Properties
 open import Cubical.Categories.Displayed.Fibration.Base
 open import Cubical.Categories.Displayed.Constructions.Weaken as Wk
@@ -113,15 +113,14 @@ module _ (Q : ×Quiver ℓQ ℓQ') where
         elim-F-hom (⋆ₑAssoc f g h i) =
           Cᴰ.⋆Assocᴰ (elim-F-hom f) (elim-F-hom g) (elim-F-hom h) i
         elim-F-hom (isSetExp f g p q i j) =
-          isOfHLevel→isOfHLevelDep 2 (λ _ → Cᴰ.isSetHomᴰ)
+          isSetHomᴰ' Cᴰ
           (elim-F-hom f) (elim-F-hom g)
           (cong elim-F-hom p) (cong elim-F-hom q)
-          (isSetExp f g p q)
           i j
         elim-F-hom !ₑ = !tᴰ _
         -- TODO: Why does this need rectify?
         elim-F-hom (⊤η f i) =
-          R.≡[]-rectify {p' = ⊤η f} (𝟙ηᴰ (elim-F-hom f)) i
+          R.rectify {p' = ⊤η f} (𝟙ηᴰ (elim-F-hom f)) i
         elim-F-hom π₁ = π₁ᴰ
         elim-F-hom π₂ = π₂ᴰ
         elim-F-hom ⟨ f₁ , f₂ ⟩ = elim-F-hom f₁ ,pᴰ elim-F-hom f₂
@@ -131,7 +130,7 @@ module _ (Q : ×Quiver ℓQ ℓQ') where
           ×β₂ᴰ {f₁ᴰ = elim-F-hom f₁} {f₂ᴰ = elim-F-hom f₂} i
         -- TODO: Why do we need this rectify too?
         elim-F-hom (×η {t = f} i) =
-          R.≡[]-rectify {p' = ×η {t = f}} (×ηᴰ {fᴰ = elim-F-hom f}) i
+          R.rectify {p' = ×η {t = f}} (×ηᴰ {fᴰ = elim-F-hom f}) i
 
         elim : GlobalSection Cᴰ
         elim .F-obᴰ = elim-F-ob
