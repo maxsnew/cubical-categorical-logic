@@ -36,6 +36,7 @@ open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Displayed.Instances.Presheaf.Base
 open import Cubical.Categories.Displayed.Instances.Presheaf.Properties
+open import Cubical.Categories.Displayed.Instances.Presheaf.Limits as PresheafLimits
 open import Cubical.Categories.Displayed.Constructions.Reindex.Properties
 open import Cubical.Categories.Displayed.Limits.BinProduct
 
@@ -48,7 +49,7 @@ open Categoryᴰ
 open Section
 open NatTrans
 open Cubical.Categories.Constructions.Elements.Contravariant
-open CartesianOver
+open CartesianLift
 
 Quiver→×Quiver : ∀{ℓ ℓ' : Level} → Quiver ℓ ℓ' → ×Quiver ℓ ℓ'
 Quiver→×Quiver Q .fst = Q .fst
@@ -78,10 +79,7 @@ module _ (Q : Quiver ℓQ ℓQ') where
   -- the use of rec to define the functor is just to save work, since no
   -- specific behavior on non-atoms is required
   extension : Functor (FREE-1,× .fst) (PresheafCategory FREE _)
-  extension = FCC.rec (Quiver→×Quiver Q)
-    (PresheafCategory FREE _ , ⊤𝓟 _ _ , ×𝓟 _ _)
-    (YO ⟅_⟆)
-    λ f → YO ⟪ ↑ f ⟫
+  extension = FCC.rec _ ((PresheafCategory FREE _ , ⊤𝓟 _ _ , ×𝓟 _ _)) (mkInterpᴰ (YO ⟅_⟆) (λ f → YO ⟪ ↑ f ⟫))
 
   commutes : YO ≡ extension ∘F ⊆
   commutes = FreeCatFunctor≡ Q _ _
@@ -117,13 +115,12 @@ module _ (Q : Quiver ℓQ ℓQ') where
     (funExt (λ _ → funExt (λ _ → sym (FREE-1,× .fst .⋆Assoc _ _ _))))
 
   S : Section nerve (PRESHEAFᴰ FREE _ _)
-  S = elimLocal' (Quiver→×Quiver Q)
-    (LiftedTerminalReindex (PRESHEAFᴰ-VerticalTerminals FREE _ _ _))
-    (LiftedBinProductsReindex'
-      (BinProductsToBinProducts' _ (FREE-1,× .snd .snd))
-      (PRESHEAFᴰ-isFibration _ _ _) (PRESHEAFᴰ-VerticalProducts _ _ _))
-    OB
-    HOM
+  S = FCC.elimLocal _
+    -- tried to put this in Presheaf.Cartesian but it hangs :/
+    (_ , (isFibrationPRESHEAFᴰ _ _ _) , hasAllTerminalⱽPRESHEAFᴰ _ _ _ , hasAllBinProductⱽPRESHEAFᴰ _ _ _)
+    (mkInterpᴰ
+      OB
+      HOM)
     where
     OB : (o : FREE .ob) → Presheafᴰ FREE _ _ (nerve ⟅ ⊆ ⟅ o ⟆ ⟆)
     OB o .F-ob (o' , o'→×o) = (Σ[ f ∈ FREE [ o' , o ] ] ⊆ ⟪ f ⟫ ≡ o'→×o) ,
@@ -145,19 +142,22 @@ module _ (Q : Quiver ℓQ ℓQ') where
       λ f → funExt (λ _ → ΣPathP (FREE .⋆Assoc _ _ _ ,
         isSet→SquareP (λ _ _ → FREE-1,× .fst .isSetHom) _ _ _ _))
 
-  ⊆-Full : isFull ⊆
-  ⊆-Full o o' F[f] = ∣ f , p ∙ FREE-1,× .fst .⋆IdL _ ∣₁
-    where
-    ⊆[→o'] : 𝓟FREEᴰ.ob[ nerve ⟅ ⊆ ⟅ o' ⟆ ⟆ ]
-    ⊆[→o'] = S .F-obᴰ (⊆ ⟅ o' ⟆)
-    ⊆[→o']* : 𝓟FREEᴰ.ob[ nerve ⟅ ⊆ ⟅ o ⟆ ⟆ ]
-    ⊆[→o']* = PRESHEAFᴰ-AllCartesianOvers _ _ _ ⊆[→o'] (nerve ⟪ F[f] ⟫) .f*cᴰ'
-    f,p : ⟨ ⊆[→o']* ⟅ o , FREE-1,× .fst .id ⟆ ⟩
-    f,p = (S .F-homᴰ F[f] ⟦ o , FREE-1,× .fst .id ⟧) (FREE .id , refl)
-    f : FREE [ o , o' ]
-    f = f,p .fst
-    p : ⊆ ⟪ f ⟫ ≡ FREE-1,× .fst .id ⋆⟨ FREE-1,× .fst ⟩ F[f]
-    p = f,p .snd
+  opaque
+    unfolding
+      isFibrationPRESHEAFᴰ
+    ⊆-Full : isFull ⊆
+    ⊆-Full o o' F[f] = ∣ f , p ∙ FREE-1,× .fst .⋆IdL _ ∣₁
+      where
+      ⊆[→o'] : 𝓟FREEᴰ.ob[ nerve ⟅ ⊆ ⟅ o' ⟆ ⟆ ]
+      ⊆[→o'] = S .F-obᴰ (⊆ ⟅ o' ⟆)
+      ⊆[→o']* : 𝓟FREEᴰ.ob[ nerve ⟅ ⊆ ⟅ o ⟆ ⟆ ]
+      ⊆[→o']* = isFibrationPRESHEAFᴰ _ _ _ ⊆[→o'] (nerve ⟪ F[f] ⟫) .f*yᴰ
+      f,p : ⟨ ⊆[→o']* ⟅ o , FREE-1,× .fst .id ⟆ ⟩
+      f,p = (S .F-homᴰ F[f] ⟦ o , FREE-1,× .fst .id ⟧) (FREE .id , refl)
+      f : FREE [ o , o' ]
+      f = f,p .fst
+      p : ⊆ ⟪ f ⟫ ≡ FREE-1,× .fst .id ⋆⟨ FREE-1,× .fst ⟩ F[f]
+      p = f,p .snd
 
   ⊆-FullyFaithful : isFullyFaithful ⊆
   ⊆-FullyFaithful = isFull+Faithful→isFullyFaithful {F = ⊆} ⊆-Full ⊆-Faithful

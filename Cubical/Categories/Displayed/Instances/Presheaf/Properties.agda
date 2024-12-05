@@ -1,5 +1,4 @@
 {-# OPTIONS --safe #-}
-{-# OPTIONS --lossy-unification #-}
 module Cubical.Categories.Displayed.Instances.Presheaf.Properties where
 
 open import Cubical.Foundations.Prelude
@@ -36,107 +35,32 @@ open UniversalElementᴰ
 open CartesianOver
 
 private
-  variable ℓC ℓC' ℓD ℓD' ℓE ℓE' : Level
+  variable ℓC ℓC' ℓD ℓD' ℓE ℓE' ℓS ℓSᴰ : Level
 
-module _ (C : Category ℓC ℓC') (ℓS ℓSᴰ : Level) where
-  PRESHEAFᴰ-VerticalTerminals : VerticalTerminals (PRESHEAFᴰ C ℓS ℓSᴰ)
-  PRESHEAFᴰ-VerticalTerminals P .vertexᴰ = ⊤𝓟 _ _ .fst
-  PRESHEAFᴰ-VerticalTerminals P .elementᴰ = tt
-  PRESHEAFᴰ-VerticalTerminals P .universalᴰ .equiv-proof _ = uniqueExists
-    (natTrans (λ _ _ → tt*) (λ _ → funExt (λ _ → refl)))
-    (isPropUnit _ _)
-    (λ _ → isSetUnit _ _)
-    (λ _ _ → makeNatTransPath (funExt (λ _ → funExt (λ _ → isPropUnit* _ _))))
-
-  private
-    -- present PRESHEAFᴰ-VerticalProducts in a more implementation agnostic way
-    module M {P : Presheaf C ℓS} (Pᴰ Pᴰ' : Presheafᴰ C ℓS ℓSᴰ P) where
-      vprod : Presheafᴰ C _ _ P
-      vprod = ×𝓟 _ _ Pᴰ Pᴰ' .BinProduct.binProdOb
-
-      π₁ : NatTransᴰ C _ _ (idTrans P) vprod Pᴰ
-      π₁ = seqTrans (×𝓟 _ _ Pᴰ Pᴰ' .BinProduct.binProdPr₁) (idTransᴰ _ _ _)
-
-      π₂ : NatTransᴰ C _ _ (idTrans P) vprod Pᴰ'
-      π₂ = seqTrans (×𝓟 _ _ Pᴰ Pᴰ' .BinProduct.binProdPr₂) (idTransᴰ _ _ _)
-
-      module _ {Q}{Qᴰ : Presheafᴰ C _ _ Q}{α : Q ⇒ P}
-        (id∘αᴰ : NatTransᴰ C _ _ (seqTrans α (idTrans P)) Qᴰ Pᴰ)
-        (id∘αᴰ' : NatTransᴰ C _ _ (seqTrans α (idTrans P)) Qᴰ Pᴰ') where
-        pair : NatTransᴰ C _ _ α Qᴰ vprod
-        pair = natTrans
-          (λ (Γ , ϕ) ϕᴰ → (id∘αᴰ ⟦ Γ , ϕ ⟧) ϕᴰ , (id∘αᴰ' ⟦ Γ , ϕ ⟧) ϕᴰ)
-          (λ {x = Γ,ϕ}{y = Δ,ψ} (f , p) → funExt (λ ϕᴰ → ≡-×
-            (funExt⁻ (id∘αᴰ .N-hom (f , p)) ϕᴰ ∙
-              congS (λ x → (Pᴰ ⟪ _ , x ⟫) ((id∘αᴰ ⟦ Γ,ϕ ⟧) ϕᴰ))
-              ((P ⟅ _ ⟆) .snd _ _ _ _))
-            (funExt⁻ (id∘αᴰ' .N-hom (f , p)) ϕᴰ ∙
-              congS (λ x → (Pᴰ' ⟪ _ , x ⟫) ((id∘αᴰ' ⟦ Γ,ϕ ⟧) ϕᴰ))
-              ((P ⟅ _ ⟆) .snd _ _ _ _))))
-        module _
-          (pair' : NatTransᴰ C _ _ α Qᴰ vprod)
-          (pair'-ob : pair' ⟦_⟧ ≡ pair ⟦_⟧) where
-          module _
-            (π₁' : NatTransᴰ C _ _ (idTrans P) vprod Pᴰ)
-            (π₁'-ob : π₁' ⟦_⟧ ≡ π₁ ⟦_⟧) where
-            β₁ : seqTransᴰ C _ _ pair' π₁' ≡ id∘αᴰ
-            β₁ = makeNatTransPath (funExt (λ _ → funExt (λ _ →
-              funExt⁻ (funExt⁻ π₁'-ob (_ , (α ⟦ _ ⟧) _)) ((pair' ⟦ _ ⟧) _) ∙
-              congS fst (funExt⁻ (funExt⁻ pair'-ob _) _))))
-          module _
-            (π₂' : NatTransᴰ C _ _ (idTrans P) vprod Pᴰ')
-            (π₂'-ob : π₂' ⟦_⟧ ≡ π₂ ⟦_⟧) where
-            β₂ : seqTransᴰ C _ _ pair' π₂' ≡ id∘αᴰ'
-            β₂ = makeNatTransPath (funExt (λ _ → funExt (λ _ →
-              funExt⁻ (funExt⁻ π₂'-ob (_ , (α ⟦ _ ⟧) _)) ((pair' ⟦ _ ⟧) _) ∙
-              congS snd (funExt⁻ (funExt⁻ pair'-ob _) _))))
-
-  PRESHEAFᴰ-VerticalProducts : VerticalBinProducts (PRESHEAFᴰ C ℓS ℓSᴰ)
-  PRESHEAFᴰ-VerticalProducts (Pᴰ , Pᴰ') .vertexᴰ = M.vprod Pᴰ Pᴰ'
-  PRESHEAFᴰ-VerticalProducts (Pᴰ , Pᴰ') .elementᴰ = M.π₁ Pᴰ Pᴰ' , M.π₂ Pᴰ Pᴰ'
-  PRESHEAFᴰ-VerticalProducts (Pᴰ , Pᴰ') .universalᴰ
-    .equiv-proof (id∘αᴰ , id∘αᴰ') = uniqueExists
-    pair
-    (≡-×
-      (N.β₁ id∘αᴰ id∘αᴰ' pair refl (M.π₁ _ _) refl)
-      (N.β₂ id∘αᴰ id∘αᴰ' pair refl (M.π₂ _ _) refl))
-    (λ pair' → isSet× isSetNatTrans isSetNatTrans
-      (seqTransᴰ C _ _ pair'
-        (PRESHEAFᴰ-VerticalProducts (Pᴰ , Pᴰ') .elementᴰ .fst) ,
-      seqTransᴰ C _ _ pair'
-        (PRESHEAFᴰ-VerticalProducts (Pᴰ , Pᴰ') .elementᴰ .snd))
-      (id∘αᴰ , id∘αᴰ'))
-    λ _ p → makeNatTransPath (funExt (λ _ → funExt (λ _ → ≡-×
-      (funExt⁻ (funExt⁻ (sym (congS (N-ob ∘S fst) p)) _) _)
-      (funExt⁻ (funExt⁻ (sym (congS (N-ob ∘S snd) p)) _) _))))
-    where
-    module N = M Pᴰ Pᴰ'
-    pair = N.pair id∘αᴰ id∘αᴰ'
-
-  PRESHEAFᴰ-AllCartesianOvers : AllCartesianOvers (PRESHEAFᴰ C ℓS ℓSᴰ)
-  PRESHEAFᴰ-AllCartesianOvers Pᴰ α .f*cᴰ' .F-ob (Γ , ϕ) = Pᴰ ⟅ Γ , (α ⟦ Γ ⟧) ϕ ⟆
-
-  PRESHEAFᴰ-AllCartesianOvers Pᴰ α .f*cᴰ' .F-hom {x = Γ,ϕ} {y = Δ,ψ} (f , p) =
-    Pᴰ ⟪ f ,
-    sym (funExt⁻ (α .N-hom f) (Γ,ϕ .snd)) ∙ congS (α ⟦ Δ,ψ .fst ⟧) p ⟫
-  PRESHEAFᴰ-AllCartesianOvers {c' = P} Pᴰ α .f*cᴰ' .F-id {x = Γ , ϕ} =
+open CartesianLift
+module _ (C : Category ℓC ℓC') where
+  reindPresheafᴰ : ∀ {P : Presheaf C ℓS}{Q : Presheaf C ℓS}
+    (α : PresheafCategory C ℓS [ P , Q ])
+    (Pᴰ : Presheafᴰ C ℓS ℓSᴰ Q)
+    → Presheafᴰ C ℓS ℓSᴰ P
+  reindPresheafᴰ α Pᴰ .F-ob (Γ , ϕ) = Pᴰ ⟅ Γ , (α ⟦ Γ ⟧) ϕ ⟆
+  reindPresheafᴰ α Pᴰ .F-hom {x = Γ,ϕ} {y = Δ,ψ} (f , p) =
+    Pᴰ ⟪ f , sym (funExt⁻ (α .N-hom f) (Γ,ϕ .snd)) ∙ congS (α ⟦ Δ,ψ .fst ⟧) p ⟫
+  reindPresheafᴰ {Q = Q} α Pᴰ .F-id {x = Γ , ϕ} =
     funExt (λ α⟦Γ⟧ϕᴰ →
-      congS (λ x → (Pᴰ ⟪ C .id , x ⟫) α⟦Γ⟧ϕᴰ) ((P ⟅ _ ⟆) .snd _ _ _ _) ∙
+      congS (λ x → (Pᴰ ⟪ C .id , x ⟫) α⟦Γ⟧ϕᴰ) ((Q ⟅ _ ⟆) .snd _ _ _ _) ∙
       funExt⁻ (Pᴰ .F-id) α⟦Γ⟧ϕᴰ)
-  PRESHEAFᴰ-AllCartesianOvers {c' = P} Pᴰ α .f*cᴰ' .F-seq _ _ =
-    congS (λ x → Pᴰ ⟪ _ , x ⟫) ((P ⟅ _ ⟆) .snd _ _ _ _) ∙
+  reindPresheafᴰ {Q = Q} α Pᴰ .F-seq _ _ =
+    congS (λ x → Pᴰ ⟪ _ , x ⟫) ((Q ⟅ _ ⟆) .snd _ _ _ _) ∙
     Pᴰ .F-seq _ _
-  PRESHEAFᴰ-AllCartesianOvers _ _ .π = natTrans (λ _ → idfun _) (λ _ → refl)
-  PRESHEAFᴰ-AllCartesianOvers {c' = P} Pᴰ α .isCartesian {c'' = R} Rᴰ β βαᴰ =
-    uniqueExists
-    (natTrans (βαᴰ ⟦_⟧) (λ _ → funExt (λ ϕᴰ →
+module _ (C : Category ℓC ℓC') (ℓS ℓSᴰ : Level) where
+  opaque
+    isFibrationPRESHEAFᴰ : isFibration (PRESHEAFᴰ C ℓS ℓSᴰ)
+    isFibrationPRESHEAFᴰ Pᴰ α .f*yᴰ = reindPresheafᴰ C α Pᴰ
+    isFibrationPRESHEAFᴰ Pᴰ α .π = natTrans (λ x z → z) (λ _ → refl)
+    isFibrationPRESHEAFᴰ {c' = Q} Pᴰ α .isCartesian {g = β} .fst  βαᴰ = natTrans (βαᴰ ⟦_⟧) (λ _ → funExt (λ ϕᴰ →
       funExt⁻ (βαᴰ .N-hom _) ϕᴰ ∙
       congS (λ x → (Pᴰ ⟪ _ , x ⟫) ((βαᴰ ⟦ _ ⟧) ϕᴰ))
-        ((P ⟅ _ ⟆) .snd _ _ _ _))))
-    (makeNatTransPath refl)
-    (λ _ → isSetNatTrans _ _)
-    (λ _ p → makeNatTransPath (sym (congS N-ob p)))
-
-  PRESHEAFᴰ-isFibration : isFibration (PRESHEAFᴰ C ℓS ℓSᴰ)
-  PRESHEAFᴰ-isFibration _ = CartesianOver→CartesianLift
-    (PRESHEAFᴰ C _ _) (PRESHEAFᴰ-AllCartesianOvers _ _)
+        ((Q ⟅ _ ⟆) .snd _ _ _ _)))
+    isFibrationPRESHEAFᴰ Pᴰ α .isCartesian {g = β} .snd .fst βαᴰ = makeNatTransPath refl
+    isFibrationPRESHEAFᴰ Pᴰ α .isCartesian {g = β} .snd .snd αᴰ = makeNatTransPath refl

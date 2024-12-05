@@ -2,22 +2,25 @@
 module Cubical.Categories.Displayed.Instances.Functor where
 
 open import Cubical.Foundations.Prelude
-open import Cubical.Categories.Category
 open import Cubical.Foundations.HLevels
+import Cubical.Data.Equality as Eq
+
+open import Cubical.Categories.Category
 open import Cubical.Categories.Functor
 open import Cubical.Categories.Instances.Functors
 open import Cubical.Categories.NaturalTransformation.Base
 
 open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.Functor
+open import Cubical.Categories.Displayed.Functor.More
 open import Cubical.Categories.Displayed.NaturalTransformation
 
 private
   variable
-    ℓC ℓC' ℓD ℓD' : Level
+    ℓC ℓC' ℓCᴰ ℓCᴰ' ℓD ℓD' ℓDᴰ ℓDᴰ' ℓE ℓE' ℓEᴰ ℓEᴰ' : Level
 
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}
-  (Cᴰ : Categoryᴰ C ℓC ℓC')(Dᴰ : Categoryᴰ D ℓD ℓD') where
+  (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')(Dᴰ : Categoryᴰ D ℓDᴰ ℓDᴰ') where
 
   open Category
   open Functorᴰ
@@ -143,3 +146,32 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}
     (implicitFunExt (λ {x} → funExt (λ xᴰ →  Dᴰ .⋆Assocᴰ _ _ _)))
   FUNCTORᴰ .isSetHomᴰ {x = F} {y = G} {f = α} {xᴰ = Fᴰ} {yᴰ = Gᴰ} =
     isSetNatTransᴰ
+
+module _
+  {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} (E : Category ℓE ℓE')
+  {F : Functor C D}
+  {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'} {Dᴰ : Categoryᴰ D ℓDᴰ ℓDᴰ'} (Eᴰ : Categoryᴰ E ℓEᴰ ℓEᴰ')
+  (Fᴰ : Functorᴰ F Cᴰ Dᴰ)
+  where
+  open Functorᴰ
+  open NatTransᴰ
+  precomposeFᴰ : Functorᴰ (precomposeF E F) (FUNCTORᴰ Dᴰ Eᴰ) (FUNCTORᴰ Cᴰ Eᴰ)
+  precomposeFᴰ .F-obᴰ Gᴰ = Gᴰ ∘Fᴰ Fᴰ
+  precomposeFᴰ .F-homᴰ αᴰ .N-obᴰ xᴰ = αᴰ .N-obᴰ (Fᴰ .F-obᴰ xᴰ)
+  precomposeFᴰ .F-homᴰ αᴰ .N-homᴰ fᴰ = αᴰ .N-homᴰ (Fᴰ .F-homᴰ fᴰ)
+  precomposeFᴰ .F-idᴰ = refl
+  precomposeFᴰ .F-seqᴰ fᴰ gᴰ = refl
+
+module _
+  {C : Category ℓC ℓC'} (E : Category ℓE ℓE')
+  {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'} {Dᴰ : Categoryᴰ C ℓDᴰ ℓDᴰ'} (Eᴰ : Categoryᴰ E ℓEᴰ ℓEᴰ')
+  (Fᴰ : Functorⱽ Cᴰ Dᴰ)
+  where
+  open Functorᴰ
+  open NatTransᴰ
+  precomposeFⱽ : Functorⱽ (FUNCTORᴰ Dᴰ Eᴰ) (FUNCTORᴰ Cᴰ Eᴰ)
+  precomposeFⱽ .F-obᴰ Gᴰ = Gᴰ ∘Fᴰⱽ Fᴰ
+  precomposeFⱽ .F-homᴰ αᴰ .N-obᴰ xᴰ = αᴰ .N-obᴰ (Fᴰ .F-obᴰ xᴰ)
+  precomposeFⱽ .F-homᴰ αᴰ .N-homᴰ fᴰ = αᴰ .N-homᴰ (Fᴰ .F-homᴰ fᴰ)
+  precomposeFⱽ .F-idᴰ = refl
+  precomposeFⱽ .F-seqᴰ _ _ = refl

@@ -27,6 +27,7 @@ open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Displayed.Presheaf
 open import Cubical.Categories.Displayed.Constructions.Reindex.Base
 open import Cubical.Categories.Displayed.Constructions.Reindex.Properties
+open import Cubical.Categories.Displayed.Constructions.Reindex.Limits as CartReindex
 open import Cubical.Categories.Displayed.Fibration.Base
 open import Cubical.Categories.Displayed.Constructions.Weaken as Wk
 
@@ -87,8 +88,8 @@ module _ (Q : ×Quiver ℓQ ℓQ') where
       module Cᴰ = Categoryᴰ Cᴰ
       termᴰ = CCᴰ .snd .fst
       bpᴰ = CCᴰ .snd .snd
-      open LiftedTerminalNotation _ termᴰ
-      open LiftedBinProductsNotation bpᴰ
+      open TerminalᴰNotation _ termᴰ
+      open hasAllBinProductᴰNotation bpᴰ
     open UniversalElementᴰ
     module _ (ı-ob : ∀ o → Cᴰ.ob[ ↑ o ]) where
       elim-F-ob : ∀ c → Cᴰ.ob[ c ]
@@ -96,15 +97,21 @@ module _ (Q : ×Quiver ℓQ ℓQ') where
       elim-F-ob ⊤         = 𝟙ᴰ
       elim-F-ob (c₁ × c₂) = elim-F-ob c₁ ×ᴰ elim-F-ob c₂
 
-      module _ (ı-hom : ∀ e →
-        Cᴰ.Hom[ ↑ₑ e ][ elim-F-ob (Q.Dom e) , elim-F-ob (Q.Cod e) ])
+
+    record Interpᴰ : Type (ℓ-max (ℓ-max ℓQ ℓQ') (ℓ-max ℓCᴰ ℓCᴰ')) where
+      constructor mkInterpᴰ
+      field
+        ı-ob : ∀ o → Cᴰ.ob[ ↑ o ]
+        ı-hom : ∀ e → Cᴰ.Hom[ ↑ₑ e ][ elim-F-ob ı-ob (Q.Dom e) , elim-F-ob ı-ob (Q.Cod e) ]
+    module _ (ı : Interpᴰ)
         where
         open Section
+        open Interpᴰ ı
         private
           module R = HomᴰReasoning Cᴰ
 
         elim-F-hom : ∀ {c c'} (f : |FreeCartesianCategory| [ c , c' ]) →
-          Cᴰ [ f ][ elim-F-ob c , elim-F-ob c' ]
+          Cᴰ [ f ][ elim-F-ob ı-ob c , elim-F-ob ı-ob c' ]
         elim-F-hom (↑ₑ t) = ı-hom t
         elim-F-hom idₑ = Cᴰ.idᴰ
         elim-F-hom (f ⋆ₑ g) = elim-F-hom f Cᴰ.⋆ᴰ elim-F-hom g
@@ -133,7 +140,7 @@ module _ (Q : ×Quiver ℓQ ℓQ') where
           R.rectify {p' = ×η {t = f}} (×ηᴰ {fᴰ = elim-F-hom f}) i
 
         elim : GlobalSection Cᴰ
-        elim .F-obᴰ = elim-F-ob
+        elim .F-obᴰ = elim-F-ob ı-ob
         elim .F-homᴰ = elim-F-hom
         elim .F-idᴰ = refl
         elim .F-seqᴰ _ _ = refl
@@ -141,89 +148,21 @@ module _ (Q : ×Quiver ℓQ ℓQ') where
   module _
     {D : Category ℓD ℓD'}
     {F : Functor |FreeCartesianCategory| D}
-    {Dᴰ : Categoryᴰ D ℓDᴰ ℓDᴰ'}
-    where
-    module _
-      (lt : LiftedTerminal (reindex Dᴰ F)
-        (terminalToUniversalElement (FreeCartesianCategory .snd .fst)))
-      (lbp : LiftedBinProducts (reindex Dᴰ F)
-        (BinProductsToBinProducts' _ (FreeCartesianCategory .snd .snd)))
-      where
-      private
-        module Dᴰ = Categoryᴰ Dᴰ
-        CCᴰ : CartesianCategoryᴰ _ ℓDᴰ ℓDᴰ'
-        CCᴰ = reindex Dᴰ F , (lt , lbp)
-      module _
-        (ϕ : (o : Q .fst) → Dᴰ.ob[ F ⟅ ↑ o ⟆ ])
-        (ψ : (e : Q .snd .mor) →
-               Dᴰ.Hom[ F ⟪ ↑ₑ e ⟫ ][
-               elim-F-ob CCᴰ ϕ (Q.Dom e) ,
-               elim-F-ob CCᴰ ϕ (Q.Cod e)
-               ])
-        where
-        elimLocal' : Section F Dᴰ
-        elimLocal' = GlobalSectionReindex→Section Dᴰ F (elim CCᴰ ϕ ψ)
+    (Dᴰ : CartesianCategoryⱽ D ℓDᴰ ℓDᴰ') where
+    private
+      module Dᴰ = Categoryᴰ (Dᴰ .fst)
+      F*Dᴰ-cartⱽ = CartReindex.reindex F Dᴰ
+      F*Dᴰ-cartᴰ =
+        CartesianCategoryⱽ→CartesianCategoryᴰ FreeCartesianCategory F*Dᴰ-cartⱽ
 
-    module _
-      (vt : VerticalTerminalAt Dᴰ (F ⟅ ⊤ ⟆))
-      (lift-π₁₂ : {c c' : Q.Ob}
-        (Fcᴰ : Categoryᴰ.ob[ Dᴰ ] (F ⟅ c ⟆))
-        (Fc'ᴰ : Categoryᴰ.ob[ Dᴰ ] (F ⟅ c' ⟆)) →
-        (CartesianOver Dᴰ Fcᴰ (F ⟪ π₁ ⟫) Σ.×
-        CartesianOver Dᴰ Fc'ᴰ (F ⟪ π₂ ⟫)))
-      (∧ : {c c' : Q.Ob}
-        (Fcᴰ : Categoryᴰ.ob[ Dᴰ ] (F ⟅ c ⟆))
-        (Fc'ᴰ : Categoryᴰ.ob[ Dᴰ ] (F ⟅ c' ⟆)) →
-        VerticalBinProductsAt Dᴰ
-          (lift-π₁₂ Fcᴰ Fc'ᴰ .fst .CartesianOver.f*cᴰ' ,
-          lift-π₁₂ Fcᴰ Fc'ᴰ .snd .CartesianOver.f*cᴰ'))
-      where
-      private
-        module Dᴰ = Categoryᴰ Dᴰ
-        lt : LiftedTerminal (reindex Dᴰ F)
-            (terminalToUniversalElement (FreeCartesianCategory .snd .fst))
-        lt = LiftedTerminalReindex vt
-        lbp : LiftedBinProducts (reindex Dᴰ F)
-            (BinProductsToBinProducts' _ (FreeCartesianCategory .snd .snd))
-        lbp = LiftedBinProductsReindex
-          (BinProductsToBinProducts' _ (FreeCartesianCategory .snd .snd))
-          lift-π₁₂ ∧
-        CCᴰ : CartesianCategoryᴰ _ ℓDᴰ ℓDᴰ'
-        CCᴰ = reindex Dᴰ F , (lt , lbp)
-      module _
-        (ϕ : (o : Q .fst) → Dᴰ.ob[ F ⟅ ↑ o ⟆ ])
-        (ψ : (e : Q .snd .mor) →
-          Dᴰ.Hom[ F ⟪ ↑ₑ e ⟫ ][
-            elim-F-ob CCᴰ ϕ (Q.Dom e) ,
-            elim-F-ob CCᴰ ϕ (Q.Cod e)
-          ]) where
-        elimLocal : Section F Dᴰ
-        elimLocal = elimLocal' lt lbp ϕ ψ
+    elimLocal : ∀ (ı : Interpᴰ F*Dᴰ-cartᴰ) → Section F (Dᴰ .fst)
+    elimLocal ı = GlobalSectionReindex→Section (Dᴰ .fst) F
+        (elim F*Dᴰ-cartᴰ ı)
 
-  module _ (CC : CartesianCategory ℓC ℓC')
-    (ϕ : (o : Q .fst) → CC .fst .ob)
-    where
-    ϕ* : Q.Ob → CC .fst .ob
-    ϕ* = elim-F-ob
-      (weaken |FreeCartesianCategory| (CC .fst) ,
-      termWeaken (terminalToUniversalElement (FreeCartesianCategory .snd .fst))
-        (terminalToUniversalElement (CC .snd .fst)) ,
-      binprodWeaken
-        (BinProductsToBinProducts' _ (FreeCartesianCategory .snd .snd))
-        (BinProductsToBinProducts' _ (CC .snd .snd)))
-      ϕ
-    module _ (ψ : (e : Q .snd .mor) →
-      CC .fst [
-        ϕ* (Q.Dom e) ,
-        ϕ* (Q.Cod e)
-      ])
-      where
-      -- TODO: rec preserves finite products
-      rec : Functor |FreeCartesianCategory| (CC .fst)
-      rec = introS⁻ (elim
-        ((weaken |FreeCartesianCategory| (CC .fst)) ,
-          termWeaken _ (terminalToUniversalElement (CC .snd .fst)) ,
-          binprodWeaken
-            (BinProductsToBinProducts' _ (FreeCartesianCategory .snd .snd))
-            (BinProductsToBinProducts' _ (CC .snd .snd)))
-        ϕ ψ)
+  module _ (C : CartesianCategory ℓC ℓC') where
+    private
+      wkC = weakenCartesianCategory FreeCartesianCategory C
+    -- TODO: rec preserves finite products, should follow from
+    -- properties of weaken/elim preserved displayed fin products
+    rec : (ı : Interpᴰ wkC) → Functor |FreeCartesianCategory| (C .fst)
+    rec ı = introS⁻ (elim wkC ı)
