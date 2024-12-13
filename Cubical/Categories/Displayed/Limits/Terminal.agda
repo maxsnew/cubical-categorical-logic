@@ -3,8 +3,10 @@ module Cubical.Categories.Displayed.Limits.Terminal where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Dependent
 
 open import Cubical.Data.Sigma
 open import Cubical.Data.Unit
@@ -31,6 +33,8 @@ private
 open Category
 open Categoryᴰ
 open Functorᴰ
+open Iso
+open isIsoOver
 
 module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') where
   private
@@ -43,76 +47,69 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') where
 
   -- Terminal object over a terminal object
   -- TODO: refactor using Constant Functorᴰ eventually
-  LiftedTerminalSpec : Presheafᴰ Cᴰ (TerminalPresheaf {C = C}) ℓ-zero
-  LiftedTerminalSpec = TerminalPresheafᴰ _
+  TerminalᴰSpec : Presheafᴰ Cᴰ (TerminalPresheaf {C = C}) ℓ-zero
+  TerminalᴰSpec = TerminalPresheafᴰ _
 
-  LiftedTerminal : (term : Terminal' C) →
+  Terminalᴰ : (term : Terminal' C) →
     Type (ℓ-max (ℓ-max (ℓ-max ℓC ℓC') ℓCᴰ) ℓCᴰ')
-  LiftedTerminal term = UniversalElementᴰ _ LiftedTerminalSpec term
+  Terminalᴰ term = UniversalElementᴰ _ TerminalᴰSpec term
 
-  module LiftedTerminalNotation {term' : Terminal' C}
-    (termᴰ : LiftedTerminal term') where
+  module TerminalᴰNotation {term' : Terminal' C}
+    (termᴰ : Terminalᴰ term') where
 
     open UniversalElement
     open UniversalElementᴰ
     open Terminal'Notation term'
-    private module R = HomᴰReasoning Cᴰ
 
     𝟙ᴰ : Cᴰ.ob[ 𝟙 ]
     𝟙ᴰ = termᴰ .vertexᴰ
 
     !tᴰ : ∀ {c} (d : Cᴰ.ob[ c ]) → Cᴰ.Hom[ !t ][ d , 𝟙ᴰ ]
-    !tᴰ {c} d = termᴰ .universalᴰ .equiv-proof tt .fst .fst
+    !tᴰ {c} d = introᴰ termᴰ tt tt
 
     𝟙ηᴰ : ∀ {c} {d : Cᴰ.ob[ c ]} {f} (fᴰ : Cᴰ.Hom[ f ][ d , 𝟙ᴰ ])
         → fᴰ Cᴰ.≡[ 𝟙η f ] !tᴰ d
-    𝟙ηᴰ {c} {d} {f} fᴰ = R.rectify (toPathP (sym fᴰ-commutes))
-      where contr!tᴰ = termᴰ .universalᴰ {c}{d}{ !t } .equiv-proof tt
-            fᴰ-commutes = cong fst (contr!tᴰ .snd (reind Cᴰ (𝟙η _) fᴰ , refl))
+    𝟙ηᴰ {c} {d} {f} fᴰ = ηᴰ termᴰ
 
   module _ (c : C .ob) where
-    -- Terminal object of the fiber of a fixed object
+    -- Vertical terminal object over a fixed object
 
-    -- TODO: Is this equivalent to the more "obvious" definition that
-    -- Fiber c have a terminal object?
-    -- No.
-    VerticalTerminalSpec : Presheafᴰ Cᴰ (C [-, c ]) ℓ-zero
-    VerticalTerminalSpec = TerminalPresheafᴰ _
+    -- If Cᴰ is a fibration, this is equivalent to a terminal object
+    -- in the fiber over c that is preserved by reindexing
+    TerminalⱽSpec : Presheafⱽ Cᴰ c ℓ-zero
+    TerminalⱽSpec = TerminalPresheafᴰ _
 
     -- This says that for every morphism f : c' → c in C and
     -- d ∈ Cᴰ.ob[ c' ] there is a unique lift to fᴰ : Cᴰ [ f ][ d' , 1c ]
     -- In program logic terms this is the "trivial postcondition"
-    VerticalTerminalAt : Type (ℓ-max (ℓ-max (ℓ-max ℓC ℓC') ℓCᴰ) ℓCᴰ')
-    VerticalTerminalAt =
-      UniversalElementᴰ Cᴰ VerticalTerminalSpec (selfUnivElt C c)
+    Terminalⱽ : Type (ℓ-max (ℓ-max (ℓ-max ℓC ℓC') ℓCᴰ) ℓCᴰ')
+    Terminalⱽ =
+      UniversalElementⱽ Cᴰ c TerminalⱽSpec
 
-    module VerticalTerminalAtNotation (vt : VerticalTerminalAt) where
-      open UniversalElementᴰ
-      1ᴰ : Cᴰ.ob[ c ]
-      1ᴰ = vt .vertexᴰ
+    module TerminalⱽNotation (vt : Terminalⱽ) where
+      open UniversalElementⱽ vt public
+      𝟙ⱽ : Cᴰ.ob[ c ]
+      𝟙ⱽ = vertexⱽ
 
-      !tᴰ : ∀ {c'}(f : C [ c' , c ]) (d' : Cᴰ.ob[ c' ]) → Cᴰ [ f ][ d' , 1ᴰ ]
-      !tᴰ f d' = invIsEq (vt .universalᴰ) tt
+      !tⱽ : ∀ {c'}(f : C [ c' , c ]) (d' : Cᴰ.ob[ c' ]) → Cᴰ [ f ][ d' , 𝟙ⱽ ]
+      !tⱽ f d' = introⱽ f tt
 
-      !tᴰ-unique : ∀ {c'}(f : C [ c' , c ]) (d' : Cᴰ.ob[ c' ]) →
-        isContr (Cᴰ [ f ][ d' , 1ᴰ ])
-      !tᴰ-unique f d' .fst = !tᴰ f d'
-      !tᴰ-unique f d' .snd fᴰ' =
-        cong (λ p → p .fst) (vt .universalᴰ .equiv-proof tt .snd (fᴰ' , refl))
-
-  VerticalTerminals : Type _
-  VerticalTerminals = ∀ c → VerticalTerminalAt c
+  hasAllTerminalⱽ : Type _
+  hasAllTerminalⱽ = ∀ c → Terminalⱽ c
 
   module _ {term : Terminal' C} where
     open Terminal'Notation term
     open UniversalElementᴰ
     open UniversalElement
+    open UniversalElementⱽ
+    private module R = HomᴰReasoning Cᴰ
 
-    -- the following definition cannot be η contracted
-    Vertical/𝟙→LiftedTerm : VerticalTerminalAt 𝟙 → LiftedTerminal term
-    Vertical/𝟙→LiftedTerm vta .vertexᴰ = vta .vertexᴰ
-    Vertical/𝟙→LiftedTerm vta .elementᴰ = vta .elementᴰ
-    Vertical/𝟙→LiftedTerm vta .universalᴰ = vta .universalᴰ
 
-    AllVertical→Vertical/𝟙 : VerticalTerminals → LiftedTerminal term
-    AllVertical→Vertical/𝟙 vtas = Vertical/𝟙→LiftedTerm (vtas _)
+    Terminalⱽ→Terminalᴰ : Terminalⱽ 𝟙 → Terminalᴰ term
+    Terminalⱽ→Terminalᴰ termⱽ .vertexᴰ = termⱽ .vertexⱽ
+    Terminalⱽ→Terminalᴰ termⱽ .elementᴰ = tt
+    Terminalⱽ→Terminalᴰ termⱽ .universalᴰ .inv _ = termⱽ .universalⱽ .fst
+    Terminalⱽ→Terminalᴰ termⱽ .universalᴰ .rightInv _ _ = refl
+    Terminalⱽ→Terminalᴰ termⱽ .universalᴰ .leftInv f fᴰ = R.rectify $ R.≡out $
+      (R.≡in $ λ i → TerminalⱽNotation.!tⱽ _ termⱽ (𝟙η f (~ i)) _)
+      ∙ (sym $ R.≡in $ ηⱽ termⱽ )
