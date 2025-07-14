@@ -4,6 +4,7 @@ module Cubical.Categories.Displayed.Limits.BinProduct.Base where
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Equiv.Dependent
+open import Cubical.Foundations.Function
 open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma
 
@@ -11,10 +12,15 @@ open import Cubical.Categories.Category.Base
 open import Cubical.Categories.Constructions.Fiber
 open import Cubical.Categories.Adjoint.UniversalElements
 open import Cubical.Categories.Limits.BinProduct.More
+open import Cubical.Categories.Presheaf.Representable
+
 open import Cubical.Categories.Displayed.Base
+open import Cubical.Categories.Displayed.Functor
+open import Cubical.Categories.Displayed.FunctorComprehension
 open import Cubical.Categories.Displayed.Adjoint.More
 open import Cubical.Categories.Displayed.Constructions.BinProduct.More
 open import Cubical.Categories.Displayed.Presheaf
+open import Cubical.Categories.Displayed.Profunctor
 import Cubical.Categories.Displayed.Reasoning as HomᴰReasoning
 
 private
@@ -22,12 +28,17 @@ private
     ℓC ℓC' ℓCᴰ ℓCᴰ' ℓD ℓD' ℓDᴰ ℓDᴰ' : Level
 
 open Category
+open UniversalElement
 open UniversalElementᴰ
 open UniversalElementⱽ
 open isIsoOver
 
 module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓD ℓD') where
-  private module Cᴰ = Categoryᴰ Cᴰ
+  private
+    module C = Category C
+    module Cᴰ = Categoryᴰ Cᴰ
+    module R = HomᴰReasoning Cᴰ
+
   BinProductᴰ : ∀ {c12} → BinProduct' C c12
               → (Cᴰ.ob[ c12 .fst ] × Cᴰ.ob[ c12 .snd ])
               → Type _
@@ -76,7 +87,7 @@ module hasAllBinProductᴰNotation
           → Cᴰ.Hom[ f₁ ][ d , d₁ ] → Cᴰ.Hom[ f₂ ][ d , d₂ ]
           → Cᴰ.Hom[ f₁ ,p f₂ ][ d , d₁ ×ᴰ d₂ ]
     _,pᴰ_{f₁ = f₁}{f₂ = f₂} f₁ᴰ f₂ᴰ =
-      introᴰ (bpᴰ (d₁ , d₂)) _ (f₁ᴰ , f₂ᴰ)
+      UniversalElementᴰNotation.introᴰ _ _ (bpᴰ (d₁ , d₂)) _ (f₁ᴰ , f₂ᴰ)
 
     module _ {f₁ : C [ c , c₁ ]}{f₂ : C [ c , c₂ ]}
              {f₁ᴰ : Cᴰ.Hom[ f₁ ][ d , d₁ ]}
@@ -86,16 +97,18 @@ module hasAllBinProductᴰNotation
       private
         ,pᴰ-isUniversalᴰ = bpᴰ (d₁ , d₂) .universalᴰ {xᴰ = d}
       ×β₁ᴰ : ((f₁ᴰ ,pᴰ f₂ᴰ) Cᴰ.⋆ᴰ π₁ᴰ) Cᴰ.≡[ ×β₁ ] f₁ᴰ
-      ×β₁ᴰ i = βᴰ (bpᴰ (d₁ , d₂)) {pᴰ = (f₁ᴰ , f₂ᴰ)} i .fst
+      ×β₁ᴰ i = UniversalElementᴰNotation.βᴰ _ _
+        (bpᴰ (d₁ , d₂)) {pᴰ = (f₁ᴰ , f₂ᴰ)} i .fst
 
       ×β₂ᴰ : ((f₁ᴰ ,pᴰ f₂ᴰ) Cᴰ.⋆ᴰ π₂ᴰ) Cᴰ.≡[ ×β₂ ] f₂ᴰ
-      ×β₂ᴰ i = βᴰ (bpᴰ (d₁ , d₂)) {pᴰ = (f₁ᴰ , f₂ᴰ)} i .snd
+      ×β₂ᴰ i = UniversalElementᴰNotation.βᴰ _ _
+        (bpᴰ (d₁ , d₂)) {pᴰ = (f₁ᴰ , f₂ᴰ)} i .snd
 
     module _ {f : C [ c , c₁ BP.× c₂ ]}
              {fᴰ : Cᴰ.Hom[ f ][ d , d₁ ×ᴰ d₂ ]}
            where
       ×ηᴰ : fᴰ Cᴰ.≡[ ×η ] ((fᴰ Cᴰ.⋆ᴰ π₁ᴰ) ,pᴰ (fᴰ Cᴰ.⋆ᴰ π₂ᴰ))
-      ×ηᴰ = ηᴰ (bpᴰ (d₁ , d₂))
+      ×ηᴰ = UniversalElementᴰNotation.ηᴰ _ _ (bpᴰ (d₁ , d₂))
 
 module _ {C  : Category ℓC ℓC'}{c : C .ob}{Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'} where
   private
@@ -137,3 +150,4 @@ module _ {C  : Category ℓC ℓC'}{c : C .ob}{Cᴰ : Categoryᴰ C ℓCᴰ ℓC
       ×ηⱽ : {fᴰ : Cᴰ.Hom[ f ][ xᴰ , vert ]}
         → fᴰ ≡ (seqᴰⱽ Cᴰ fᴰ π₁ ,ⱽ seqᴰⱽ Cᴰ fᴰ π₂)
       ×ηⱽ = vbp.ηⱽ
+
