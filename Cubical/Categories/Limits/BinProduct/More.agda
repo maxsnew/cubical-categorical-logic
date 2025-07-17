@@ -16,7 +16,7 @@ open import Cubical.Categories.NaturalTransformation
 open import Cubical.Categories.Functors.Constant
 open import Cubical.Categories.Functor
 open import Cubical.Categories.Profunctor.General
-open import Cubical.Categories.Profunctor.FunctorComprehension
+open import Cubical.Categories.FunctorComprehension
 open import Cubical.Categories.Isomorphism
 open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Limits.BinProduct
@@ -53,12 +53,22 @@ module _ (C : Category ℓ ℓ') where
     BadBinProductProf =
       (precomposeF _ (Δ C ^opF) ∘F YO) ∘F R.RedundantToProd C C
 
+    -- This definition is *almost* exactly the same as the next one,
+    -- except using ∘F YO ×F YO vs ∘Flr YO , YO. But it has the same
+    -- problem as the previous. That ∘F vs ∘Flr makes all the difference.
+    AlsoBadBinProductProf : Profunctor (C ⊗ C) C ℓ'
+    AlsoBadBinProductProf =
+      R.rec C C (ParFunctorToBifunctor (PshProd' ∘F (YO ×F YO)))
+
   BinProductProf : Profunctor (C ⊗ C) C ℓ'
-  BinProductProf = R.rec _ _ (PshProd ∘Flr (YO , YO))
+  BinProductProf = R.rec C C (PshProd ∘Flr (YO , YO))
 
   -- Product with a fixed object
   ProdWithAProf : C .ob → Profunctor C C ℓ'
-  ProdWithAProf a = BinProductProf ∘F R.ob-× C C a
+  ProdWithAProf a = appL PshProd (YO ⟅ a ⟆) ∘F YO
+
+  hasAllBinProductWith : C .ob → Type (ℓ-max ℓ ℓ')
+  hasAllBinProductWith a = UniversalElements (ProdWithAProf a)
 
   BinProductToRepresentable : ∀ {a b} → BinProduct C a b
     → UniversalElement C (BinProductProf ⟅ a , b ⟆)
@@ -122,6 +132,10 @@ module _ (C : Category ℓ ℓ') where
     variable
       a b c d : C .ob
       f g h : C [ a , b ]
+  module _ {a} (a×- : hasAllBinProductWith a) where
+    a×-F : Functor C C
+    a×-F = FunctorComprehension a×-
+
   module _ {a} (bp : ∀ b → BinProduct C a b) where
     BinProductWithToRepresentable : UniversalElements (ProdWithAProf a)
     BinProductWithToRepresentable b = BinProductToRepresentable (bp b)
@@ -131,9 +145,9 @@ module _ (C : Category ℓ ℓ') where
 
     -- test definitional behavior
     _ : ∀ {b b'}(f : C [ b , b' ]) →
-        BinProductWithF ⟪ f ⟫ ≡
-          bp b' .univProp (bp b .binProdPr₁)
-            (f ∘⟨ C ⟩ bp b .binProdPr₂) .fst .fst
+          BinProductWithF ⟪ f ⟫ ≡
+            bp b' .univProp (bp b .binProdPr₁)
+              (f ∘⟨ C ⟩ bp b .binProdPr₂) .fst .fst
     _ = λ f → refl
     module ProdsWithNotation where
       open UniversalElementNotation {C = C}
