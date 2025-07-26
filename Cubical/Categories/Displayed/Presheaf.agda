@@ -15,6 +15,7 @@ open import Cubical.Data.Sigma
 open import Cubical.Categories.Category hiding (isIso)
 open import Cubical.Categories.Functor
 open import Cubical.Categories.Instances.Sets
+open import Cubical.Categories.Constructions.Fiber
 open import Cubical.Categories.Presheaf
 open import Cubical.Categories.Presheaf.More
 open import Cubical.Categories.Presheaf.Representable
@@ -64,18 +65,13 @@ module PresheafᴰNotation {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓD 
   infix 2 _≡[_]_
 
   pob[_] : C.ob → Type ℓP
-  pob[ x ] = ⟨ P ⟅ x ⟆ ⟩
+  pob[ x ] = P.p[ x ]
 
   p[_][_] : ∀ {x} → P.p[ x ] → Cᴰ.ob[ x ] → Type ℓPᴰ
   p[ f ][ xᴰ ] = ⟨ Pᴰ .F-obᴰ xᴰ f ⟩
 
-  _⋆ᴰ_ : ∀ {x y xᴰ yᴰ}{f : C [ x , y ]}{g}
-     → Cᴰ [ f ][ xᴰ , yᴰ ] → p[ g ][ yᴰ ]
-     → p[ f P.⋆ g ][ xᴰ ]
-  fᴰ ⋆ᴰ gᴰ = Pᴰ .F-homᴰ fᴰ _ gᴰ
-
-  isSetPsh : ∀ {x} → isSet (P.p[ x ])
-  isSetPsh {x} = (P ⟅ x ⟆) .snd
+  isSetPshᴰ : ∀ {x}{p : P.p[ x ]}{xᴰ} → isSet p[ p ][ xᴰ ]
+  isSetPshᴰ {x} {p} {xᴰ} = Pᴰ .F-obᴰ xᴰ p .snd
 
   _≡[_]_ : ∀ {x xᴰ} {f g : P.p[ x ]} → p[ f ][ xᴰ ] → f ≡ g → p[ g ][ xᴰ ]
     → Type ℓPᴰ
@@ -86,11 +82,10 @@ module PresheafᴰNotation {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓD 
       → p[ f ][ xᴰ ] → p[ g ][ xᴰ ]
   reind = subst p[_][ _ ]
 
-  opaque
-    reind-filler : ∀ {x}{xᴰ}{f g : P.p[ x ]}(f≡g : f ≡ g)
-      → (fᴰ : p[ f ][ xᴰ ])
-      → fᴰ ≡[ f≡g ] reind f≡g fᴰ
-    reind-filler = subst-filler p[_][ _ ]
+  reind-filler : ∀ {x}{xᴰ}{f g : P.p[ x ]}(f≡g : f ≡ g)
+    → (fᴰ : p[ f ][ xᴰ ])
+    → (f , fᴰ) ≡ (g , reind f≡g fᴰ)
+  reind-filler f≡g fᴰ = ΣPathP (f≡g , (subst-filler p[_][ _ ] f≡g fᴰ))
 
   ≡in : {a : C.ob} {f g : P.p[ a ]}
         {aᴰ : Cᴰ.ob[ a ]}
@@ -114,9 +109,22 @@ module PresheafᴰNotation {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓD 
       {fᴰ : p[ f ][ aᴰ ]}
       {gᴰ : p[ g ][ aᴰ ]}
     → fᴰ ≡[ p ] gᴰ → fᴰ ≡[ p' ] gᴰ
-  rectify {fᴰ = fᴰ} {gᴰ = gᴰ} = subst (fᴰ ≡[_] gᴰ) (isSetPsh _ _ _ _)
+  rectify {fᴰ = fᴰ} {gᴰ = gᴰ} = subst (fᴰ ≡[_] gᴰ) (P.isSetPsh _ _ _ _)
 
   open PresheafNotation (∫P Pᴰ) public
+
+  _⋆ᴰ_ : ∀ {x y xᴰ yᴰ}{f : C [ x , y ]}{g}
+     → Cᴰ [ f ][ xᴰ , yᴰ ] → p[ g ][ yᴰ ]
+     → p[ f P.⋆ g ][ xᴰ ]
+  fᴰ ⋆ᴰ gᴰ = ((_ , fᴰ) ⋆ (_ , gᴰ)) .snd
+
+  ⋆Assocᴰ : ∀ {x y z} {f : C [ x , y ]} {g : C [ y , z ]}  {h : P.p[ z ]} {xᴰ yᴰ zᴰ}
+      (fᴰ : Cᴰ [ f ][ xᴰ , yᴰ ]) (gᴰ : Cᴰ [ g ][ yᴰ , zᴰ ]) (hᴰ : p[ h ][ zᴰ ])
+      → (fᴰ Cᴰ.⋆ᴰ gᴰ) ⋆ᴰ hᴰ ≡[ P.⋆Assoc f g h ] fᴰ ⋆ᴰ (gᴰ ⋆ᴰ hᴰ)
+  ⋆Assocᴰ fᴰ gᴰ hᴰ = rectify $ ≡out $ ⋆Assoc (_ , fᴰ) (_ , gᴰ) (_ , hᴰ)
+
+  ⋆IdLᴰ : ∀ {x} {f : P.p[ x ]} {xᴰ} (fᴰ : p[ f ][ xᴰ ]) → Cᴰ.idᴰ ⋆ᴰ fᴰ ≡[ P.⋆IdL f ] fᴰ
+  ⋆IdLᴰ fᴰ = rectify $ ≡out $ ⋆IdL (_ , fᴰ)
 
   _⋆ⱽᴰ_ : ∀ {x xᴰ xᴰ'}{g}
      → Cᴰ [ C.id {x} ][ xᴰ , xᴰ' ] → p[ g ][ xᴰ' ]
@@ -127,7 +135,7 @@ module PresheafᴰNotation {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓD 
     ⋆ⱽIdL : ∀ {x}{xᴰ : Cᴰ.ob[ x ]}{g}
       → (gᴰ : p[ g ][ xᴰ ])
       → Cᴰ.idᴰ ⋆ⱽᴰ gᴰ ≡ gᴰ
-    ⋆ⱽIdL gᴰ = rectify $ ≡out $ (sym $ ≡in $ reind-filler _ _) ∙ ⋆IdL _
+    ⋆ⱽIdL gᴰ = rectify $ ≡out $ (sym $ reind-filler _ _) ∙ ⋆IdL _
 
     -- TODO: ⋆ⱽAssoc but it relies on the definition _⋆ⱽ_ in the fiber
 
@@ -173,14 +181,22 @@ module _ {C : Category ℓC ℓC'} (D : Categoryᴰ C ℓD ℓD')
     private
       module P = PresheafNotation {C = C} P
 
+    module Pshᴰ = PresheafᴰNotation Pᴰ
     introᴰ : ∀ {x xᴰ} (p : ⟨ P ⟅ x ⟆ ⟩)
         → Pᴰ.p[ p ][ xᴰ ]
         → D [ intro p ][ xᴰ , vertexᴰ ]
     introᴰ p pᴰ = ∫ue.intro (p , pᴰ) .snd
 
-    -- introᴰ⟨_⟩ : ∀ {x xᴰ} (p : ⟨ P ⟅ x ⟆ ⟩)
-    --     → Pᴰ.p[ p ][ xᴰ ]
-    --     → D [ intro p ][ xᴰ , vertexᴰ ]
+    -- This is kind of useful as a way of doing congruence without
+    -- leaving the reasoning machine.
+    introᴰ⟨_⟩ : ∀ {x xᴰ} {p q : Pᴰ.pob[ x ]}
+        → {pᴰ : Pᴰ.p[ p ][ xᴰ ]}
+        → {qᴰ : Pᴰ.p[ q ][ xᴰ ]}
+        → (p , pᴰ) ≡ (q , qᴰ)
+        → (p , introᴰ p pᴰ) ≡ (q , introᴰ q qᴰ)
+    introᴰ⟨ pᴰ≡qᴰ ⟩ i =
+      _ , introᴰ _ (pᴰ≡qᴰ i .snd)
+
     opaque
       unfolding β
       βᴰ : ∀ {x xᴰ} {p : Pᴰ.pob[ x ] } {pᴰ : Pᴰ.p[ p ][ xᴰ ]}
@@ -221,7 +237,7 @@ module PresheafⱽNotation
   {c} {ℓPᴰ} (P : Presheafⱽ Cᴰ c ℓPᴰ) where
   private
     module C = Category C
-    module Cᴰ = Categoryᴰ Cᴰ
+    module Cᴰ = Fibers Cᴰ
     variable
       x y z : C.ob
       f g h : C [ x , y ]
@@ -238,11 +254,11 @@ module PresheafⱽNotation
       → p[ f ][ xᴰ ]
   fᴰ ⋆ᴰⱽ gⱽ = reind (C.⋆IdR _) (fᴰ ⋆ᴰ gⱽ)
 
-  opaque
-    ⋆ᴰid≡⋆ᴰⱽ : ∀ (fᴰ : Cᴰ [ f ][ xᴰ , cᴰ ]) (gⱽ : pⱽ[ cᴰ ])
-      → fᴰ ⋆ᴰ gⱽ ≡[ C.⋆IdR f ] fᴰ ⋆ᴰⱽ gⱽ
-    ⋆ᴰid≡⋆ᴰⱽ fᴰ gⱽ = reind-filler (C.⋆IdR _) (fᴰ ⋆ᴰ gⱽ)
+  ⋆ᴰid≡⋆ᴰⱽ : ∀ (fᴰ : Cᴰ [ f ][ xᴰ , cᴰ ]) (gⱽ : pⱽ[ cᴰ ])
+    → fᴰ ⋆ᴰ gⱽ ≡[ C.⋆IdR f ] fᴰ ⋆ᴰⱽ gⱽ
+  ⋆ᴰid≡⋆ᴰⱽ fᴰ gⱽ = λ i → reind-filler (C.⋆IdR _) (fᴰ ⋆ᴰ gⱽ) i .snd
 
+-- Remove?
 actⱽ : {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'}
           → {x : C .Category.ob} → {ℓP : Level}
   → (Pⱽ : Presheafⱽ Cᴰ x ℓP)
@@ -257,7 +273,7 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
          (x : C .Category.ob) (Pⱽ : Presheafⱽ Cᴰ x ℓPᴰ) where
   private
     module C = Category C
-    module Cᴰ = Categoryᴰ Cᴰ
+    module Cᴰ = Fibers Cᴰ
     module RCᴰ = Reasoning Cᴰ
     module Pⱽ = PresheafⱽNotation Pⱽ
 
@@ -288,9 +304,14 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
     open UniversalElementⱽ ueⱽ public
     open UniversalElementᴰNotation Cᴰ Pⱽ (UniversalElementⱽ.toUniversalᴰ ueⱽ)
       public
+    module Pshⱽ = PresheafⱽNotation Pⱽ
+    introⱽ : ∀ {xᴰ} → Pⱽ.p[ C.id ][ xᴰ ] → Cᴰ.v[ x ] [ xᴰ , vertexᴰ ]
+    introⱽ = introᴰ C.id
+
     βⱽ : ∀ {y yᴰ} {f : C [ y , x ]} {pᴰ : Pⱽ.p[ f ][ yᴰ ]}
       → introᴰ f pᴰ Pⱽ.⋆ᴰⱽ elementⱽ ≡ pᴰ
     βⱽ = universalⱽ .snd .fst _
+
 
     ηⱽ : ∀ {y yᴰ} {f : C [ y , x ]} {fᴰ : Cᴰ [ f ][ yᴰ , vertexⱽ ]}
       → fᴰ ≡ introᴰ f (fᴰ Pⱽ.⋆ᴰⱽ elementⱽ)
