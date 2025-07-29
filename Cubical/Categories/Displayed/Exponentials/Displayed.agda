@@ -1,8 +1,8 @@
 {-# OPTIONS --safe --lossy-unification #-}
 {-
-  Displayed Exponentials and, eventually, Vertical Exponentials
+  Displayed Exponentials
 -}
-module Cubical.Categories.Displayed.Exponentials where
+module Cubical.Categories.Displayed.Exponentials.Displayed where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Categories.Category
@@ -25,3 +25,5 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') where
     → (c⇒d : Exponential' C c d c×-)
     → Type _
   Exponentialᴰ cᴰ dᴰ cᴰ×ᴰ- c⇒d = RightAdjointAtᴰ (a×-Fᴰ Cᴰ cᴰ×ᴰ-) c⇒d dᴰ
+
+  -- TODO: ∫Exponentialᴰ
