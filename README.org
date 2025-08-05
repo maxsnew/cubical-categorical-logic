@@ -6,7 +6,7 @@ especially logical relations. Most of the library is intended to
 eventually be merged upstream after we have experience with the design
 here.
 
-You may click through an HTML version of this repository [here](https://maxsnew.com/cubical-categorical-logic/Cubical.Everything.html).
+You may click through an HTML version of this repository [[https://maxsnew.com/cubical-categorical-logic/Cubical.Everything.html][here]].
 
 [1]: https://github.com/agda/cubical
 
