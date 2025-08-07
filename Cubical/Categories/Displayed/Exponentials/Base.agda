@@ -30,6 +30,7 @@ open import Cubical.Categories.Displayed.Fibration.Base
 open import Cubical.Categories.Displayed.Fibration.Properties
 open import Cubical.Categories.Displayed.Presheaf
 open import Cubical.Categories.Displayed.Quantifiers
+import Cubical.Categories.Displayed.Reasoning as Reasoning
 
 private
   variable
@@ -133,20 +134,25 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') (bp :
 
         x : Exponentialᴰ Cᴰ cᴰ dᴰ (λ c' cᴰ' → bpᴰ (cᴰ' , cᴰ)) exp
         x .vertexᴰ = uq .vertexⱽ
-        x .elementᴰ = w
+        x .elementᴰ = y
           where
           weak : Cᴰ.ob[ c⇒d.vert × c ]
           weak = weakenⱽ bp isFib' .F-obᴰ (uq .vertexⱽ)
 
           weak→ : Cᴰ [ C.id ][ π₁*uq.f*yᴰ , weak ]
-          weak→ = {!!}
+          weak→ = {!uq .vertexⱽ!}
 
           -- Probably false
           -- weak≡ : weak ≡ π₁*uq.f*yᴰ
           -- weak≡ = {!!}
 
-          elt : Cᴰ [ _ ][ weak , π₂*cᴰ⇒app*dᴰ.vert ]
+          -- elt : Cᴰ [ {!F-hom (Cubical.Categories.Displayed.Quantifiers.bpF bp isFib')
+          --             (Category.id (C ×C C))!} ][ weak , π₂*cᴰ⇒app*dᴰ.vert ]
+          elt : Cᴰ [ BinProductF' _ bp .F-hom ((C ×C C) .Category.id) ][ weak , π₂*cᴰ⇒app*dᴰ.vert ]
           elt = uq .elementⱽ
+
+          elt' : Cᴰ [ C.id ][ weak , π₂*cᴰ⇒app*dᴰ.vert ]
+          elt' = Reasoning.reind Cᴰ (BinProductF' C bp .F-id) elt
 
 
           q : Cᴰ [ {!!} ][ π₁*uq.f*yᴰ , weak ]
@@ -155,19 +161,36 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') (bp :
 
 
           u : Cᴰ [ {!!} ][ π₁*uq.f*yᴰ , π₂*cᴰ⇒app*dᴰ.vert ]
-          u = q Cᴰ.⋆ᴰ elt
+          u = {!!}
             -- π₂*cᴰ⇒app*dᴰ.lda {!uq .elementⱽ!}
                 -- ({!!} ⋆⟨ Fibs.v[ c⇒d×c.vert ] ⟩ π₂*cᴰ⇒app*dᴰ.app)
+
+          -- u' : Cᴰ [ {!!} ][ π₁*uq.f*yᴰ bpⱽ.×ⱽ π₂*cᴰ.f*yᴰ , π₂*cᴰ⇒app*dᴰ.vert ]
+          -- u' = π₂*cᴰ⇒app*dᴰ.lda (bpⱽ.π₁ ⋆⟨ Fibs.v[ c⇒d×c.vert ] ⟩ {!!})
 
 
           z : Cᴰ [ {!!} C.⋆ C.id C.⋆ c⇒d.app ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
           z = ((bpⱽ.π₁ Cᴰ.⋆ᴰ u) ,ⱽ (bpⱽ.π₂ Cᴰ.⋆ᴰ {!!})) Cᴰ.⋆ᴰ π₂*cᴰ⇒app*dᴰ.app Cᴰ.⋆ᴰ app*dᴰ.π
 
+          -- z' : Cᴰ [ {!!} ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
+          -- z' = π₂*cᴰ⇒app*dᴰ.app' u' bpⱽ.π₂ Cᴰ.⋆ᴰ app*dᴰ.π
+
           y : Cᴰ [ c⇒d.app ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
           y = {!!}
 
-          w : Cᴰ [ c⇒d.app ][ {!weakenⱽ bp isFib' .F-obᴰ ?!} ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
-          w = {!!}
+          -- -- w : Cᴰ [ c⇒d.app ][ {!weakenⱽ bp isFib' .F-obᴰ ?!} ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
+          -- -----------------
+          -- uu : p[ {!!} ][ π₂*cᴰ⇒app*dᴰ.vert ]
+          -- uu = (bpᴰ.π₁ᴰ ,ⱽ {!bpᴰ.π₂ᴰ !}) Cᴰ.⋆ᴰ π₂*cᴰ⇒app*dᴰ.app Cᴰ.⋆ᴰ app*dᴰ.π
+
+          -- fᴰ : Cᴰ [ {!!} ][ uq .vertexⱽ , {!!} ]
+          -- fᴰ = {!!}
+
+          -- the-elt : p[ c⇒d.app ][ uq .vertexⱽ ]
+          -- the-elt =
+          --   reind
+          --     {!!}
+          --     ({!!} ⋆ᴰ {!!})
         x .universalᴰ = {!!}
 
 
