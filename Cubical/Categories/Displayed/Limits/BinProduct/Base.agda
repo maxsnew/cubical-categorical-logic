@@ -150,6 +150,16 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓD ℓD') where
           → fᴰ ≡ (fᴰ Cⱽ.⋆ᴰⱽ π₁ ,ⱽ fᴰ Cⱽ.⋆ᴰⱽ  π₂)
         ×ηⱽ = ηⱽ
 
+module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓD ℓD') where
+  private
+    module C = Category C
+    module Cᴰ = Categoryᴰ Cᴰ
+  module BinProductsⱽNotation (vbp : BinProductsⱽ Cᴰ) {c : C.ob} where
+    _×ⱽ_ : Cᴰ.ob[ c ] → Cᴰ.ob[ c ] → Cᴰ.ob[ c ]
+    cᴰ ×ⱽ cᴰ' = BinProductⱽNotation.vert Cᴰ (vbp c (cᴰ , cᴰ'))
+    module _ {cᴰ cᴰ' : Cᴰ.ob[ c ]} where
+      open BinProductⱽNotation Cᴰ (vbp c (cᴰ , cᴰ')) hiding (vert) public
+
 module _ {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓD ℓD'} where
   private
     module C = Category C
