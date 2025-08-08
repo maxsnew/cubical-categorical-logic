@@ -156,6 +156,16 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') (bp :
           -- However, I don't think I actually want a morphism here, rather
           -- the defintion of the universal quantifier should be augmented so that
           -- weakening is defintionally the same as π₁*
+          --
+          -- Alternatively, we could maybe change the binary product that this
+          -- exponential is defined wrt.
+          -- Instead of using BinProductⱽ→BinProductᴰ, which defines the displayed bp
+          -- of cᴰ and dᴰ as (π₁* cᴰ, π₂* dᴰ), we could change this construction to be
+          -- a new binary product structure (weakenⱽ cᴰ, π₂* dᴰ)
+          --
+          -- But this seems like a bad idea. We already have BinProductⱽ→BinProductᴰ, and
+          -- I'd prefer to leave that definition alone and then change the definition
+          -- of weakening
           weak→ : Cᴰ [ C.id ][ π₁*uq.f*yᴰ , weak ]
           weak→ = {!!}
 
