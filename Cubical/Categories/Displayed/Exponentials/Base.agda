@@ -11,16 +11,20 @@ module Cubical.Categories.Displayed.Exponentials.Base where
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
 open import Cubical.Foundations.Structure
+
 -- open import Cubical.Data.Sigma
+import Cubical.Data.Equality as Eq
 
 open import Cubical.Categories.Category
 open import Cubical.Categories.Functor
 open import Cubical.Categories.Exponentials
 open import Cubical.Categories.Constructions.Fiber
 open import Cubical.Categories.Constructions.BinProduct
+open import Cubical.Categories.Constructions.TotalCategory as TC
 open import Cubical.Categories.Limits.BinProduct.More
 open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.Functor
+open import Cubical.Categories.Displayed.Functor.More
 open import Cubical.Categories.Displayed.Adjoint.More
 open import Cubical.Categories.Displayed.Limits.BinProduct.Base
 open import Cubical.Categories.Displayed.Limits.BinProduct.Properties
@@ -30,6 +34,7 @@ open import Cubical.Categories.Displayed.Fibration.Base
 open import Cubical.Categories.Displayed.Fibration.Properties
 open import Cubical.Categories.Displayed.Presheaf
 open import Cubical.Categories.Displayed.Quantifiers
+open import Cubical.Categories.Displayed.Constructions.Reindex.Base as Reindex
 import Cubical.Categories.Displayed.Reasoning as Reasoning
 
 private
@@ -132,22 +137,31 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') (bp :
 
         module π₁*uq = CartesianLift (cartesianLifts (uq .vertexⱽ) c⇒d×c.π₁)
 
+        -- TODO name
         x : Exponentialᴰ Cᴰ cᴰ dᴰ (λ c' cᴰ' → bpᴰ (cᴰ' , cᴰ)) exp
         x .vertexᴰ = uq .vertexⱽ
         x .elementᴰ = y
           where
+          -- What actually is uq?
+          -- What is the effect of the choice of binary products bpᴰ?
+
+          _ : bpᴰ (uq .vertexⱽ , cᴰ) .vertexᴰ ≡ bpⱽ _ (π₁*uq.f*yᴰ , π₂*cᴰ.f*yᴰ) .vertexⱽ
+          _ = refl
+
           weak : Cᴰ.ob[ c⇒d.vert × c ]
           weak = weakenⱽ bp isFib' .F-obᴰ (uq .vertexⱽ)
 
+          -- As I'm attempting this proof, I need a map between the pullback by π₁
+          -- via CartesianLift and weak (which is defined using CartesianLift')
+          -- However, I don't think I actually want a morphism here, rather
+          -- the defintion of the universal quantifier should be augmented so that
+          -- weakening is defintionally the same as π₁*
           weak→ : Cᴰ [ C.id ][ π₁*uq.f*yᴰ , weak ]
-          weak→ = {!uq .vertexⱽ!}
+          weak→ = {!!}
 
-          -- Probably false
-          -- weak≡ : weak ≡ π₁*uq.f*yᴰ
-          -- weak≡ = {!!}
+          weak≡ : weak ≡ (CartesianLift'F Cᴰ isFib' ∘Fⱽᴰ (π₁Fᴰ bp isFib')) .F-obᴰ (uq .vertexⱽ)
+          weak≡ = refl
 
-          -- elt : Cᴰ [ {!F-hom (Cubical.Categories.Displayed.Quantifiers.bpF bp isFib')
-          --             (Category.id (C ×C C))!} ][ weak , π₂*cᴰ⇒app*dᴰ.vert ]
           elt : Cᴰ [ BinProductF' _ bp .F-hom ((C ×C C) .Category.id) ][ weak , π₂*cᴰ⇒app*dᴰ.vert ]
           elt = uq .elementⱽ
 
@@ -165,32 +179,11 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') (bp :
             -- π₂*cᴰ⇒app*dᴰ.lda {!uq .elementⱽ!}
                 -- ({!!} ⋆⟨ Fibs.v[ c⇒d×c.vert ] ⟩ π₂*cᴰ⇒app*dᴰ.app)
 
-          -- u' : Cᴰ [ {!!} ][ π₁*uq.f*yᴰ bpⱽ.×ⱽ π₂*cᴰ.f*yᴰ , π₂*cᴰ⇒app*dᴰ.vert ]
-          -- u' = π₂*cᴰ⇒app*dᴰ.lda (bpⱽ.π₁ ⋆⟨ Fibs.v[ c⇒d×c.vert ] ⟩ {!!})
-
-
           z : Cᴰ [ {!!} C.⋆ C.id C.⋆ c⇒d.app ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
           z = ((bpⱽ.π₁ Cᴰ.⋆ᴰ u) ,ⱽ (bpⱽ.π₂ Cᴰ.⋆ᴰ {!!})) Cᴰ.⋆ᴰ π₂*cᴰ⇒app*dᴰ.app Cᴰ.⋆ᴰ app*dᴰ.π
 
-          -- z' : Cᴰ [ {!!} ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
-          -- z' = π₂*cᴰ⇒app*dᴰ.app' u' bpⱽ.π₂ Cᴰ.⋆ᴰ app*dᴰ.π
-
           y : Cᴰ [ c⇒d.app ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
           y = {!!}
-
-          -- -- w : Cᴰ [ c⇒d.app ][ {!weakenⱽ bp isFib' .F-obᴰ ?!} ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
-          -- -----------------
-          -- uu : p[ {!!} ][ π₂*cᴰ⇒app*dᴰ.vert ]
-          -- uu = (bpᴰ.π₁ᴰ ,ⱽ {!bpᴰ.π₂ᴰ !}) Cᴰ.⋆ᴰ π₂*cᴰ⇒app*dᴰ.app Cᴰ.⋆ᴰ app*dᴰ.π
-
-          -- fᴰ : Cᴰ [ {!!} ][ uq .vertexⱽ , {!!} ]
-          -- fᴰ = {!!}
-
-          -- the-elt : p[ c⇒d.app ][ uq .vertexⱽ ]
-          -- the-elt =
-          --   reind
-          --     {!!}
-          --     ({!!} ⋆ᴰ {!!})
         x .universalᴰ = {!!}
 
 
