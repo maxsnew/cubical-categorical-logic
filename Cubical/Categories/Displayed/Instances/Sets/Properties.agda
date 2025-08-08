@@ -3,20 +3,33 @@ module Cubical.Categories.Displayed.Instances.Sets.Properties where
 
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
+open import Cubical.Foundations.Isomorphism
 open import Cubical.Functions.FunExtEquiv
 open import Cubical.Foundations.HLevels
 open import Cubical.Foundations.Equiv
 open import Cubical.Foundations.Equiv.Dependent
 open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Transport
 open import Cubical.Data.Sigma
 open import Cubical.Data.Sigma.Properties
 open import Cubical.Data.Unit
 
 open import Cubical.Categories.Category
+open import Cubical.Categories.Functor
+open import Cubical.Categories.Adjoint.UniversalElements
+open import Cubical.Categories.Limits.BinProduct.More
 open import Cubical.Categories.Instances.Sets
 open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Instances.Sets.Properties
+open import Cubical.Categories.Presheaf.Base
+open import Cubical.Categories.Presheaf.Constructions
+open import Cubical.Categories.Presheaf.More
+open import Cubical.Categories.Presheaf.Morphism.Alt
+open import Cubical.Categories.Presheaf.Representable
 open import Cubical.Categories.Displayed.Base
+open import Cubical.Categories.Exponentials
+
+open import Cubical.Categories.Constructions.Fiber
 
 open import Cubical.Categories.Displayed.Functor
 open import Cubical.Categories.Displayed.Fibration.Base
@@ -24,7 +37,9 @@ open import Cubical.Categories.Displayed.Instances.Sets.Base
 open import Cubical.Categories.Displayed.Presheaf
 open import Cubical.Categories.Displayed.Limits.Cartesian
 open import Cubical.Categories.Displayed.Limits.BinProduct
+open import Cubical.Categories.Displayed.Limits.BinProduct.Fiberwise
 open import Cubical.Categories.Displayed.Limits.Terminal
+open import Cubical.Categories.Displayed.Exponentials.Base
 
 
 private
@@ -36,6 +51,7 @@ open UniversalElementᴰ
 open UniversalElementⱽ
 open CartesianLift
 open Categoryᴰ
+open Category
 open isIsoOver
 
 isFibrationSETᴰ : isFibration (SETᴰ ℓ ℓ')
@@ -85,3 +101,49 @@ SETᴰCartesianCategoryⱽ ℓ ℓ' .CartesianCategoryⱽ.Cᴰ = SETᴰ ℓ ℓ'
 SETᴰCartesianCategoryⱽ ℓ ℓ' .CartesianCategoryⱽ.termⱽ = TerminalsⱽSETᴰ
 SETᴰCartesianCategoryⱽ ℓ ℓ' .CartesianCategoryⱽ.bpⱽ = BinProductsⱽSETᴰ
 SETᴰCartesianCategoryⱽ ℓ ℓ' .CartesianCategoryⱽ.cartesianLifts = isFibrationSETᴰ
+
+module _ {ℓ} {ℓ'} where
+  private
+    module SETᴰ = Fibers (SETᴰ ℓ ℓ')
+
+    bp : (A : SET ℓ .ob) → BinProducts SETᴰ.v[ A ]
+    bp A = BinProductsⱽ→BinProductsFibers (SETᴰ ℓ ℓ') BinProductsⱽSETᴰ
+
+    bpw : {A : SET ℓ .ob} → (Aᴰ : SETᴰ.ob[ A ]) → BinProductsWith SETᴰ.v[ A ] Aᴰ
+    bpw {A = A} Aᴰ Aᴰ' = bp A (Aᴰ' , Aᴰ)
+
+  open Functor
+  open UniversalElement
+  FiberExponentialSETᴰ : (A : SET ℓ .ob) → (Aᴰ Aᴰ' : SETᴰ.ob[ A ]) →
+    Exponential SETᴰ.v[ A ] Aᴰ Aᴰ' (bpw Aᴰ)
+  FiberExponentialSETᴰ A Aᴰ Aᴰ' .vertex a .fst = ⟨ Aᴰ a ⟩ → ⟨ Aᴰ' a ⟩
+  FiberExponentialSETᴰ A Aᴰ Aᴰ' .vertex a .snd = isSet→ (str (Aᴰ' a))
+  FiberExponentialSETᴰ A Aᴰ Aᴰ' .element a (f , aᴰ) = f aᴰ
+  FiberExponentialSETᴰ A Aᴰ Aᴰ' .universal Aᴰ'' =
+    isIsoToIsEquiv (
+      (λ f a aᴰ'' aᴰ → f a (aᴰ'' , aᴰ)) ,
+      (λ f → fromPathP
+        (λ i → transport-filler
+          (λ j → (a : ⟨ A ⟩) → ⟨ Aᴰ'' a ⟩ × ⟨ Aᴰ a ⟩ → ⟨ Aᴰ' a ⟩) f (~ i))),
+      (λ f  → fromPathP
+        (λ i → transport-filler
+          (λ j → (a : ⟨ A ⟩) → ⟨ Aᴰ'' a ⟩ → ⟨ Aᴰ a ⟩ → ⟨ Aᴰ' a ⟩) f (~ i))))
+
+  open Exponentialⱽ
+  open UniversalElementNotation
+  ExponentialsⱽSETᴰ : Exponentialsⱽ (SETᴰ ℓ ℓ') BinProductsⱽSETᴰ isFibrationSETᴰ
+  ExponentialsⱽSETᴰ {c = A} Aᴰ Aᴰ' .cᴰ⇒cᴰ' = FiberExponentialSETᴰ A Aᴰ Aᴰ'
+  ExponentialsⱽSETᴰ {c = A} Aᴰ Aᴰ' .reindex⇒ {b = B} f Bᴰ =
+    isIsoToIsEquiv (
+      (λ gᴰ b bᴰ faᴰ → gᴰ b (bᴰ , faᴰ)) ,
+      (λ gᴰ →
+        cong₂ (seq' SETᴰ.v[ B ]) refl (ExpB.⇒ue.β _ _)
+        ∙ ExpB.⇒ue.β _ _
+      ) ,
+      (λ gᴰ → funExt₃ λ b bᴰ faᴰ →
+        funExt⁻ (funExt⁻
+          (cong₂ (seq' SETᴰ.v[ B ]) refl (ExpB.⇒ue.β _ _) ∙ ExpB.⇒ue.β _ _)
+        b) (bᴰ , faᴰ))
+    )
+    where
+    module ExpB = ExponentialsNotation (bp B) (FiberExponentialSETᴰ B)
