@@ -11,6 +11,8 @@ module Cubical.Categories.Displayed.Exponentials.Base where
 open import Cubical.Foundations.Prelude
 open import Cubical.Foundations.Function
 open import Cubical.Foundations.Structure
+open import Cubical.Foundations.Equiv
+open import Cubical.Foundations.Equiv.Dependent
 
 -- open import Cubical.Data.Sigma
 import Cubical.Data.Equality as Eq
@@ -23,6 +25,7 @@ open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Constructions.TotalCategory as TC
 open import Cubical.Categories.Limits.BinProduct.More
 open import Cubical.Categories.Displayed.Base
+open import Cubical.Categories.Displayed.FunctorComprehension
 open import Cubical.Categories.Displayed.Functor
 open import Cubical.Categories.Displayed.Functor.More
 open import Cubical.Categories.Displayed.Adjoint.More
@@ -97,7 +100,7 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') (bp :
   module bp = BinProductsNotation bp
   open bp
   module bpⱽ = BinProductsⱽNotation Cᴰ bpⱽ
-  open bpⱽ
+  open bpⱽ hiding (introⱽ)
   module bpᴰ = BinProductsᴰNotation bpᴰ
   open CartesianLift
   open Functor
@@ -107,7 +110,7 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') (bp :
   open UniversalElementⱽ
 
   module _
-    {c d : C.ob}{p : Cᴰ.ob[ c × d ]}
+    {c d : C.ob}
     {cᴰ : Cᴰ.ob[ c ]} {dᴰ : Cᴰ.ob[ d ]}
     (exp : Exponential C c d (λ c' → bp (c' , c)))
     where
@@ -133,75 +136,37 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') (bp :
         where
 
         ExpPshᴰ = RightAdjointProfᴰ (BinProductWithFᴰ Cᴰ (λ c' → bp (c' , c)) (λ c' cᴰ' → bpᴰ (cᴰ' , cᴰ))) .F-obᴰ dᴰ
-        open PresheafᴰNotation ExpPshᴰ
+        module ExpPshᴰ = PresheafᴰNotation ExpPshᴰ
 
-        module π₁*uq = CartesianLift (cartesianLifts (uq .vertexⱽ) c⇒d×c.π₁)
+        π₁*uqCL = cartesianLifts (uq .vertexⱽ) c⇒d×c.π₁
+        module π₁*uq = CartesianLift π₁*uqCL
 
         -- TODO name
-        x : Exponentialᴰ Cᴰ cᴰ dᴰ (λ c' cᴰ' → bpᴰ (cᴰ' , cᴰ)) exp
-        x .vertexᴰ = uq .vertexⱽ
-        x .elementᴰ = y
+        Exponentialⱽ+UniversalQuanitier→Exponentialᴰ : Exponentialᴰ Cᴰ cᴰ dᴰ (λ c' cᴰ' → bpᴰ (cᴰ' , cᴰ)) exp
+        Exponentialⱽ+UniversalQuanitier→Exponentialᴰ .vertexᴰ = uq .vertexⱽ
+        Exponentialⱽ+UniversalQuanitier→Exponentialᴰ  .elementᴰ = the-elt
           where
-          -- What actually is uq?
-          -- What is the effect of the choice of binary products bpᴰ?
-
-          _ : bpᴰ (uq .vertexⱽ , cᴰ) .vertexᴰ ≡ bpⱽ _ (π₁*uq.f*yᴰ , π₂*cᴰ.f*yᴰ) .vertexⱽ
-          _ = refl
-
           weak : Cᴰ.ob[ c⇒d.vert × c ]
           weak = weakenⱽ bp isFib' .F-obᴰ (uq .vertexⱽ)
 
-          -- As I'm attempting this proof, I need a map between the pullback by π₁
-          -- via CartesianLift and weak (which is defined using CartesianLift')
-          -- However, I don't think I actually want a morphism here, rather
-          -- the defintion of the universal quantifier should be augmented so that
-          -- weakening is defintionally the same as π₁*
-          --
-          -- Alternatively, we could maybe change the binary product that this
-          -- exponential is defined wrt.
-          -- Instead of using BinProductⱽ→BinProductᴰ, which defines the displayed bp
-          -- of cᴰ and dᴰ as (π₁* cᴰ, π₂* dᴰ), we could change this construction to be
-          -- a new binary product structure (weakenⱽ cᴰ, π₂* dᴰ)
-          --
-          -- But this seems like a bad idea. We already have BinProductⱽ→BinProductᴰ, and
-          -- I'd prefer to leave that definition alone and then change the definition
-          -- of weakening
-          weak→ : Cᴰ [ C.id ][ π₁*uq.f*yᴰ , weak ]
-          weak→ = {!!}
+          weak≡ : weak ≡ π₁*uq.f*yᴰ
+          weak≡ = sym $ FunctorⱽComprehension-ob-filler _ _
 
-          weak≡ : weak ≡ (CartesianLift'F Cᴰ isFib' ∘Fⱽᴰ (π₁Fᴰ bp isFib')) .F-obᴰ (uq .vertexⱽ)
-          weak≡ = refl
+          f : Cᴰ [ C.id ][ π₁*uq.f*yᴰ , π₂*cᴰ⇒app*dᴰ.vert ]
+          f = subst (λ z → Cᴰ [ C.id ][ z , π₂*cᴰ⇒app*dᴰ.vert ]) weak≡
+                      (Reasoning.reind Cᴰ (BinProductF' C bp .F-id) (uq .elementⱽ))
 
-          elt : Cᴰ [ BinProductF' _ bp .F-hom ((C ×C C) .Category.id) ][ weak , π₂*cᴰ⇒app*dᴰ.vert ]
-          elt = uq .elementⱽ
+          g : Cᴰ [ (C.id C.⋆ _) C.⋆ C.id C.⋆ c⇒d.app ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
+          g = ((bpⱽ.π₁ Cᴰ.⋆ᴰ f) ,ⱽ (bpⱽ.π₂ Cᴰ.⋆ᴰ Cᴰ.idᴰ)) Cᴰ.⋆ᴰ π₂*cᴰ⇒app*dᴰ.app Cᴰ.⋆ᴰ app*dᴰ.π
 
-          elt' : Cᴰ [ C.id ][ weak , π₂*cᴰ⇒app*dᴰ.vert ]
-          elt' = Reasoning.reind Cᴰ (BinProductF' C bp .F-id) elt
-
-
-          q : Cᴰ [ {!!} ][ π₁*uq.f*yᴰ , weak ]
-          q = weak→
-            -- π₁*uq.π Cᴰ.⋆ᴰ {!!}
-
-
-          u : Cᴰ [ {!!} ][ π₁*uq.f*yᴰ , π₂*cᴰ⇒app*dᴰ.vert ]
-          u = {!!}
-            -- π₂*cᴰ⇒app*dᴰ.lda {!uq .elementⱽ!}
-                -- ({!!} ⋆⟨ Fibs.v[ c⇒d×c.vert ] ⟩ π₂*cᴰ⇒app*dᴰ.app)
-
-          z : Cᴰ [ {!!} C.⋆ C.id C.⋆ c⇒d.app ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
-          z = ((bpⱽ.π₁ Cᴰ.⋆ᴰ u) ,ⱽ (bpⱽ.π₂ Cᴰ.⋆ᴰ {!!})) Cᴰ.⋆ᴰ π₂*cᴰ⇒app*dᴰ.app Cᴰ.⋆ᴰ app*dᴰ.π
-
-          y : Cᴰ [ c⇒d.app ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
-          y = {!!}
-        x .universalᴰ = {!!}
-
-
--- module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')
---   (bp : BinProducts C)
---   (bpⱽ : BinProductsⱽ Cᴰ) (cartesianLifts : isFibration Cᴰ)
---   (expⱽ : Exponentialsⱽ Cᴰ bpⱽ cartesianLifts)
---   (∀s : UniversalQuantifiers bp (isFibration→isFibration' cartesianLifts))
---   where
-
---   Exponentialⱽ+UniversalQuantifier→Exponentialᴰ : Exponentialᴰ Cᴰ ? ?
+          the-elt : Cᴰ [ c⇒d.app ][ π₁*uq.f*yᴰ ×ⱽ π₂*cᴰ.f*yᴰ , dᴰ ]
+          the-elt =
+            Reasoning.reind Cᴰ
+              ((λ i → C.⋆IdL C.id i C.⋆ C.id C.⋆ c⇒d.app)
+              ∙ C.⋆IdL _
+              ∙ C.⋆IdL _)
+              g
+        Exponentialⱽ+UniversalQuanitier→Exponentialᴰ .universalᴰ .isIsoOver.inv f x =
+          {!uq .universalⱽ .fst !}
+        Exponentialⱽ+UniversalQuanitier→Exponentialᴰ .universalᴰ .isIsoOver.rightInv = {!!}
+        Exponentialⱽ+UniversalQuanitier→Exponentialᴰ .universalᴰ .isIsoOver.leftInv = {!!}
