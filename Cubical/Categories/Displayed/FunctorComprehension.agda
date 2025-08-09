@@ -59,11 +59,30 @@ module _ {C : Category ℓC ℓC'}
          {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'} {Dᴰ : Categoryᴰ C ℓDᴰ ℓDᴰ'}
          {Pᴰ : Profunctorⱽ Cᴰ Dᴰ ℓSᴰ}
          (uesⱽ : UniversalElementsⱽ Pᴰ) where
+
+  private
+    module Cᴰ = Categoryᴰ Cᴰ
+    module Dᴰ = Categoryᴰ Dᴰ
+
+    F : Functor C C
+    F = FunctorComprehension YO (selfUnivElt C)
+
+    F≡ : F ≡ Id
+    F≡ = Functor≡ (λ _ → refl) (Category.⋆IdL C)
+
+    Fᴰ : Functorᴰ (FunctorComprehension YO (selfUnivElt C)) Cᴰ Dᴰ
+    Fᴰ = FunctorᴰComprehension Pᴰ λ x xᴰ → UniversalElementⱽ.toUniversalᴰ (uesⱽ x xᴰ)
+
   -- WARNING: reindF
   -- The reind is only needed on morphisms. Would probably be
   -- preferable to have a reindF'' that is Eq on objects but path on
   -- morphisms
   FunctorⱽComprehension : Functorⱽ Cᴰ Dᴰ
-  FunctorⱽComprehension = reindF (Functor≡ (λ _ → refl) (Category.⋆IdL C)) $
-    FunctorᴰComprehension Pᴰ λ x xᴰ →
-      UniversalElementⱽ.toUniversalᴰ (uesⱽ x xᴰ)
+  FunctorⱽComprehension = reindF F≡ Fᴰ
+
+  FunctorⱽComprehension-ob-filler :
+    ∀ {c} (cᴰ : Cᴰ.ob[ c ]) →
+    PathP (λ i → Dᴰ.ob[ F≡ i .Functor.F-ob c ])
+      (Fᴰ .Functorᴰ.F-obᴰ cᴰ)
+      (FunctorⱽComprehension .Functorᴰ.F-obᴰ cᴰ)
+  FunctorⱽComprehension-ob-filler = reindF-ob-filler F≡ Fᴰ

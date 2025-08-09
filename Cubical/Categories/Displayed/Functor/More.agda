@@ -24,15 +24,34 @@ module _
   where
   open Functor
   open Functorᴰ
-  -- Only use this if H is not refl on ob/hom, otherwise use reindF' below
-  reindF : ∀ {G}(H : F ≡ G) → Functorᴰ F Cᴰ Dᴰ → Functorᴰ G Cᴰ Dᴰ
-  reindF H = subst (λ F → Functorᴰ F Cᴰ Dᴰ) H
 
   private
     module C = Category C
     module D = Category D
     module Cᴰ = Categoryᴰ Cᴰ
     module Dᴰ = Categoryᴰ Dᴰ
+
+  -- Only use this if H is not refl on ob/hom, otherwise use reindF' below
+  reindF : ∀ {G}(H : F ≡ G) → Functorᴰ F Cᴰ Dᴰ → Functorᴰ G Cᴰ Dᴰ
+  reindF H = subst (λ F → Functorᴰ F Cᴰ Dᴰ) H
+
+  module _ {G}(H : F ≡ G)(Fᴰ : Functorᴰ F Cᴰ Dᴰ) where
+    reindF-filler : PathP (λ i → Functorᴰ (H i) Cᴰ Dᴰ) Fᴰ (reindF H Fᴰ)
+    reindF-filler = subst-filler (λ F → Functorᴰ F Cᴰ Dᴰ) H Fᴰ
+
+    reindF-ob-filler : ∀ {c} (cᴰ : Cᴰ.ob[ c ]) →
+      PathP (λ i → Dᴰ.ob[ H i .F-ob c ]) (Fᴰ .F-obᴰ cᴰ) (reindF H Fᴰ .F-obᴰ cᴰ)
+    reindF-ob-filler cᴰ i = reindF-filler i .F-obᴰ cᴰ
+
+    reindF-hom-filler : ∀ {c d}{cᴰ : Cᴰ.ob[ c ]}{dᴰ : Cᴰ.ob[ d ]} {f}
+      (fᴰ : Cᴰ.Hom[ f ][ cᴰ , dᴰ ]) →
+      PathP
+        (λ i → Dᴰ.Hom[ H i .F-hom f ][ reindF-ob-filler cᴰ i , reindF-ob-filler dᴰ i ])
+        (Fᴰ .F-homᴰ fᴰ)
+        (reindF H Fᴰ .F-homᴰ fᴰ)
+    reindF-hom-filler fᴰ i = reindF-filler i .F-homᴰ fᴰ
+
+  private
     module R = HomᴰReasoning Dᴰ
 
     GF-ob-ty = Eq.singl (F .F-ob)
