@@ -27,6 +27,7 @@ open Functor
 private
   variable
     ℓ ℓ' ℓS ℓS' : Level
+    ℓD ℓD' : Level
 
 PshIso : (C : Category ℓ ℓ')
          (P : Presheaf C ℓS)
@@ -160,7 +161,6 @@ module UniversalElementNotation {ℓo}{ℓh}
       ∙ cong (action C P _) β)
       ∙ sym β)
 
-
 -- Natural transformation between presheaves of different levels
 module _ {C : Category ℓ ℓ'}(P : Presheaf C ℓS)(Q : Presheaf C ℓS') where
   private
@@ -184,4 +184,3 @@ module _ {C : Category ℓ ℓ'}{P : Presheaf C ℓS}{Q : Presheaf C ℓS'} wher
   makePshHomPath : ∀ {α β : PshHom P Q} → α .fst ≡ β .fst
    → α ≡ β
   makePshHomPath = ΣPathPProp (isPropN-hom P Q)
-
