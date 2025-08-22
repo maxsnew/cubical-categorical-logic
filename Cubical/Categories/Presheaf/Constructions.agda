@@ -23,7 +23,7 @@ open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.Functor
 open import Cubical.Categories.Displayed.Instances.Sets.Base
 open import Cubical.Categories.Displayed.Instances.Terminal.Base
-open import Cubical.Categories.Displayed.Presheaf
+open import Cubical.Categories.Displayed.Presheaf.Base
 
 private
   variable
@@ -39,6 +39,18 @@ module _ {C : Category ℓ ℓ'} {ℓA ℓB : Level} where
   PshProd : Bifunctor (PresheafCategory C ℓA) (PresheafCategory C ℓB)
                       (PresheafCategory C (ℓ-max ℓA ℓB))
   PshProd = ParFunctorToBifunctor PshProd'
+
+  _×Psh_ : Presheaf C ℓA → Presheaf C ℓB → Presheaf C _
+  P ×Psh Q = PshProd ⟅ P , Q ⟆b
+
+  module _ (P : Presheaf C ℓA)(Q : Presheaf C ℓB)where
+    π₁ : PshHom (P ×Psh Q) P
+    π₁ .fst _ = fst
+    π₁ .snd _ _ _ _ = refl
+
+    π₂ : PshHom (P ×Psh Q) Q
+    π₂ .fst _ = snd
+    π₂ .snd _ _ _ _ = refl
 
   open Functor
   open Functorᴰ

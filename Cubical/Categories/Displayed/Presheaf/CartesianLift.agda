@@ -40,10 +40,10 @@ module _ {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'}
          where
   private
     module Cᴰ = Fibers Cᴰ
-  record CartesianLift {x : C .ob} (p : ⟨ P ⟅ x ⟆ ⟩) (Pᴰ : Presheafᴰ P Cᴰ ℓPᴰ) : Type
+    module P = PresheafNotation P
+  record CartesianLift {x : C .ob} (p : P.p[ x ]) (Pᴰ : Presheafᴰ P Cᴰ ℓPᴰ) : Type
     (ℓ-max (ℓ-max ℓC ℓC') (ℓ-max (ℓ-max ℓCᴰ ℓCᴰ') ℓPᴰ)) where
     private
-      module P = PresheafNotation P
       module Pᴰ = PresheafᴰNotation Pᴰ
     field
       p*Pᴰ : Cᴰ.ob[ x ]
@@ -101,6 +101,34 @@ module _ {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'}
         intro⟨ refl ⟩⟨ gp≡gπ ⟩
         ∙ (Cᴰ.≡in (isCartesian .snd .snd _))
 
+  -- Hypothesis:
+  -- - By Yoneda, an element p : P.p[ x ] is equivalent to a α : PshHom (C [-, x ]) P
+  -- - CartesianLift is a vertical universal element over reind α Pᴰ
+  CartesianLift' : ∀ {x} (p : P.p[ x ]) (Pᴰ : Presheafᴰ P Cᴰ ℓPᴰ) → Type _
+  CartesianLift' p Pᴰ = UniversalElementⱽ Cᴰ _ (reindYo p Pᴰ)
+
+  module _ {x} (p : P.p[ x ]) (Pᴰ : Presheafᴰ P Cᴰ ℓPᴰ) (cL : CartesianLift p Pᴰ) where
+    private
+      module Pᴰ = PresheafᴰNotation Pᴰ
+      module cL = CartesianLift cL
+      module p*Pᴰ = PresheafⱽNotation (reindYo p Pᴰ)
+    open UniversalElementⱽ
+    CartesianLift→CartesianLift' : CartesianLift' p Pᴰ
+    CartesianLift→CartesianLift' .vertexⱽ = cL.p*Pᴰ
+    CartesianLift→CartesianLift' .elementⱽ = Cᴰ.idᴰ Pᴰ.⋆ᴰ cL.π
+    CartesianLift→CartesianLift' .universalⱽ .fst = cL.isCartesian .fst
+    CartesianLift→CartesianLift' .universalⱽ {y} {yᴰ} {f} .snd =
+      subst
+        motive
+        (funExt (λ fᴰ → Pᴰ.rectify $ Pᴰ.≡out $
+          Pᴰ.⟨⟩⋆⟨ sym $ Pᴰ.⋆IdL _ ⟩ ∙ Pᴰ.reind-filler _ _ ∙ Pᴰ.reind-filler _ _))
+        (cL.isCartesian .snd)
+      where
+        motive : (Cᴰ [ f ][ yᴰ , cL.p*Pᴰ ] → Pᴰ.p[ f P.⋆ p ][ yᴰ ]) → Type _
+        motive introⱽ = section introⱽ (cL.isCartesian .fst) × retract introⱽ (cL.isCartesian .fst)
+
+  -- TODO: make this functorial
+  -- i.e. an input displayed category over C whose objects are Σ[ c ] P.p[ c ] × Pᴰ
 
 open CartesianLift
 module _ {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'}
@@ -109,6 +137,7 @@ module _ {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'}
   private
     module P = PresheafNotation P
   isFibration = ∀ {x} (p : P.p[ x ]) → CartesianLift p Pᴰ
+  isFibration' = ∀ {x} (p : P.p[ x ]) → CartesianLift' p Pᴰ
 
   module isFibrationNotation (isFibPᴰ : isFibration) where
     module _ {x} (p : P.p[ x ]) where
@@ -143,6 +172,15 @@ module _ {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'}
                         ; isCartesian = z .CartesianLift.isCartesian
                         }
 
+  YoLift'→CatLift' : ∀ {x y yᴰ}{f : C [ x , y ]}
+    → CartesianLift' f (Cᴰ [-][-, yᴰ ])
+    → Fibration.CartesianLift' Cᴰ yᴰ f
+  YoLift'→CatLift' = λ x → record
+    { vertexⱽ = x .UniversalElementⱽ.vertexⱽ
+    ; elementⱽ = x .UniversalElementⱽ.elementⱽ
+    ; universalⱽ = x .UniversalElementⱽ.universalⱽ
+    }
+
   YoFibrations : Type _
   YoFibrations = ∀ {y} (yᴰ : Cᴰ.ob[ y ]) → isFibration (Cᴰ [-][-, yᴰ ])
 
@@ -151,6 +189,12 @@ module _ {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'}
 
   YoFibrations→isCatFibration : YoFibrations → Fibration.isFibration Cᴰ
   YoFibrations→isCatFibration YoLifts cᴰ' f = YoLift→CatLift $ YoLifts cᴰ' f
+
+module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') where
+  private
+    module Cᴰ = Categoryᴰ Cᴰ
+  isCatFibration' : Type _
+  isCatFibration' = ∀ {x} (xᴰ : Cᴰ.ob[ x ]) → isFibration' (Cᴰ [-][-, xᴰ ])
 
 module _ {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'}
          {P : Presheaf C ℓP} {Q : Presheaf C ℓQ}
@@ -215,3 +259,20 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} {Dᴰ : Categoryᴰ
       yF yᴰ p .p*Pᴰ = yF' yᴰ p .p*Pᴰ
       yF yᴰ p .π = yF' yᴰ p .π
       yF yᴰ p .isCartesian = yF' yᴰ p .isCartesian
+
+-- If we use CartesianLift' and we don't worry about definitional
+-- behavior being too nice, this can become very simple and conceptual
+
+-- For example, in the following, we want to show that
+-- isFib Qᴰ ⇒ isFib (reind α Qᴰ)
+--
+-- isFib Qᴰ means all reindYo q Qᴰ are representable.
+-- isFib (reind α Qᴰ) means that all reindYo p (reind α Qᴰ).
+-- but reindYo p (reind α Qᴰ) ≡ reindYo (α p) Qᴰ.
+module _ {C : Category ℓC ℓC'} {Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ'}
+         {P : Presheaf C ℓP} {Q : Presheaf C ℓQ}
+         (Qᴰ : Presheafᴰ Q Cᴰ ℓQᴰ) (α : PshHom P Q)
+         (isFibQᴰ : isFibration' Qᴰ)
+         where
+  isFibration'Reind : isFibration' (reind {P = P} α Qᴰ)
+  isFibration'Reind p = isFibQᴰ (α .fst _ p) ◃PshIsoⱽ invPshIsoⱽ (reindYo-seqIsoⱽ α Qᴰ p)
